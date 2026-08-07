@@ -1,0 +1,10 @@
+<odoo>
+<data noupdate="1">
+
+    <record id="param_manual_invoice_point_of_sale" model="ir.config_parameter">
+        <field name="key">werlen_repuestos_erp.param_manual_invoice_point_of_sale</field>
+        <field name="value">0020-</field>
+    </record>
+
+</data>
+</odoo>

@@ -1,0 +1,22 @@
+<odoo>
+<data noupdate="1">
+    
+    <record id="point_of_sale_counter" model="point_of_sale">
+        <field name="name">Mostrador</field>
+    </record>
+
+    <record id="point_of_sale_whatsapp" model="point_of_sale">
+        <field name="name">WhatsApp</field>
+        <field name="cellphone_required">True</field>
+    </record>
+
+    <record id="point_of_sale_mercadolibre" model="point_of_sale">
+        <field name="name">MercadoLibre</field>
+    </record>
+
+    <record id="point_of_sale_mail" model="point_of_sale">
+        <field name="name">Mail</field>
+    </record>
+        
+</data>
+</odoo>

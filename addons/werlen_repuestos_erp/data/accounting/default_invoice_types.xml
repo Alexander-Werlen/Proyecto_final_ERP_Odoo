@@ -1,0 +1,29 @@
+<odoo>
+<data noupdate="1">
+
+    <record id="invoice_type_fca" model="invoice_type">
+        <field name="invoice_type_id">FC-A</field>
+    </record>
+    <record id="invoice_type_fcb" model="invoice_type">
+        <field name="invoice_type_id">FC-B</field>
+    </record>
+    <record id="invoice_type_fcc" model="invoice_type">
+        <field name="invoice_type_id">FC-C</field>
+    </record>
+
+    <record id="invoice_type_nca" model="invoice_type">
+        <field name="invoice_type_id">NC-A</field>
+    </record>
+    <record id="invoice_type_ncb" model="invoice_type">
+        <field name="invoice_type_id">NC-B</field>
+    </record>
+
+    <record id="invoice_type_rca" model="invoice_type">
+        <field name="invoice_type_id">RC-A</field>
+    </record>
+    <record id="invoice_type_rcb" model="invoice_type">
+        <field name="invoice_type_id">RC-B</field>
+    </record>
+
+</data>
+</odoo>

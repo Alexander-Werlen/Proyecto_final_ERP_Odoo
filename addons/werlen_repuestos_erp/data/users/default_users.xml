@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="user_system_werlen" model="res.users">
+        <field name="name">Sistema</field>
+        <field name="login">sistema</field>
+        <field name="active">True</field>
+
+        <!-- Evita acceso interactivo -->
+        <field name="password">CtYjT6V7zkgkLgnThGoU</field>
+
+        <!-- Empresa -->
+        <field name="company_id" ref="base.main_company"/>
+        <field name="company_ids" eval="[(4, ref('base.main_company'))]"/>
+
+        <!-- Grupos -->
+        <field name="groups_id" eval="[
+            (4, ref('werlen_repuestos_erp.group_system')),
+            (4, ref('base.group_user'))
+        ]"/>
+    </record>
+
+    <record id="channel_sync_alerts" model="discuss.channel">
+        <field name="name">Alertas de sincronización</field>
+        <field name="channel_type">channel</field>
+    </record>
+
+</odoo>

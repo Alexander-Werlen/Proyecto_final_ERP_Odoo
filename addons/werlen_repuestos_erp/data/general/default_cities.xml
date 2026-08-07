@@ -1,0 +1,17 @@
+<odoo>
+<data noupdate="1">
+    
+    <record id="city_santo_tome" model="city">
+        <field name="name">SANTO TOME</field>
+        <field name="zip_code">3016</field>
+        <field name="state_id" ref="base.state_ar_s"/>
+    </record>
+
+    <record id="city_santa_fe" model="city">
+        <field name="name">SANTA FE</field>
+        <field name="zip_code">3000</field>
+        <field name="state_id" ref="base.state_ar_s"/>
+    </record>
+    
+</data>
+</odoo>
