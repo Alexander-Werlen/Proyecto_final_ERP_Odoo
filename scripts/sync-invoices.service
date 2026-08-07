@@ -1,0 +1,15 @@
+[Unit]
+Description=Sync invoices from external SMB server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/dir_path_change_me
+Environment="PYTHONUNBUFFERED=1"
+ExecStart=/usr/bin/python3 /dir_path_change_me/scripts/sync_invoices.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
