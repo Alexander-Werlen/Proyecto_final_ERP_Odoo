@@ -13,9 +13,17 @@
         'data/general/default_cities.xml',
         'data/general/default_contacts.xml',
         'data/users/default_users.xml',
+        'data/logistics_sales/server_action_skip_logistical_tracking.xml',
         'data/parameters/param_manual_invoice_point_of_sale.xml',
         'data/parameters/param_max_hours_passed_to_allow_undo_preparation_status.xml',
         'data/parameters/param_max_hours_passed_to_allow_undo_hand_out.xml',
+        'views/accounting/invoice_out_form_view.xml',
+        'views/accounting/default_invoice_out_list_view.xml',
+        'views/accounting/wizards/invoice_out_create_wizard_view.xml',
+        'views/logistics_sales/sale_fulfillment_order_form_view.xml',
+        'views/logistics_sales/seller_sale_fulfillment_order_list_view.xml',
+        'views/logistics_sales/wizard_fulfillment_order_verification.xml',
+        'views/menu/menu_selectors.xml',
     ],
     'application': True
 }

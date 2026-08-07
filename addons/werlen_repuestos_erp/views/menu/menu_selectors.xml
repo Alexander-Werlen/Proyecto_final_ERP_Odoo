@@ -1,0 +1,82 @@
+<odoo>
+<data>
+    <!-- Actions -->
+    <record id="action_invoice_out_create_wizard" model="ir.actions.act_window">
+        <field name="name">Create New</field>
+        <field name="res_model">invoice_out_create_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="action_open_invoices_out" model="ir.actions.act_window">
+        <field name="name">Outgoing Invoices</field>
+        <field name="res_model">invoice_out</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('werlen_repuestos_erp.default_invoice_out_list_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('werlen_repuestos_erp.invoice_out_form_view')})
+        ]"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.default_invoice_out_search_view"/>
+    </record>
+
+    <record id="action_open_seller_sale_fulfillment_order" model="ir.actions.act_window">
+        <field name="name">Sales</field>
+        <field name="res_model">sale_fulfillment_order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.seller_sale_fulfillment_order_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.seller_sale_fulfillment_order_search_view"/>
+    </record>
+
+    <record id="action_open_relevant_seller_sale_fulfillment_order" model="ir.actions.act_window">
+        <field name="name">Sales (Relevant)</field>
+        <field name="res_model">sale_fulfillment_order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.seller_sale_fulfillment_order_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.seller_sale_fulfillment_order_search_view"/>
+        <field name="domain">[
+            ('seller_user_id', '=', uid),
+            ('logistical_status', '!=', 'sent'),
+            '|',
+                ('logistical_status', '!=', 'avoid_tracking'),
+                '&amp;',
+                    ('logistical_status', '=', 'avoid_tracking'),
+                    ('payment_status', 'not in', ['paid', 'account'])
+        ]</field>
+    </record>
+
+    <record id="action_open_issued_by_self_seller_sale_fulfillment_order" model="ir.actions.act_window">
+        <field name="name">My Sales</field>
+        <field name="res_model">sale_fulfillment_order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.seller_sale_fulfillment_order_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.seller_sale_fulfillment_order_search_view"/>
+        <field name="domain">[
+            ('seller_user_id', '=', uid)
+        ]</field>
+    </record>
+
+    <!-- Root Menus -->
+    <menuitem id="menu_accounting" name="Accounting" sequence="2"
+    groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"
+    />
+
+    <menuitem id="menu_fulfillment" name="Operations" sequence="1"/>
+
+    <!-- Accounting Menu -->
+    <menuitem id="menu_accounting_invoice_out" name="Outgoing Invoices" parent="menu_accounting" sequence="1"/>
+    <menuitem id="menu_accounting_invoice_out_all" name="View All" parent="menu_accounting_invoice_out" action="action_open_invoices_out" sequence="1"/>
+    <menuitem id="menu_accounting_invoice_out_create_new" name="Create New" parent="menu_accounting_invoice_out" action="action_invoice_out_create_wizard" sequence="2"/>
+
+    <!-- Operations Menu -->
+    <menuitem id="menu_fulfillment_sales" name="Sales" parent="menu_fulfillment" sequence="1"
+    groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"
+    />
+    <menuitem id="menu_fulfillment_sales_relevant" name="Relevant" parent="menu_fulfillment_sales" action="action_open_relevant_seller_sale_fulfillment_order" sequence="2"/>
+    <menuitem id="menu_fulfillment_sales_issued_by_self" name="My Sales" parent="menu_fulfillment_sales" action="action_open_issued_by_self_seller_sale_fulfillment_order" sequence="3"/>
+    <menuitem id="menu_fulfillment_sales_all" name="All" parent="menu_fulfillment_sales" action="action_open_seller_sale_fulfillment_order" sequence="4"
+    groups="werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"
+    />
+
+</data>
+</odoo>

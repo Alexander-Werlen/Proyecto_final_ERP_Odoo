@@ -1,5 +1,11 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 
+access_wizard_invoice_out_create_wizard_user,access.wizard.invoice.out.create.wizard,model_invoice_out_create_wizard,base.group_user,1,1,1,1
+
+access_wizard_preparation_user,access.wizard.preparation,model_wizard_preparation,base.group_user,1,1,1,1
+
+access_wizard_fulfillment_order_verification_user,access.wizard.fulfillment.order.verification,model_wizard_fulfillment_order_verification,base.group_user,1,1,1,1
+
 access_partner_user,access.res.partner.user,base.model_res_partner,base.group_user,1,0,0,0
 access_partner_administration,access.res.partner.administration,base.model_res_partner,werlen_repuestos_erp.group_administration,1,1,1,0
 access_partner_management,access.res.partner.management,base.model_res_partner,werlen_repuestos_erp.group_management,1,1,1,1
@@ -22,3 +28,15 @@ access_point_of_sale_management,access.point.of.sale.management,model_point_of_s
 access_city_user,access.city,model_city,base.group_user,1,0,0,0
 access_city_management,access.city.management,model_city,werlen_repuestos_erp.group_management,1,1,1,1
 access_city_system,access.city.system,model_city,werlen_repuestos_erp.group_system,1,1,1,0
+
+access_invoice_out_user,access.invoice.out,model_invoice_out,base.group_user,1,0,0,0
+access_invoice_out_sales,access.invoice.out.sales,model_invoice_out,werlen_repuestos_erp.group_sales,1,1,1,0
+access_invoice_out_administration,access.invoice.out.administration,model_invoice_out,werlen_repuestos_erp.group_administration,1,1,1,0
+access_invoice_out_system,access.invoice.out.system,model_invoice_out,werlen_repuestos_erp.group_system,1,1,1,0
+
+access_sale_fulfillment_order_user,access.sale.fulfillment.order,model_sale_fulfillment_order,base.group_user,1,0,0,0
+access_sale_fulfillment_order_sales,access.sale.fulfillment.order.sales,model_sale_fulfillment_order,werlen_repuestos_erp.group_sales,1,1,1,0
+access_sale_fulfillment_order_preparation,access.sale.fulfillment.order.preparation,model_sale_fulfillment_order,werlen_repuestos_erp.group_preparation,1,1,0,0
+access_sale_fulfillment_order_accountant,access.sale.fulfillment.order.accountant,model_sale_fulfillment_order,werlen_repuestos_erp.group_accountant,1,1,0,0
+access_sale_fulfillment_order_administration,access.sale.fulfillment.order.administration,model_sale_fulfillment_order,werlen_repuestos_erp.group_administration,1,1,1,0
+access_sale_fulfillment_order_system,access.sale.fulfillment.order.system,model_sale_fulfillment_order,werlen_repuestos_erp.group_system,1,1,1,0

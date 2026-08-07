@@ -1,0 +1,228 @@
+<odoo>
+    <data>
+
+        <!-- ========================================================= -->
+        <!-- PASO 1: Identificación -->
+        <!-- ========================================================= -->
+        <record id="wizard_fulfillment_order_verification_step_1" model="ir.ui.view">
+            <field name="name">wizard.fulfillment.verification.step.1</field>
+            <field name="model">wizard_fulfillment_order_verification</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <group>
+                            <field name="invoice_id" readonly="1"/>
+                            <field name="full_name" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="total_cost" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <footer>
+                        <button string="Siguiente"
+                            type="object"
+                            name="action_next_step"
+                            class="oe_highlight"
+                            data-hotkey="enter"
+                        />
+                        <button string="Cancelar"
+                            special="cancel"
+                            data-hotkey="c"
+                        />
+                        <button string="Saltar Verificación"
+                            type="object"
+                            name="action_skip_verification"
+                            groups="werlen_repuestos_erp.group_management,werlen_repuestos_erp.group_administration"
+                            class="btn-outline-danger"
+                            confirm="¿Está seguro de que desea saltar la verificación?"
+                        />
+                    </footer>
+                </form>
+
+            </field>
+        </record>
+
+        <!-- ========================================================= -->
+        <!-- PASO 2: Envío / Flete -->
+        <!-- ========================================================= -->
+        <record id="wizard_fulfillment_order_verification_step_2" model="ir.ui.view">
+            <field name="name">wizard.fulfillment.verification.step.2</field>
+            <field name="model">wizard_fulfillment_order_verification</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+
+                        <group>
+                            <field name="has_delivery" widget="boolean_toggle"/>
+                            <field name="allow_repayment" invisible="not has_delivery" widget="boolean_toggle"/>
+                        </group>
+
+                        <separator string="Datos del Envio" invisible="not has_delivery"/>
+                        <group invisible="not has_delivery">
+                            <group>
+                                <field name="who_withdraws"/>
+                                <field name="destination"/>
+                            </group>
+                            <group>
+                                <field name="city"/>
+                                <field name="state"/>
+                            </group>
+                        </group>
+
+                    </sheet>
+
+                    <footer>
+                        <button string="Siguiente"
+                                type="object"
+                                name="action_next_step"
+                                data-hotkey="enter"
+                                class="oe_highlight"/>
+                        <button string="Atrás"
+                                type="object"
+                                data-hotkey="c"
+                                name="action_previous_step"/>
+                        <button string="Cancelar"
+                                special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- ========================================================= -->
+        <!-- PASO 3: Datos operativos -->
+        <!-- ========================================================= -->
+        <record id="wizard_fulfillment_order_verification_step_3" model="ir.ui.view">
+            <field name="name">wizard.fulfillment.verification.step.3</field>
+            <field name="model">wizard_fulfillment_order_verification</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <group>
+                            <field name="is_asigned_to_preparation_team" widget="boolean_toggle"/>
+                        </group>
+                        <group>
+                            <field name="allow_deferred_payment" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group>
+                            <field name="point_of_sale" required="1"
+                            options="{'no_create': True, 'no_create_edit': True}"
+                            />
+                        </group>
+                        <group>
+                            <field name="cellphone" placeholder="Ej: 342-4751510"/>
+                        </group>
+                    </group>
+
+                    <footer>
+                        <button string="Siguiente"
+                                type="object"
+                                name="action_next_step"
+                                data-hotkey="enter"
+                                class="oe_highlight"/>
+                        <button string="Atrás"
+                                type="object"
+                                data-hotkey="c"
+                                name="action_previous_step"/>
+                        <button string="Cancelar"
+                                special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- ========================================================= -->
+        <!-- PASO 4: Confirmación final -->
+        <!-- ========================================================= -->
+        <record id="wizard_fulfillment_order_verification_step_4" model="ir.ui.view">
+            <field name="name">wizard.fulfillment.verification.step.4</field>
+            <field name="model">wizard_fulfillment_order_verification</field>
+            <field name="arch" type="xml">
+                <form string="Confirmar Verificación" class="o_form_narrow">
+
+                    <field name="currency_id" invisible="1"/>
+                    <div class="alert alert-info" role="alert">
+                        <strong>Revisión final:</strong> verificá los datos antes de confirmar.
+                        Si encontrás un error, podés volver atrás y corregirlo.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="invoice_id" readonly="1"/>
+                            <field name="seller" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="client" readonly="1"/>
+                            <field name="full_name" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- ===================== -->
+                    <!-- CONFIGURACIÓN OPERATIVA -->
+                    <!-- ===================== -->
+                    <separator string="Datos Operativos"/>
+
+                    <group>
+                        <group>
+                            <field name="is_asigned_to_preparation_team" readonly="1" widget="boolean_toggle"/>
+                            <field name="allow_deferred_payment" readonly="1" widget="boolean_toggle"/>
+                        </group>
+                        <group>
+                            <field name="point_of_sale" readonly="1"/>
+                            <field name="cellphone" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- ===================== -->
+                    <!-- ENVÍO / RETIRO -->
+                    <!-- ===================== -->
+                    <separator string="Envío / Retiro"/>
+
+                    <group>
+                        <group>
+                            <field name="has_delivery" readonly="1" widget="boolean_toggle"/>
+                            <field name="allow_repayment" readonly="1" widget="boolean_toggle"/>
+                        </group>
+                        <group>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group>
+                            <field name="who_withdraws" readonly="1"/>
+                            <field name="destination" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="city" readonly="1"/>
+                            <field name="state" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- ===================== -->
+                    <!-- FOOTER -->
+                    <!-- ===================== -->
+                    <footer>
+                        <button string="Confirmar"
+                                type="object"
+                                name="action_confirm"
+                                data-hotkey="enter"
+                                class="oe_highlight"/>
+
+                        <button string="Atrás"
+                                type="object"
+                                data-hotkey="c"
+                                name="action_previous_step"/>
+
+                        <button string="Cancelar"
+                                special="cancel"/>
+                    </footer>
+
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>
