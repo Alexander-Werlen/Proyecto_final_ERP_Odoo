@@ -10,7 +10,7 @@
                     <!-- Rama normal -->
                     <field name="logistical_status"
                         widget="statusbar"
-                        statusbar_visible="draft,awaiting_payment,awaiting_preparation,in_preparation,prepared,sent"
+                        statusbar_visible="draft,awaiting_preparation,in_preparation,prepared,sent"
                         invisible="logistical_status == 'avoid_tracking'"/>
 
                     <!-- Rama sin seguimiento -->
@@ -18,18 +18,6 @@
                         widget="statusbar"
                         statusbar_visible="draft,avoid_tracking"
                         invisible="logistical_status != 'avoid_tracking'"/>
-
-                    <!-- Rama normal -->
-                    <field name="payment_status"
-                        widget="statusbar"
-                        statusbar_visible="not_paid,partially_paid,paid"
-                        invisible="payment_status == 'account'"/>
-
-                    <!-- Rama cuenta corriente -->
-                    <field name="payment_status"
-                        widget="statusbar"
-                        statusbar_visible="account"
-                        invisible="payment_status != 'account'"/>
                 </div>
 
                 <header>
@@ -95,26 +83,10 @@
                     />
                 </header>
 
-                <div
-                    invisible="has_missing_payment == False or logistical_status == 'draft'"
-                    style="
-                        background-color: #f8d7da;
-                        padding: 12px 16px;
-                        border-radius: 6px;
-                        margin-bottom: 8px;
-                        border: 1px solid #f1aeb5;
-                    "
-                >
-                    <strong>Atención:</strong> La factura no fue pagada.
-                </div>
-
                 <sheet>
 
                     <widget name="web_ribbon" title="Verificar"
                     bg_color="bg-danger" invisible="logistical_status != 'draft'"
-                    />
-                    <widget name="web_ribbon" title="A Pagar"
-                    bg_color="bg-warning" invisible="logistical_status != 'awaiting_payment'"
                     />
                     <widget name="web_ribbon" title="A Preparar"
                     bg_color="bg-primary" invisible="logistical_status != 'awaiting_preparation'"
@@ -150,18 +122,9 @@
                                 widget="boolean_toggle"
                                 readonly="logistical_status not in
                                     [
-                                    'awaiting_payment',
                                     'awaiting_preparation',
                                     'in_preparation',
                                     'prepared'
-                                    ]"
-                                />
-                                <field name="allow_deferred_payment"
-                                widget="boolean_toggle"
-                                readonly="logistical_status not in
-                                    [
-                                    'awaiting_payment',
-                                    'awaiting_preparation',
                                     ]"
                                 />
                             </group>
@@ -173,7 +136,6 @@
                                 <field name="point_of_sale"
                                 readonly="logistical_status not in
                                     [
-                                    'awaiting_payment',
                                     'awaiting_preparation',
                                     'in_preparation',
                                     'prepared'
@@ -184,7 +146,6 @@
                                 <field name="cellphone"
                                 readonly="logistical_status not in
                                     [
-                                    'awaiting_payment',
                                     'awaiting_preparation',
                                     'in_preparation',
                                     'prepared'
@@ -200,17 +161,6 @@
                                 widget="boolean_toggle"
                                 readonly="logistical_status not in
                                     [
-                                    'awaiting_payment',
-                                    'awaiting_preparation',
-                                    'in_preparation',
-                                    'prepared'
-                                    ]"
-                                />
-                                <field name="allow_repayment"
-                                widget="boolean_toggle"
-                                readonly="logistical_status not in
-                                    [
-                                    'awaiting_payment',
                                     'awaiting_preparation',
                                     'in_preparation',
                                     'prepared'
@@ -221,7 +171,6 @@
                                 <field name="who_withdraws"
                                 readonly="logistical_status not in
                                     [
-                                    'awaiting_payment',
                                     'awaiting_preparation',
                                     'in_preparation',
                                     'prepared'
@@ -230,7 +179,6 @@
                                 <field name="destination"
                                 readonly="logistical_status not in
                                     [
-                                    'awaiting_payment',
                                     'awaiting_preparation',
                                     'in_preparation',
                                     'prepared'
@@ -239,7 +187,6 @@
                                 <field name="city"
                                 readonly="logistical_status not in
                                     [
-                                    'awaiting_payment',
                                     'awaiting_preparation',
                                     'in_preparation',
                                     'prepared'

@@ -56,7 +56,6 @@
 
                         <group>
                             <field name="has_delivery" widget="boolean_toggle"/>
-                            <field name="allow_repayment" invisible="not has_delivery" widget="boolean_toggle"/>
                         </group>
 
                         <separator string="Datos del Envio" invisible="not has_delivery"/>
@@ -101,9 +100,6 @@
                     <group>
                         <group>
                             <field name="is_asigned_to_preparation_team" widget="boolean_toggle"/>
-                        </group>
-                        <group>
-                            <field name="allow_deferred_payment" widget="boolean_toggle"/>
                         </group>
                     </group>
 
@@ -168,7 +164,6 @@
                     <group>
                         <group>
                             <field name="is_asigned_to_preparation_team" readonly="1" widget="boolean_toggle"/>
-                            <field name="allow_deferred_payment" readonly="1" widget="boolean_toggle"/>
                         </group>
                         <group>
                             <field name="point_of_sale" readonly="1"/>
@@ -184,7 +179,6 @@
                     <group>
                         <group>
                             <field name="has_delivery" readonly="1" widget="boolean_toggle"/>
-                            <field name="allow_repayment" readonly="1" widget="boolean_toggle"/>
                         </group>
                         <group>
                         </group>

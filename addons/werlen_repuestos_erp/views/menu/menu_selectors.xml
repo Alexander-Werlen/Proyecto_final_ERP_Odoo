@@ -36,12 +36,7 @@
         <field name="search_view_id" ref="werlen_repuestos_erp.seller_sale_fulfillment_order_search_view"/>
         <field name="domain">[
             ('seller_user_id', '=', uid),
-            ('logistical_status', '!=', 'sent'),
-            '|',
-                ('logistical_status', '!=', 'avoid_tracking'),
-                '&amp;',
-                    ('logistical_status', '=', 'avoid_tracking'),
-                    ('payment_status', 'not in', ['paid', 'account'])
+            ('logistical_status', 'not in', ['sent', 'avoid_tracking'])
         ]</field>
     </record>
 
@@ -54,6 +49,79 @@
         <field name="domain">[
             ('seller_user_id', '=', uid)
         ]</field>
+    </record>
+
+    <record id="action_open_accountant_sale_fulfillment_order_list_view" model="ir.actions.act_window">
+        <field name="name">Cashier</field>
+        <field name="res_model">sale_fulfillment_order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.accountant_sale_fulfillment_order_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.accountant_sale_fulfillment_order_search_view"/>
+    </record>
+
+    <record id="action_open_relevant_accountant_sale_fulfillment_order_list_view" model="ir.actions.act_window">
+        <field name="name">Invoices (Relevant)</field>
+        <field name="res_model">sale_fulfillment_order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.accountant_sale_fulfillment_order_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.accountant_sale_fulfillment_order_search_view"/>
+        <field name="domain">
+            [('logistical_status', 'in', ['draft', 'awaiting_preparation', 'in_preparation', 'prepared'])]
+        </field>
+    </record>
+
+    <record id="action_open_hand_out_sale_fulfillment_order_list_view" model="ir.actions.act_window">
+        <field name="name">Hand Out</field>
+        <field name="res_model">sale_fulfillment_order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.hand_out_sale_fulfillment_order_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.hand_out_sale_fulfillment_order_search_view"/>
+    </record>
+
+    <record id="action_open_relevant_hand_out_sale_fulfillment_order_list_view" model="ir.actions.act_window">
+        <field name="name">Hand Out (Relevant)</field>
+        <field name="res_model">sale_fulfillment_order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.hand_out_sale_fulfillment_order_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.hand_out_sale_fulfillment_order_search_view"/>
+        <field name="domain">
+            [('logistical_status', 'in', ['prepared', 'awaiting_preparation', 'in_preparation'])]
+        </field>
+    </record>
+
+    <record id="action_open_preparation_sale_fulfillment_order_list_view" model="ir.actions.act_window">
+        <field name="name">Preparation (All)</field>
+        <field name="res_model">sale_fulfillment_order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.preparation_sale_fulfillment_order_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.preparation_sale_fulfillment_order_search_view"/>
+        <field name="domain">[('is_asigned_to_preparation_team', '=', True)]</field>
+        <field name="context">
+            {
+                'group_by': 'who_withdraws',
+                'group_by_no_leaf': 1
+            }
+        </field>
+    </record>
+
+    <record id="action_open_relevant_preparation_sale_fulfillment_order_list_view" model="ir.actions.act_window">
+        <field name="name">Preparation (Relevant)</field>
+        <field name="res_model">sale_fulfillment_order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.preparation_sale_fulfillment_order_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.preparation_sale_fulfillment_order_search_view"/>
+        <field name="domain">
+            [
+                ('is_asigned_to_preparation_team', '=', True),
+                ('logistical_status', 'in', ['awaiting_preparation', 'in_preparation', 'prepared'])
+            ]
+        </field>
+        <field name="context">
+            {
+                'group_by': 'who_withdraws',
+                'group_by_no_leaf': 1
+            }
+        </field>
     </record>
 
     <!-- Root Menus -->
@@ -77,6 +145,25 @@
     <menuitem id="menu_fulfillment_sales_all" name="All" parent="menu_fulfillment_sales" action="action_open_seller_sale_fulfillment_order" sequence="4"
     groups="werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"
     />
+
+    <menuitem id="menu_fulfillment_accountant" name="Cashier" parent="menu_fulfillment" sequence="2"
+    groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"
+    />
+    <menuitem id="menu_fulfillment_accountant_invoices" name="Invoices" parent="menu_fulfillment_accountant" sequence="1"/>
+    <menuitem id="menu_fulfillment_accountant_invoices_relevant" name="Relevant" parent="menu_fulfillment_accountant_invoices" action="action_open_relevant_accountant_sale_fulfillment_order_list_view" sequence="1"/>
+    <menuitem id="menu_fulfillment_accountant_invoices_all" name="All" parent="menu_fulfillment_accountant_invoices" action="action_open_accountant_sale_fulfillment_order_list_view" sequence="2"/>
+
+    <menuitem id="menu_fulfillment_preparation" name="Preparation" parent="menu_fulfillment" sequence="3"
+    groups="werlen_repuestos_erp.group_preparation,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"
+    />
+    <menuitem id="menu_fulfillment_preparation_relevant" name="Relevant" parent="menu_fulfillment_preparation" action="action_open_relevant_preparation_sale_fulfillment_order_list_view" sequence="2"/>
+    <menuitem id="menu_fulfillment_preparation_all" name="All" parent="menu_fulfillment_preparation" action="action_open_preparation_sale_fulfillment_order_list_view" sequence="3"/>
+
+    <menuitem id="menu_fulfillment_hand_out" name="Hand Out" parent="menu_fulfillment" sequence="4"
+    groups="werlen_repuestos_erp.group_preparation,werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"
+    />
+    <menuitem id="menu_fulfillment_hand_out_relevant" name="Relevant" parent="menu_fulfillment_hand_out" action="action_open_relevant_hand_out_sale_fulfillment_order_list_view" sequence="1"/>
+    <menuitem id="menu_fulfillment_hand_out_all" name="All" parent="menu_fulfillment_hand_out" action="action_open_hand_out_sale_fulfillment_order_list_view" sequence="2"/>
 
 </data>
 </odoo>

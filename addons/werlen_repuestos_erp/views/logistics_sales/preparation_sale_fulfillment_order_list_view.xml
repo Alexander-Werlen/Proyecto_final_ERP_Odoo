@@ -1,0 +1,123 @@
+<odoo>
+    <data>
+        <record id="preparation_sale_fulfillment_order_list_view" model="ir.ui.view">
+            <field name="name">Preparation Fulfillment Order List View</field>
+            <field name="model">sale_fulfillment_order</field>
+            <field name="arch" type="xml">
+                <list expand="1" delete="0" edit="0" create="0" default_order="date desc">
+
+                    <header>
+                        <button name="action_start_preparation_multi"
+                                type="object"
+                                string="Empezar Preparación"
+                                class="btn-primary oe_highlight"
+                                icon="fa-play"/>
+
+                        <button name="action_open_wizard_preparation"
+                                type="object"
+                                string="Terminar Preparación"
+                                class="btn-secondary"
+                                icon="fa-check"/>
+                    </header>
+
+                    <field name="logistical_status"
+                    widget="badge"
+                    decoration-danger="logistical_status == 'awaiting_preparation'"
+                    decoration-warning="logistical_status == 'in_preparation'"
+                    decoration-success="logistical_status == 'prepared'"
+                    width="120px"
+                    string="Estado"
+                    />
+                    <field name="date"
+                    string="Fecha"
+                    optional="hide"
+                    />
+                    <field name="invoice_id"/>
+                    <field name="client_identifier"
+                    string="Num Cliente"
+                    width="50px"
+                    />
+                    <field name="full_name" string="Nombre del Cliente"/>
+                    <field name="who_withdraws"
+                    optional="hide"
+                    />
+                    <field name="destination"/>
+                    <field name="city"/>
+                    <field name="seller"
+                    optional="hide"
+                    />
+                    <field name="who_prepared" />
+                    <field name="total_cost"
+                    optional="hide"
+                    />
+                    <field name="currency_id"
+                    column_invisible="True"
+                    />
+                </list>
+            </field>
+        </record>
+
+        <record id="preparation_sale_fulfillment_order_search_view" model="ir.ui.view">
+            <field name="name">preparation.sale.fulfillment.order.search</field>
+            <field name="model">sale_fulfillment_order</field>
+            <field name="arch" type="xml">
+                <search string="Orden de venta">
+
+                    <!-- Búsqueda rápida -->
+                    <field name="invoice_id"/>
+                    <field name="client"/>
+                    <field name="full_name"/>
+                    <field name="seller"/>
+                    <field name="who_withdraws"/>
+                    <field name="destination"/>
+                    <field name="city"/>
+
+                    <!-- Filtros -->
+
+                    <filter name="draft"
+                            string="Borrador"
+                            domain="[('logistical_status','=','draft')]"/>
+
+                    <filter name="awaiting_preparation"
+                            string="A Preparar"
+                            domain="[('logistical_status','=','awaiting_preparation')]"/>
+
+                    <filter name="in_preparation"
+                            string="En preparación"
+                            domain="[('logistical_status','=','in_preparation')]"/>
+
+                    <filter name="prepared"
+                            string="Preparado"
+                            domain="[('logistical_status','=','prepared')]"/>
+
+                    <filter name="sent"
+                            string="Entregado"
+                            domain="[('logistical_status','in', ['sent', 'avoid_tracking'])]"/>
+
+                    <filter name="today_sent"
+                    string="Entregado hoy"
+                    domain="[
+                        ('logistical_status','in', ['sent', 'avoid_tracking']),
+                        ('time_of_handing_over','!=',False),
+                        ('time_of_handing_over','&gt;=', context_today().strftime('%%Y-%%m-%%d 00:00:00')),
+                        ('time_of_handing_over','&lt;=', context_today().strftime('%%Y-%%m-%%d 23:59:59'))
+                    ]"/>
+
+                    <!-- Agrupaciones -->
+                    <group expand="0" string="Agrupar por">
+                        <filter string="Estado Logistico"
+                        name="group_logistical_status"
+                        context="{'group_by':'logistical_status'}"/>
+                    </group>
+
+                    <group expand="0" string="Agrupar por">
+                        <filter string="Quien Retira"
+                        name="group_who_withdraws"
+                        context="{'group_by':'who_withdraws'}"/>
+                    </group>
+
+                </search>
+            </field>
+        </record>
+    </data>
+</odoo>

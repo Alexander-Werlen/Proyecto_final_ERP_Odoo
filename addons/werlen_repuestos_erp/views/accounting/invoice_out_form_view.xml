@@ -10,18 +10,6 @@
                     <widget name="web_ribbon" title="Borrador"
                         bg_color="bg-danger" invisible="is_draft == False"
                     />
-                    <widget name="web_ribbon" title="No Reconciliado"
-                        bg_color="bg-danger" invisible="payment_status != 'not_paid'"
-                    />
-                    <widget name="web_ribbon" title="Rec. Parcial"
-                        bg_color="bg-warning" invisible="payment_status != 'partially_paid'"
-                    />
-                    <widget name="web_ribbon" title="Reconciliado"
-                        bg_color="bg-success" invisible="payment_status != 'paid'"
-                    />
-                    <widget name="web_ribbon" title="Cuenta-Corriente"
-                        bg_color="bg-info" invisible="payment_status != 'account'"
-                    />
 
                     <h1>
                     FACTURA EMITIDA
@@ -36,7 +24,6 @@
                         </group>
                         <group>
                             <field name="total_cost" readonly="is_draft == False"/>
-                            <field name="billing_base_amount" readonly="1" invisible="is_draft"/>
                             <field name="payment_method" readonly="is_draft == False"/>
                         </group>
                     </group>

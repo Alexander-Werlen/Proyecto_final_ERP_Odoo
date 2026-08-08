@@ -1,8 +1,6 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError
 
-from ...enums.accounting.payment_status import PAYMENT_STATUS_ENUM
-
 from ...utils.group_verification import ensure_write_allowed_fields, ensure_user_in_groups
 
 class InvoiceOut(models.Model):
@@ -67,16 +65,6 @@ class InvoiceOut(models.Model):
         required=True,
     )
 
-    billing_base_amount = fields.Monetary(
-        string="Importe base",
-        compute="_compute_billing_base_amount",
-        store=True,
-        help=(
-            "Representa el importe real de los productos vendidos.\n"
-            "Calculado como el importe total emitido multiplicado por el factor de corrección definido en el metodo de pago."
-        )
-    )
-
     city = fields.Many2one(
         'city',
         string='Ciudad',
@@ -112,14 +100,6 @@ class InvoiceOut(models.Model):
         default=fields.Datetime.now
     )
 
-    payment_status = fields.Selection(
-        PAYMENT_STATUS_ENUM,
-        string='Estado de pago',
-        default='not_paid',
-        store=True,
-        index=True
-    )
-
     observations = fields.Text(
         string='Observaciones'
     )
@@ -145,21 +125,6 @@ class InvoiceOut(models.Model):
         string='Creado manualmente',
         default=True
     )
-
-    is_account_move = fields.Boolean(
-        string='Cuenta Corriente',
-        related='payment_method.is_account_payment_method',
-        readonly=True,
-        store=True
-    )
-
-    """ On changes """
-
-    @api.depends('total_cost', 'payment_method', 'payment_method.billing_coefficient')
-    def _compute_billing_base_amount(self):
-        for inv in self:
-            coef = inv.payment_method.billing_coefficient if inv.payment_method else 1.0
-            inv.billing_base_amount = inv.total_cost * coef
 
     """ Computed methods """
 
@@ -276,11 +241,6 @@ class InvoiceOut(models.Model):
             'payment_method_not_null',
             'CHECK(payment_method IS NOT NULL)',
             'El método de pago es obligatorio.'
-        ),
-        (
-            'payment_status_not_null',
-            'CHECK(payment_status IS NOT NULL)',
-            'El estado de pago es obligatorio.'
         ),
 
     ]

@@ -1,0 +1,42 @@
+<odoo>
+    <data>
+
+        <record id="wizard_preparation_form_view" model="ir.ui.view">
+            <field name="name">wizard.preparation.form.view</field>
+            <field name="model">wizard_preparation</field>
+            <field name="arch" type="xml">
+                <form>
+                    <h3>Ventas seleccionadas</h3>
+                    <field name="saler_order_ids" readonly="1">
+                        <list readonly="1">
+                            <field name="sale_fulfillment_order_id"/>
+                            <field name="full_name" string="Cliente" optional="show"/>
+                            <field name="who_withdraws"/>
+                            <field name="total_cost"/>
+                            <field name="currency_id" column_invisible="True"/>
+                            <field name="city"/>
+                            <field name="destination"/>
+                        </list>
+                    </field>
+
+                    <h3>En cuantos bultos se va a entregar?</h3>
+                    <field name="packages_count" />
+
+                    <footer>
+                        <button string="Confirmar"
+                            type="object"
+                            name="action_confirm"
+                            data-hotkey="enter"  
+                            class="oe_highlight"
+                        />
+
+                        <button string="Cancelar"
+                                special="cancel"/>
+                    </footer>
+
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

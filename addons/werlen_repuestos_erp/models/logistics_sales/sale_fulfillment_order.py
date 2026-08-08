@@ -29,36 +29,6 @@ class SaleFulfillmentOrder(models.Model):
 
     """ Sale fulfillment order INFO """
 
-    allow_deferred_payment = fields.Boolean(
-        string='Permitir preparar sin pagar',
-        help="Permite empezar a preparar el pedido sin haber pagado la factura. Sigue siendo necesario pagar antes de entregar el pedido.",
-        tracking=True
-    )
-
-    is_account_move = fields.Boolean(
-        string='Cuenta Corriente',
-        related='invoice_id.is_account_move',
-        readonly=True,
-        store=True
-    )
-
-    allow_repayment = fields.Boolean(
-        string='Contra-Reembolso',
-        help="Normalmente usado cuando hay envio con fletero y el pago se realiza por contrareembolso.\nPermite entregar el pedido sin haber pagado la factura.",
-        tracking=True
-    )
-
-    repayment_group = fields.Selection(
-        [
-            ('with_repayment', 'Contra-Reembolso'),
-            ('without_repayment', 'Pago Normal'),
-        ],
-        string='Contra-Reembolso',
-        compute='_compute_repayment_group',
-        readonly=True,
-        store=True
-    )
-
     time_of_preparation_start = fields.Datetime(
         string='Fecha y hora de inicio de preparación',
     )
@@ -81,8 +51,6 @@ class SaleFulfillmentOrder(models.Model):
         LOGISTICAL_STATUS_ENUM,
         string='Estado logístico',
         default='draft',
-        compute='_compute_logistical_status',
-        store=True,
         tracking=True,
         index=True,
     )
@@ -223,50 +191,12 @@ class SaleFulfillmentOrder(models.Model):
         readonly=True,
     )
 
-    payment_status = fields.Selection(
-        related='invoice_id.payment_status',
-        string='Pago',
-        store=True,
-        readonly=True,
-    )
-
-    has_missing_payment = fields.Boolean(
-        compute="_compute_has_missing_payment",
-        store=False
-    )
-
     """ Computed fields """
 
     @api.depends('seller')
     def _compute_seller_user_id(self):
         for rec in self:
             rec.seller_user_id = rec.seller.user_ids[:1] if rec.seller else False
-
-    @api.depends('invoice_id.payment_status', 'allow_deferred_payment', 'allow_repayment', 'is_account_move')
-    def _compute_logistical_status(self):
-        """
-        Moves automatically between awaiting_payment and awaiting_preparation based on the payment status.
-        """
-        for rec in self:
-            if ((rec.payment_status == 'paid') or rec.allow_deferred_payment or rec.allow_repayment or rec.is_account_move) and (rec.logistical_status == 'awaiting_payment'):
-                rec.logistical_status = 'awaiting_preparation'
-                rec._compute_logistical_status()
-
-            if (rec.payment_status != 'paid' and not rec.allow_deferred_payment and not rec.allow_repayment and not rec.is_account_move) and (rec.logistical_status == 'awaiting_preparation'):
-                rec.logistical_status = 'awaiting_payment'
-                rec._compute_logistical_status()
-
-    @api.depends('invoice_id.payment_status')
-    def _compute_has_missing_payment(self):
-        for rec in self:
-            rec.has_missing_payment = rec.payment_status not in ['paid', 'account']
-
-    @api.depends('allow_repayment')
-    def _compute_repayment_group(self):
-        for rec in self:
-            rec.repayment_group = (
-                'with_repayment' if rec.allow_repayment else 'without_repayment'
-            )
 
     """ Methods """
 
@@ -338,7 +268,7 @@ class SaleFulfillmentOrder(models.Model):
                 raise UserError("Solo se puede reiniciar el flujo de ordenes que estén en estado 'Sin Seguimiento'.")
 
             vals = {
-                'logistical_status': 'awaiting_payment',
+                'logistical_status': 'awaiting_preparation',
                 'time_of_preparation_start': False,
                 'time_of_preparation_end': False,
                 'time_of_handing_over': False,
@@ -347,7 +277,6 @@ class SaleFulfillmentOrder(models.Model):
             }
 
             record.with_context(workflow_transition=True).write(vals)
-            record.sudo()._compute_logistical_status()
 
             record.with_context(workflow_transition=True).log_action("Flujo logístico reiniciado. La orden vuelve al flujo normal.")
 
@@ -406,10 +335,7 @@ class SaleFulfillmentOrder(models.Model):
         )
 
         # VALIDATION CHECK
-        if self.logistical_status == 'awaiting_payment':
-            if (self.allow_deferred_payment or self.allow_repayment or self.is_account_move) == False:
-                raise UserError("Para poder iniciar la preparación, se debe pagar la totalidad de la factura y confirmar los pagos asociados")
-        elif self.logistical_status != 'awaiting_preparation':
+        if self.logistical_status != 'awaiting_preparation':
             raise UserError("La factura no puede empezar a ser preparada.")
 
         # ACTION START
@@ -562,8 +488,6 @@ class SaleFulfillmentOrder(models.Model):
         for rec in self:
             if rec.logistical_status != 'prepared':
                 raise UserError("La factura no fue preparada y se intentó entregarla")
-            if rec.payment_status != 'paid' and not rec.allow_repayment and not rec.is_account_move:
-                raise UserError("La factura no fue pagada y se intentó entregarla")
 
             # ACTION START
             vals = {
@@ -637,18 +561,10 @@ class SaleFulfillmentOrder(models.Model):
 
         logistics = [
             ("draft", "Borrador"),
-            ("awaiting_payment", "A pagar"),
             ("awaiting_preparation", "A preparar"),
             ("in_preparation", "En preparación"),
             ("prepared", "Preparado"),
             ("sent", "Entregado (hoy)"),
-        ]
-
-        payment_states = [
-            ("paid", "Pagado", "paid"),
-            ("partially_paid", "Parcial", "partial"),
-            ("not_paid", "No pagado", "unpaid"),
-            ("account", "Cuenta-Corriente", "account"),
         ]
 
         base_domain = [
@@ -657,75 +573,46 @@ class SaleFulfillmentOrder(models.Model):
 
         grouped = self.read_group(
             domain=base_domain,
-            fields=["logistical_status", "payment_status"],
-            groupby=["logistical_status", "payment_status"],
-            lazy=False
+            fields=["logistical_status"],
+            groupby=["logistical_status"],
+            lazy=False,
         )
 
         counter = defaultdict(int)
 
         for g in grouped:
             log = g["logistical_status"]
-            pay = g["payment_status"]
-            count = g["__count"]
 
             if log == "avoid_tracking":
                 log = "sent"
 
-            if log == "sent" and pay in ["paid", "account"]:
+            if log == "sent":
+                # Los entregados se cuentan aparte (solo los de hoy)
                 continue
 
-            counter[(log, pay)] += count
+            counter[log] += g["__count"]
 
         today_domain = self._get_today_handing_over_domain(user)
 
-        sent_paid_today = self.search_count(
+        sent_today = self.search_count(
             base_domain
             + [
                 ("logistical_status", "in", ["sent", "avoid_tracking"]),
-                ("payment_status", "=", "paid"),
                 ("time_of_handing_over", "!=", False),
             ]
             + today_domain
         )
 
-        counter[("sent", "paid")] = sent_paid_today
+        counter["sent"] = sent_today
 
-        sent_account_today = self.search_count(
-            base_domain
-            + [
-                ("logistical_status", "in", ["sent", "avoid_tracking"]),
-                ("payment_status", "=", "account"),
-                ("time_of_handing_over", "!=", False),
-            ]
-            + today_domain
-        )
-
-        counter[("sent", "account")] = sent_account_today
-
-        columns = []
-
-        for log_key, log_label in logistics:
-            segments = []
-            total = 0
-
-            for pay_key, pay_label, pay_css in payment_states:
-                count = counter[(log_key, pay_key)]
-                total += count
-
-                segments.append({
-                    "key": pay_key,
-                    "label": pay_label,
-                    "count": count,
-                    "css": f"segment-{pay_css}",
-                })
-
-            columns.append({
-                "key": log_key,
-                "label": log_label,
-                "total": total,
-                "segments": segments,
-            })
+        columns = [
+            {
+                "key": key,
+                "label": label,
+                "count": counter[key],
+            }
+            for key, label in logistics
+        ]
 
         return {
             "columns": columns,
@@ -743,6 +630,9 @@ class SaleFulfillmentOrder(models.Model):
             ("sent", "Entregado hoy"),
         ]
 
+        # -------------------------
+        # 1) Conteo por read_group
+        # -------------------------
         base_domain = [
             ("is_asigned_to_preparation_team", "=", True),
             ("logistical_status", "in", [
@@ -764,6 +654,9 @@ class SaleFulfillmentOrder(models.Model):
             status = g["logistical_status"]
             counter[status] = g["logistical_status_count"]
 
+        # -------------------------
+        # 2) Conteo especial: sent (solo hoy)
+        # -------------------------
         today_domain = self._get_today_handing_over_domain(user)
 
         sent_count = self.search_count([
@@ -774,6 +667,9 @@ class SaleFulfillmentOrder(models.Model):
 
         counter["sent"] = sent_count
 
+        # -------------------------
+        # 3) Formato final
+        # -------------------------
         columns = []
         for key, label in logistics:
             columns.append({
@@ -815,7 +711,6 @@ class SaleFulfillmentOrder(models.Model):
             ensure_write_allowed_fields(self, user, vals, EDITABLE_FIELDS_BY_GROUP)
 
         elif self.logistical_status in [
-            'awaiting_payment',
             'awaiting_preparation',
             'in_preparation',
             'prepared',
@@ -831,8 +726,6 @@ class SaleFulfillmentOrder(models.Model):
                     'is_asigned_to_preparation_team',
                     'has_delivery',
                     'who_withdraws',
-                    'allow_repayment',
-                    'allow_deferred_payment',
                     'point_of_sale'
                 },
                 'werlen_repuestos_erp.group_administration': {
@@ -844,8 +737,6 @@ class SaleFulfillmentOrder(models.Model):
                     'is_asigned_to_preparation_team',
                     'has_delivery',
                     'who_withdraws',
-                    'allow_repayment',
-                    'allow_deferred_payment',
                     'point_of_sale'
                 },
                 'werlen_repuestos_erp.group_accountant': {

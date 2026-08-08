@@ -15,16 +15,6 @@ class ResPartner(models.Model):
         tracking=True
     )
 
-    is_supplier = fields.Boolean(
-        string='Es Proveedor',
-        tracking=True,
-    )
-
-    is_carrier = fields.Boolean(
-        string='Es Transportista',
-        tracking=True,
-    )
-
     _sql_constraints = [
         (
             'unique_identifier_unique',

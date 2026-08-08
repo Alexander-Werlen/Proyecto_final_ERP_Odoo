@@ -91,20 +91,12 @@ class WizardFulfillmentOrderVerification(models.TransientModel):
         string='Teléfono'
     )
 
-    allow_deferred_payment = fields.Boolean(
-        string='Permitir preparar sin pagar'
-    )
-
     is_asigned_to_preparation_team = fields.Boolean(
         string='Preparar al fondo'
     )
 
     has_delivery = fields.Boolean(
         string='Envío con flete'
-    )
-
-    allow_repayment = fields.Boolean(
-        string='Contrareembolso'
     )
 
     who_withdraws = fields.Many2one(
@@ -213,13 +205,11 @@ class WizardFulfillmentOrderVerification(models.TransientModel):
 
         """ Update fields of sale_fulfillment_order """
         vals = {
-            'logistical_status': 'awaiting_payment',
+            'logistical_status': 'awaiting_preparation',
             'point_of_sale': self.point_of_sale.id,
             'cellphone': self.cellphone,
             'is_asigned_to_preparation_team': self.is_asigned_to_preparation_team,
-            'allow_deferred_payment': self.allow_deferred_payment,
             'has_delivery': self.has_delivery,
-            'allow_repayment': self.allow_repayment,
             'who_withdraws': self.who_withdraws.id,
             'destination': self.destination,
             'city': self.city.id,
@@ -276,7 +266,6 @@ class WizardFulfillmentOrderVerification(models.TransientModel):
     # ======================================================
 
     def _clear_delivery_fields(self):
-        self.allow_repayment = False
         self.who_withdraws = False
         self.destination = False
         self.city = False
