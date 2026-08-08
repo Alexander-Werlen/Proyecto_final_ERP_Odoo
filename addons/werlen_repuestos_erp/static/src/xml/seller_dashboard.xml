@@ -1,0 +1,75 @@
+<templates xml:space="preserve">
+    <t t-name="werlen_repuestos_erp.SellerDashboard">
+        <div class="dashboard-wrapper">
+
+            <t t-if="state.loading">
+                <div class="dashboard-skeleton">
+                    <div class="skeleton-header skeleton-shimmer"></div>
+                    <div class="skeleton-card">
+                        <div class="skeleton-bars">
+                            <div class="skeleton-bar skeleton-shimmer"></div>
+                            <div class="skeleton-bar skeleton-shimmer"></div>
+                            <div class="skeleton-bar skeleton-shimmer"></div>
+                            <div class="skeleton-bar skeleton-shimmer"></div>
+                            <div class="skeleton-bar skeleton-shimmer"></div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
+            <t t-else="">
+                <div class="dashboard-title-row">
+                    <h2>
+                        Vendedor · Estado de mis Ventas
+                        <span class="dashboard-user">
+                            (<t t-esc="state.userName"/>)
+                        </span>
+                    </h2>
+                    <div class="dashboard-actions">
+                        <button type="button"
+                                class="btn btn-primary"
+                                t-on-click="onOpenRelevantInvoicesClick">
+                            Ver ventas relevantes
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                t-on-click="onCreateInvoiceClick">
+                            Crear Factura (Manual)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="dashboard-columns" t-att-class="{ 'is-first-load': state.isFirstLoad }">
+                        <t t-foreach="state.columns" t-as="col" t-key="col.key">
+                            <div class="dashboard-column" t-att-style="'--col-index: ' + col_index">
+
+                                <div class="column-bar" t-on-click="() => this.onColumnClick(col)">
+                                    <div class="bar-single"
+                                        t-att-class="'status-' + col.key"
+                                        t-att-style="'height:' + col.height + '%'">
+                                        <span class="column-count"
+                                              t-if="col.count > 0"
+                                              t-esc="col.count"/>
+                                    </div>
+                                </div>
+
+                                <div class="column-total">
+                                    <t t-esc="col.displayTotal !== undefined ? col.displayTotal : col.count"/>
+                                </div>
+
+                                <div class="column-label">
+                                    <t t-esc="col.label"/>
+                                </div>
+
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </t>
+
+        </div>
+
+    </t>
+</templates>

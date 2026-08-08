@@ -1,0 +1,6 @@
+/* Allow column headers to wrap into multiple lines */
+.o_list_view thead th .text-truncate {
+    white-space: normal !important;
+    text-overflow: unset !important;
+    line-height: 1.2;
+}

@@ -28,5 +28,15 @@
         'views/logistics_sales/wizard_fulfillment_order_verification.xml',
         'views/menu/menu_selectors.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'werlen_repuestos_erp/static/src/css/list_view_wrap_headers.css',
+            'werlen_repuestos_erp/static/src/css/dashboard.scss',
+            'werlen_repuestos_erp/static/src/js/seller_dashboard.js',
+            'werlen_repuestos_erp/static/src/js/preparation_dashboard.js',
+            'werlen_repuestos_erp/static/src/xml/seller_dashboard.xml',
+            'werlen_repuestos_erp/static/src/xml/preparation_dashboard.xml',
+        ],
+    },
     'application': True
 }
