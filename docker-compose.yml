@@ -2,7 +2,6 @@ services:
   db:
     image: postgres:15
     container_name: odoo18-db
-    restart: always
     env_file:
       - .env
     volumes:
@@ -22,7 +21,6 @@ services:
   odoo:
     build: .
     container_name: odoo18-app
-    restart: always
     depends_on:
       db:
         condition: service_healthy
@@ -50,7 +48,6 @@ services:
   nginx:
     image: nginx:1.26
     container_name: nginx
-    restart: always
     depends_on:
       - odoo
     ports:
