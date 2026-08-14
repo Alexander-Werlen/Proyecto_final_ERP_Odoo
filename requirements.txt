@@ -1,2 +1,2 @@
-# --- Base dependencies for your Odoo extensions ---
-# Empty for now
+# Used by the legacy CSV importer to normalize province and city names.
+rapidfuzz

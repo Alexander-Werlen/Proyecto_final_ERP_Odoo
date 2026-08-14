@@ -5,9 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/dir_path_change_me
+WorkingDirectory=/path/to/Repo
 Environment="PYTHONUNBUFFERED=1"
-ExecStart=/usr/bin/python3 /dir_path_change_me/scripts/sync_invoices.py
+ExecStart=/usr/bin/python3 /path/to/Repo/scripts/sync_invoices.py
 Restart=always
 RestartSec=5
 

@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 .env
+data/facturas/*
+!data/facturas/.gitkeep
+remote-facturas/*
+!remote-facturas/.gitkeep

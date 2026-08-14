@@ -34,6 +34,12 @@ access_invoice_out_sales,access.invoice.out.sales,model_invoice_out,werlen_repue
 access_invoice_out_administration,access.invoice.out.administration,model_invoice_out,werlen_repuestos_erp.group_administration,1,1,1,0
 access_invoice_out_system,access.invoice.out.system,model_invoice_out,werlen_repuestos_erp.group_system,1,1,1,0
 
+access_sync_invoices_user,access.sync.invoices,model_sync_invoices,base.group_user,1,0,0,0
+access_sync_invoices_system,access.sync.invoices.system,model_sync_invoices,werlen_repuestos_erp.group_system,1,1,1,1
+
+access_legacy_invoice_import_administration,access.legacy.invoice.import.administration,model_legacy_invoice_import,werlen_repuestos_erp.group_administration,1,1,1,0
+access_legacy_invoice_import_system,access.legacy.invoice.import.system,model_legacy_invoice_import,werlen_repuestos_erp.group_system,1,1,1,0
+
 access_sale_fulfillment_order_user,access.sale.fulfillment.order,model_sale_fulfillment_order,base.group_user,1,0,0,0
 access_sale_fulfillment_order_sales,access.sale.fulfillment.order.sales,model_sale_fulfillment_order,werlen_repuestos_erp.group_sales,1,1,1,0
 access_sale_fulfillment_order_preparation,access.sale.fulfillment.order.preparation,model_sale_fulfillment_order,werlen_repuestos_erp.group_preparation,1,1,0,0

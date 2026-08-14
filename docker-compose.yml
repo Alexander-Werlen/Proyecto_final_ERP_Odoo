@@ -21,6 +21,7 @@ services:
   odoo:
     build: .
     container_name: odoo18-app
+    restart: always
     depends_on:
       db:
         condition: service_healthy
@@ -33,12 +34,38 @@ services:
       - odoo-data:/var/lib/odoo
       - ./addons:/mnt/extra-addons
       - ./odoo.conf:/etc/odoo/odoo.conf
+      - ./data/facturas:/app/data/facturas
     networks:
       - internal
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8069"]
       interval: 30s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  watcher:
+    build: ./watcher
+    container_name: invoice-watcher
+    restart: always
+    depends_on:
+      odoo:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./data/facturas:/app/data/facturas
+      - ./remote-facturas:/app/remote
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, time; f='/app/data/facturas/.health'; raise SystemExit(0 if os.path.exists(f) and time.time()-os.path.getmtime(f)<10 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     logging:
       driver: "json-file"
       options:

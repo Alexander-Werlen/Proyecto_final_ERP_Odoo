@@ -11,8 +11,10 @@ from pathlib import Path
 # Configuración
 # ========================
 
-# Ruta base del repo en producción
-REPO_DIR = Path("/dir_path_change_me")
+# Se puede sobreescribir en producción sin modificar el script.
+REPO_DIR = Path(
+    os.environ.get("REPO_DIR", Path(__file__).resolve().parents[1])
+)
 ENV_FILE = REPO_DIR / ".env"
 LOCAL_DIR = REPO_DIR / "remote-facturas"
 
