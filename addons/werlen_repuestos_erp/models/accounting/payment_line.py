@@ -1,0 +1,350 @@
+from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
+from odoo.tools import float_compare
+
+from ...enums.accounting.payment_origin_explanation import (
+    PAYMENT_ORIGIN_EXPLANATION_ENUM,
+    PAYMENT_ORIGIN_EXPLANATION_WITHOUT_RECONCILIATION_LIST,
+)
+from ...enums.accounting.payment_status import PAYMENT_STATUS_ENUM
+from ...utils.group_verification import ensure_user_in_groups, ensure_write_allowed_fields
+
+
+class PaymentLine(models.Model):
+    _name = 'payment_line'
+    _description = 'Registro de: Pago'
+    _rec_name = 'name'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+
+    name = fields.Char(
+        string='Referencia',
+        required=True,
+        copy=False,
+        default='Nuevo Pago',
+        readonly=True,
+        index=True,
+    )
+
+    payment_origin_explanation = fields.Selection(
+        selection=PAYMENT_ORIGIN_EXPLANATION_ENUM,
+        string='Razón del pago',
+        default='non_operational',
+        required=True,
+        index=True,
+    )
+
+    payment_status = fields.Selection(
+        selection=PAYMENT_STATUS_ENUM,
+        string='Estado de reconciliación',
+        default='not_paid',
+        compute='_compute_amount_reconciliated',
+        store=True,
+        index=True,
+    )
+
+    company_id = fields.Many2one(
+        comodel_name='res.company',
+        required=True,
+        default=lambda self: self.env.company,
+    )
+    currency_id = fields.Many2one(
+        related='company_id.currency_id',
+        string='Moneda',
+        store=True,
+    )
+
+    is_outgoing = fields.Boolean(string='Es saliente', required=True, default=False, index=True)
+    amount = fields.Monetary(string='Importe', required=True)
+    payment_method = fields.Many2one(
+        comodel_name='payment_method',
+        string='Método de pago',
+        required=True,
+    )
+    confirmed = fields.Boolean(
+        string='Confirmado',
+        required=True,
+        default=False,
+        index=True,
+        tracking=True,
+    )
+    journal = fields.Many2one(
+        comodel_name='journal',
+        string='Diario',
+        required=True,
+        tracking=True,
+    )
+    payee = fields.Many2one(
+        comodel_name='res.partner',
+        string='Recibe',
+        required=True,
+    )
+    payer = fields.Many2one(
+        comodel_name='res.partner',
+        string='Paga',
+        required=True,
+    )
+
+    confirmed_text = fields.Char(string='Confirmado', compute='_compute_confirmed_text')
+
+    amount_reconciliated = fields.Monetary(
+        string='Importe reconciliado',
+        compute='_compute_amount_reconciliated',
+        store=True,
+    )
+    amount_not_reconciliated = fields.Monetary(
+        string='Importe no reconciliado',
+        compute='_compute_amount_reconciliated',
+        store=True,
+    )
+
+    who_proposed_payment = fields.Many2one(comodel_name='res.users', string='Quién propuso el pago')
+    who_confirmed_payment = fields.Many2one(comodel_name='res.users', string='Quién confirmó el pago')
+    time_of_payment_proposal = fields.Datetime(string='Fecha de propuesta', index=True)
+    time_of_payment_confirmation = fields.Datetime(string='Fecha de confirmación', index=True)
+    observations = fields.Text(string='Observaciones', tracking=True)
+
+    invoice_out_total_amount = fields.Monetary()
+    invoice_out_amount_not_reconciliated = fields.Monetary()
+    reconciliation_invoice_id = fields.Many2one(comodel_name='invoice_out')
+
+    reconciliation_lines = fields.One2many(
+        comodel_name='reconciliation_line',
+        compute='_compute_reconciliation_lines',
+        string='Líneas de reconciliación',
+    )
+    reconciliation_lines_when_incomming = fields.One2many(
+        comodel_name='reconciliation_line',
+        inverse_name='payment_line_in_id',
+        string='Reconciliaciones entrantes',
+    )
+    reconciliation_lines_when_outgoing = fields.One2many(
+        comodel_name='reconciliation_line',
+        inverse_name='payment_line_out_id',
+        string='Reconciliaciones salientes',
+    )
+
+    def _get_reconciliation_lines(self):
+        return (
+            self.reconciliation_lines_when_outgoing
+            if self.is_outgoing else self.reconciliation_lines_when_incomming
+        )
+
+    @api.depends('reconciliation_lines_when_incomming', 'reconciliation_lines_when_outgoing', 'is_outgoing')
+    def _compute_reconciliation_lines(self):
+        for record in self:
+            record.reconciliation_lines = record._get_reconciliation_lines()
+
+    @api.depends('confirmed')
+    def _compute_confirmed_text(self):
+        for record in self:
+            record.confirmed_text = 'SI' if record.confirmed else 'NO'
+
+    @api.depends(
+        'reconciliation_lines_when_incomming',
+        'reconciliation_lines_when_outgoing',
+        'reconciliation_lines_when_incomming.amount',
+        'reconciliation_lines_when_outgoing.amount',
+        'payment_origin_explanation',
+    )
+    def _compute_amount_reconciliated(self):
+        for record in self:
+            lines = record._get_reconciliation_lines()
+            record.amount_reconciliated = sum(lines.mapped('amount'))
+            record.amount_not_reconciliated = record.amount - record.amount_reconciliated
+            if record.payment_origin_explanation in PAYMENT_ORIGIN_EXPLANATION_WITHOUT_RECONCILIATION_LIST:
+                record.payment_status = 'paid'
+            elif record.amount_not_reconciliated <= record.amount * 0.01:
+                record.payment_status = 'paid'
+            elif record.amount_reconciliated > 0:
+                record.payment_status = 'partially_paid'
+            else:
+                record.payment_status = 'not_paid'
+
+    def get_is_outgoing(self):
+        return self.is_outgoing
+
+    def get_amount_not_reconciliated(self):
+        return self.amount_not_reconciliated
+
+    @api.model
+    def _require_open_journal_session(self, journal_id):
+        journal = self.env['journal'].browse(journal_id)
+        if not journal.exists():
+            raise UserError('El diario asociado no existe.')
+        session = journal.sudo().current_cash_session
+        if not session or session.state != 'open':
+            raise UserError(
+                f"No se puede confirmar el pago porque la caja '{journal.name}' no está abierta."
+            )
+
+    def _require_journal_allowed_users(self, journal_id):
+        journal = self.env['journal'].browse(journal_id)
+        if not journal.exists():
+            raise ValidationError('El diario asociado no existe.')
+        if not journal.allowed_users:
+            raise ValidationError(f"El diario '{journal.name}' no tiene usuarios habilitados.")
+        if self.env.user.id not in journal.allowed_users.ids and not self.env.su:
+            raise ValidationError(
+                f"No tienes permiso para confirmar movimientos en el diario '{journal.name}'."
+            )
+
+    def confirm_payment(self):
+        self.ensure_one()
+        ensure_user_in_groups(
+            self.env.user,
+            ['werlen_repuestos_erp.group_accountant'],
+            error_message='Necesitas permisos de Caja para confirmar pagos.',
+        )
+        if self.confirmed:
+            raise UserError('El pago ya estaba confirmado.')
+        self._require_journal_allowed_users(self.journal.id)
+        self._require_open_journal_session(self.journal.id)
+        self._confirm_payment_without_access_check()
+
+    def _confirm_payment_without_access_check(self):
+        self.ensure_one()
+        self.with_context(workflow_transition=True).write({
+            'confirmed': True,
+            'who_confirmed_payment': self.env.user.id,
+            'time_of_payment_confirmation': fields.Datetime.now(),
+        })
+        self._get_reconciliation_lines().with_context(workflow_transition=True).write({
+            'confirmed': True,
+        })
+        session = self.journal.sudo().current_cash_session
+        if session and session.state == 'open':
+            session.sudo().write({'last_refresh_at': False})
+            session.refresh_data()
+
+        invoice_ids = self._get_reconciliation_lines().mapped('invoice_out_id')
+        if invoice_ids:
+            self.env['sale_fulfillment_order'].search([
+                ('invoice_id', 'in', invoice_ids.ids),
+            ])._update_payment_workflow()
+
+    def _reverse_confirmation_of_payment(self):
+        self.ensure_one()
+        self._get_reconciliation_lines().with_context(workflow_transition=True).write({
+            'confirmed': False,
+        })
+        self.with_context(workflow_transition=True).write({
+            'confirmed': False,
+            'who_confirmed_payment': False,
+            'time_of_payment_confirmation': False,
+        })
+
+    def try_reverse_confirmation(self):
+        self.ensure_one()
+        ensure_user_in_groups(
+            self.env.user,
+            ['werlen_repuestos_erp.group_accountant'],
+            error_message='Necesitas permisos de Caja para revertir pagos.',
+        )
+        if not self.confirmed:
+            raise UserError('El pago no está confirmado.')
+        minutes = float(self.env['ir.config_parameter'].sudo().get_param(
+            'werlen_repuestos_erp.max_minutes_passed_to_allow_undo_payment_last_step'
+        ) or 1)
+        elapsed = fields.Datetime.now() - self.time_of_payment_confirmation
+        if elapsed.total_seconds() <= minutes * 60 or self.env.user.has_group(
+            'werlen_repuestos_erp.group_administration'
+        ):
+            self._reverse_confirmation_of_payment()
+        else:
+            raise UserError('El pago fue confirmado hace demasiado tiempo para revertirlo.')
+
+    def try_undo_last_step(self):
+        self.ensure_one()
+        if self.confirmed:
+            self.try_reverse_confirmation()
+        if not self.confirmed:
+            self.unlink()
+
+    def action_open_change_journal_wizard(self):
+        self.ensure_one()
+        ensure_user_in_groups(
+            self.env.user,
+            ['werlen_repuestos_erp.group_management'],
+            error_message='Necesitas permisos de Gerencia para cambiar el diario de un pago.',
+        )
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Cambiar diario del pago',
+            'res_model': 'wizard_change_payment_line_journal',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_payment_line_id': self.id,
+                'default_current_journal_id': self.journal.id,
+            },
+        }
+
+    def _check_write_permissions_one(self, values):
+        if not self.confirmed:
+            return
+        ensure_write_allowed_fields(
+            self,
+            self.env.user,
+            values,
+            {
+                'werlen_repuestos_erp.group_accountant': {'observations'},
+                'werlen_repuestos_erp.group_sales': {'observations'},
+                'werlen_repuestos_erp.group_administration': {'observations'},
+                'werlen_repuestos_erp.group_management': {'observations', 'journal'},
+                'werlen_repuestos_erp.group_system': {'*'},
+            },
+        )
+
+    def write(self, values):
+        if self.env.context.get('workflow_transition'):
+            return super().write(values)
+        for record in self:
+            record._check_write_permissions_one(values)
+        return super().write(values)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for values in vals_list:
+            if values.get('amount', 0) <= 0:
+                raise UserError('El importe del pago debe ser mayor que 0.')
+            values.setdefault('name', self.env['ir.sequence'].next_by_code('payment.line') or 'Nuevo Pago')
+            values.setdefault('who_proposed_payment', self.env.user.id)
+            values.setdefault('time_of_payment_proposal', fields.Datetime.now())
+            if values.get('confirmed'):
+                journal_id = values.get('journal')
+                self._require_journal_allowed_users(journal_id)
+                self._require_open_journal_session(journal_id)
+                values.setdefault('who_confirmed_payment', self.env.user.id)
+                values.setdefault('time_of_payment_confirmation', fields.Datetime.now())
+        records = super().create(vals_list)
+        for record in records:
+            if record.reconciliation_invoice_id:
+                self.env['reconciliation_line'].create({
+                    'outgoing_move_ref': f'invoice_out,{record.reconciliation_invoice_id.id}',
+                    'incomming_move_ref': f'payment_line,{record.id}',
+                    'amount': record.amount,
+                    'confirmed': record.confirmed,
+                })
+        return records
+
+    def unlink(self):
+        for record in self:
+            if record.confirmed:
+                raise UserError('No se puede eliminar un pago confirmado.')
+        return super().unlink()
+
+    @api.constrains('amount', 'amount_reconciliated')
+    def _check_amounts(self):
+        for record in self:
+            if float_compare(record.amount, record.amount_reconciliated, precision_digits=2) < 0:
+                raise UserError('El importe reconciliado no puede superar el importe del pago.')
+            if float_compare(record.amount, 0, precision_digits=2) <= 0:
+                raise UserError('El importe del pago debe ser mayor que 0.')
+
+    _sql_constraints = [
+        (
+            'payment_line_name_uniq',
+            'UNIQUE(name)',
+            'Ya existe una línea de pago con esta referencia.',
+        ),
+    ]

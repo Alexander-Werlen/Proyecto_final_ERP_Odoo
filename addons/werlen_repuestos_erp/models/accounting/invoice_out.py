@@ -1,7 +1,9 @@
-from odoo import models, fields, api
+from odoo import api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import float_compare
 
 from ...utils.group_verification import ensure_write_allowed_fields, ensure_user_in_groups
+from ...enums.accounting.payment_status import PAYMENT_STATUS_ENUM
 
 class InvoiceOut(models.Model):
     _name = 'invoice_out'
@@ -65,6 +67,12 @@ class InvoiceOut(models.Model):
         required=True,
     )
 
+    billing_base_amount = fields.Monetary(
+        string='Importe base',
+        compute='_compute_billing_base_amount',
+        store=True,
+    )
+
     city = fields.Many2one(
         'city',
         string='Ciudad',
@@ -111,6 +119,47 @@ class InvoiceOut(models.Model):
         required=True
     )
 
+    is_account_move = fields.Boolean(
+        string='Cuenta Corriente',
+        related='payment_method.is_account_payment_method',
+        store=True,
+        readonly=True,
+    )
+
+    payment_status = fields.Selection(
+        selection=PAYMENT_STATUS_ENUM,
+        string='Estado de pago',
+        compute='_compute_payment_amounts',
+        store=True,
+        default='not_paid',
+        required=True,
+        index=True,
+    )
+
+    amount_paid_confirmed = fields.Monetary(
+        string='Importe pagado confirmado',
+        compute='_compute_payment_amounts',
+        store=True,
+    )
+
+    amount_paid_unconfirmed = fields.Monetary(
+        string='Importe pagado',
+        compute='_compute_payment_amounts',
+        store=True,
+    )
+
+    amount_not_paid_confirmed = fields.Monetary(
+        string='Importe no pagado confirmado',
+        compute='_compute_payment_amounts',
+        store=True,
+    )
+
+    amount_not_paid_unconfirmed = fields.Monetary(
+        string='Importe no pagado',
+        compute='_compute_payment_amounts',
+        store=True,
+    )
+
     point_of_sale = fields.Many2one(
         comodel_name='point_of_sale',
         string='Punto de venta',
@@ -126,12 +175,61 @@ class InvoiceOut(models.Model):
         default=True
     )
 
+    related_credit_notes = fields.One2many(
+        comodel_name='credit_note_out',
+        inverse_name='related_invoice',
+        string='Notas de crédito relacionadas',
+    )
+
+    reconciliation_lines = fields.One2many(
+        comodel_name='reconciliation_line',
+        inverse_name='invoice_out_id',
+        string='Reconciliaciones',
+    )
+
     """ Computed methods """
 
     @api.depends('invoice_id')
     def _compute_sales_point(self):
         for record in self:
             record.sales_point = self._extract_sales_point(record.invoice_id)
+
+    @api.depends('total_cost', 'payment_method', 'payment_method.billing_coefficient')
+    def _compute_billing_base_amount(self):
+        for record in self:
+            coefficient = record.payment_method.billing_coefficient if record.payment_method else 1.0
+            record.billing_base_amount = record.total_cost * coefficient
+
+    @api.depends(
+        'reconciliation_lines',
+        'reconciliation_lines.amount',
+        'reconciliation_lines.confirmed',
+        'is_account_move',
+    )
+    def _compute_payment_amounts(self):
+        for record in self:
+            if record.is_account_move:
+                record.amount_paid_confirmed = record.total_cost
+                record.amount_paid_unconfirmed = record.total_cost
+                record.amount_not_paid_confirmed = 0.0
+                record.amount_not_paid_unconfirmed = 0.0
+                record.payment_status = 'account'
+                continue
+
+            confirmed = sum(line.amount for line in record.reconciliation_lines if line.confirmed)
+            total = sum(record.reconciliation_lines.mapped('amount'))
+            record.amount_paid_confirmed = confirmed
+            record.amount_paid_unconfirmed = total
+            record.amount_not_paid_confirmed = record.total_cost - confirmed
+            record.amount_not_paid_unconfirmed = record.total_cost - total
+
+            tolerance = record.total_cost * 0.01
+            if record.amount_not_paid_confirmed <= tolerance:
+                record.payment_status = 'paid'
+            elif confirmed > 0:
+                record.payment_status = 'partially_paid'
+            else:
+                record.payment_status = 'not_paid'
 
     @staticmethod
     def _extract_sales_point(identifier):
@@ -141,6 +239,54 @@ class InvoiceOut(models.Model):
         if len(parts) >= 4 and len(parts[2]) == 4 and parts[2].isdigit():
             return parts[2]
         return False
+
+    def get_is_outgoing(self):
+        return True
+
+    def get_amount_not_reconciliated(self):
+        return self.amount_not_paid_unconfirmed
+
+    def show_reconciliation_lines(self):
+        self.ensure_one()
+        return {
+            'name': f'Reconciliaciones de {self.invoice_id}',
+            'view_mode': 'list',
+            'res_model': 'reconciliation_line',
+            'type': 'ir.actions.act_window',
+            'domain': [('invoice_out_id', '=', self.id)],
+            'view_id': self.env.ref(
+                'werlen_repuestos_erp.reconciliation_line_list_view'
+            ).id,
+        }
+
+    def show_payment_lines(self):
+        self.ensure_one()
+        return {
+            'name': f'Pagos asociados a {self.invoice_id}',
+            'view_mode': 'list,form',
+            'res_model': 'payment_line',
+            'type': 'ir.actions.act_window',
+            'domain': [('reconciliation_lines_when_incomming', 'in', self.reconciliation_lines.ids)],
+            'views': [
+                (self.env.ref('werlen_repuestos_erp.default_payment_line_list_view').id, 'list'),
+                (self.env.ref('werlen_repuestos_erp.default_payment_line_form_view').id, 'form'),
+            ],
+        }
+
+    def open_manual_reconciliation_line_form(self):
+        self.ensure_one()
+        return {
+            'name': 'Reconciliación manual',
+            'type': 'ir.actions.act_window',
+            'res_model': 'transient_reconciliation_line',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_outgoing_move_ref': f'invoice_out,{self.id}',
+                'default_amount': max(self.amount_not_paid_unconfirmed, 0.0),
+            },
+            'view_id': self.env.ref('werlen_repuestos_erp.manual_reconciliation_line_form_view').id,
+        }
 
     """ Actions """
 
@@ -153,7 +299,7 @@ class InvoiceOut(models.Model):
         )
 
         self.ensure_one()
-        if self.is_draft == False:
+        if self.is_draft is False:
             raise UserError("La factura ya estaba confirmada")
 
         # ACTION START
@@ -241,6 +387,11 @@ class InvoiceOut(models.Model):
             'payment_method_not_null',
             'CHECK(payment_method IS NOT NULL)',
             'El método de pago es obligatorio.'
+        ),
+        (
+            'payment_status_not_null',
+            'CHECK(payment_status IS NOT NULL)',
+            'El estado de pago es obligatorio.',
         ),
 
     ]
