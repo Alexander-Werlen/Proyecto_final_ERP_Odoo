@@ -49,7 +49,7 @@ class SyncInvoices(models.Model):
                 voucher = self._clean_value(row.get("Comprobante")).upper()
                 if voucher == "FC":
                     self._process_invoice_out_line(row, os.path.basename(path))
-                elif voucher in {"NC", "ND"}:
+                elif voucher == "NC":
                     self._process_credit_note_out_line(row, os.path.basename(path))
                 elif voucher in {"RC", "RECIBO"} or "Descuentos" in fieldnames:
                     self._process_account_payment_line(row, os.path.basename(path))
@@ -160,15 +160,100 @@ class SyncInvoices(models.Model):
         _logger.info("Created invoice %s from %s", invoice_id, csv_file)
 
     def _process_credit_note_out_line(self, row, csv_file):
-        voucher = self._clean_value(row.get("Comprobante")).upper() or "NC/ND"
-        raise UnsupportedVoucherError(
-            f"La importación de {voucher} todavía no está implementada ({csv_file})."
+        voucher = self._required(row, "Comprobante", csv_file).upper()
+        if voucher != "NC":
+            raise UnsupportedVoucherError(
+                f"El comprobante {voucher} no está soportado en I2 ({csv_file})."
+            )
+
+        letter = self._required(row, "Letra", csv_file).upper()
+        invoice_type_name = f"NC-{letter}"
+        credit_note_number = self._required(row, "Numero", csv_file)
+        credit_note_id = f"{invoice_type_name}-{credit_note_number}"
+        company = self.env["res.company"].sudo().search([], limit=1)
+        if not company:
+            raise ValueError("No existe una compañía configurada en Odoo.")
+        invoice_type = self.env["invoice_type"].sudo().search(
+            [("invoice_type_id", "=", invoice_type_name)],
+            limit=1,
         )
+        if not invoice_type:
+            raise ValueError(
+                f"La nota de crédito {csv_file} tiene un tipo desconocido: {invoice_type_name}."
+            )
+        if self.env["credit_note_out"].sudo().search_count([
+            ("credit_note_id", "=", credit_note_id),
+            ("invoice_type", "=", invoice_type.id),
+            ("company_id", "=", company.id),
+        ]):
+            raise ValueError(f"Ya existe una nota de crédito con identificador {credit_note_id}.")
+
+        full_name = self._clean_value(row.get("Apellido y nombre"))
+        client = self._find_or_create_client(
+            "C" + self._required(row, "Cuenta", csv_file),
+            full_name,
+        )
+        seller = self._find_or_create_seller(
+            "E" + self._required(row, "Vendedor", csv_file),
+        )
+        payment_method = self._find_or_create_payment_method(
+            self._clean_value(row.get("Cond.Venta")) or "OTROS"
+        )
+        values = {
+            "credit_note_id": credit_note_id,
+            "invoice_type": invoice_type.id,
+            "company_id": company.id,
+            "client": client.id,
+            "full_name": full_name or client.name,
+            "total_amount": float(self._parse_money(row.get("Importe"), "Importe", csv_file)),
+            "seller_of_related_invoice": seller.id,
+            "date": self._parse_datetime(row, csv_file) or datetime.utcnow(),
+            "payment_method": payment_method.id,
+            "is_manual_invoice": False,
+        }
+        if seller.login == "E00":
+            values.update({
+                "state": "verified",
+                "observations": "Nota de crédito correspondiente a descuento de recibo.",
+            })
+        self.env["credit_note_out"].sudo().create(values)
+        _logger.info("Created credit note %s from %s", credit_note_id, csv_file)
 
     def _process_account_payment_line(self, row, csv_file):
-        raise UnsupportedVoucherError(
-            f"La importación de recibos todavía no está implementada ({csv_file})."
+        account_payment_number = self._required(row, "Numero", csv_file)
+        prefix = account_payment_number.split("-", 1)[0]
+        secondary_identifier = self.env["ir.config_parameter"].sudo().get_param(
+            "werlen_repuestos_erp.identifier_for_secondary_category"
         )
+        invoice_type_name = "RC-B" if prefix == secondary_identifier else "RC-A"
+        account_payment_id = f"{invoice_type_name}-{account_payment_number}"
+        company = self.env["res.company"].sudo().search([], limit=1)
+        if not company:
+            raise ValueError("No existe una compañía configurada en Odoo.")
+        if self.env["account_payment"].sudo().search_count([
+            ("account_payment_id", "=", account_payment_id),
+            ("company_id", "=", company.id),
+        ]):
+            raise ValueError(f"Ya existe un recibo con identificador {account_payment_id}.")
+
+        full_name = self._clean_value(row.get("Apellido y nombre"))
+        client = self._find_or_create_client(
+            "C" + self._required(row, "Cuenta", csv_file),
+            full_name,
+        )
+        values = {
+            "account_payment_id": account_payment_id,
+            "company_id": company.id,
+            "client": client.id,
+            "amount": float(self._parse_money(row.get("Total"), "Total", csv_file)),
+            "discount_amount": float(
+                self._parse_money(row.get("Descuentos") or "0", "Descuentos", csv_file)
+            ),
+            "date": self._parse_datetime(row, csv_file) or datetime.utcnow(),
+            "is_main_point_of_sale_category": invoice_type_name == "RC-A",
+        }
+        self.env["account_payment"].sudo().create(values)
+        _logger.info("Created account payment %s from %s", account_payment_id, csv_file)
 
     def _find_state(self, state_name):
         if not state_name:
@@ -255,8 +340,39 @@ class SyncInvoices(models.Model):
         payment_model = self.env["payment_method"].sudo()
         payment_method = payment_model.search([("name", "=", name)], limit=1)
         if payment_method:
+            if not payment_method.cash_closing_category_id:
+                category = self.env["cash_closing_category"].sudo().search(
+                    [("name", "=", "OTROS")],
+                    limit=1,
+                )
+                if not category:
+                    raise ValueError("No existe la categoría de cierre OTROS.")
+                payment_method.write({"cash_closing_category_id": category.id})
             return payment_method
-        return payment_model.create({"name": name, "active_currently": False})
+
+        category = self.env["cash_closing_category"].sudo().search(
+            [("name", "=", "OTROS")],
+            limit=1,
+        )
+        if not category:
+            raise ValueError("No existe la categoría de cierre OTROS.")
+        journals = self.env["journal"].sudo().search([])
+        if not journals:
+            raise ValueError("No existe ningún diario configurado para el método de pago.")
+        default_journal = self.env.ref(
+            "werlen_repuestos_erp.journal_general",
+            raise_if_not_found=False,
+        ) or journals[:1]
+        values = {
+            "name": name,
+            "active_currently": False,
+            "cash_closing_category_id": category.id,
+            "allowed_journals": [(6, 0, journals.ids)],
+            "default_journal": default_journal.id,
+        }
+        if "cuenta corriente" in name.lower():
+            values["is_account_payment_method"] = True
+        return payment_model.create(values)
 
     @staticmethod
     def _clean_key(value):
