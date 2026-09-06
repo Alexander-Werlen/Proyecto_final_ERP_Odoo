@@ -7,7 +7,7 @@ from ...enums.accounting.payment_origin_explanation import (
     PAYMENT_ORIGIN_EXPLANATION_WITHOUT_RECONCILIATION_LIST,
 )
 from ...enums.accounting.payment_status import PAYMENT_STATUS_ENUM
-from ...utils.group_verification import ensure_user_in_groups
+from ...utils.group_verification import ensure_user_in_groups, ensure_write_allowed_fields
 
 
 class Check(models.Model):
@@ -201,6 +201,38 @@ class Check(models.Model):
             },
         }
 
+    def write(self, values):
+        if self.env.su:
+            return super().write(values)
+        for record in self:
+            if record.reconciliation_lines:
+                editable_by_group = {
+                    'werlen_repuestos_erp.group_accountant': {'observations'},
+                    'werlen_repuestos_erp.group_management': {'observations'},
+                    'werlen_repuestos_erp.group_system': {'*'},
+                }
+            else:
+                editable_by_group = {
+                    'werlen_repuestos_erp.group_accountant': {
+                        'payment_origin_explanation',
+                        'check_number',
+                        'bank',
+                        'issuer',
+                        'owner_of_credit',
+                        'amount',
+                        'collection_date',
+                        'city',
+                        'journal_id',
+                        'observations',
+                    },
+                    'werlen_repuestos_erp.group_management': {'*'},
+                    'werlen_repuestos_erp.group_system': {'*'},
+                }
+            ensure_write_allowed_fields(record, self.env.user, values, editable_by_group)
+            if 'journal_id' in values:
+                record._require_journal_allowed_users(values['journal_id'])
+        return super().write(values)
+
     @api.model
     def _require_journal_allowed_users(self, journal_id):
         journal = self.env['journal'].browse(journal_id)
@@ -220,6 +252,9 @@ class Check(models.Model):
         for values in vals_list:
             if values.get('amount', 0) <= 0:
                 raise UserError('El monto del cheque debe ser mayor que 0.')
+            if not self.env.su:
+                values['who_created'] = self.env.user.id
+                values['time_of_creation'] = fields.Datetime.now()
             self._require_journal_allowed_users(values.get('journal_id'))
         return super().create(vals_list)
 

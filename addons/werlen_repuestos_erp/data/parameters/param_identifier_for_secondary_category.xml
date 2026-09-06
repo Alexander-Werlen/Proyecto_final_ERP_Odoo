@@ -1,0 +1,8 @@
+<odoo>
+    <data noupdate="1">
+        <record id="param_identifier_for_secondary_category" model="ir.config_parameter">
+            <field name="key">werlen_repuestos_erp.identifier_for_secondary_category</field>
+            <field name="value">0001</field>
+        </record>
+    </data>
+</odoo>

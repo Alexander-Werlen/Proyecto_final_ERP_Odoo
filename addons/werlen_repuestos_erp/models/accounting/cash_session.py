@@ -3,7 +3,11 @@ from datetime import timedelta
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
-from ...utils.group_verification import display_warning_toast, ensure_user_in_groups
+from ...utils.group_verification import (
+    display_warning_toast,
+    ensure_user_in_groups,
+    ensure_write_allowed_fields,
+)
 
 
 class CashSession(models.Model):
@@ -47,7 +51,7 @@ class CashSession(models.Model):
     counted_balance = fields.Monetary(string='Saldo total final', readonly=True)
     difference = fields.Monetary(string='Diferencia teórico-final', readonly=True)
     displayed_difference = fields.Monetary(
-        string='Diferencia teórico-final',
+        string='Diferencia mostrada',
         compute='_compute_displayed_difference',
         store=True,
     )
@@ -86,6 +90,18 @@ class CashSession(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not self.env.su:
+            ensure_user_in_groups(
+                self.env.user,
+                ['werlen_repuestos_erp.group_accountant'],
+                error_message='Necesitas permisos de Caja para abrir una sesión.',
+            )
+        for values in vals_list:
+            if values.get('state', 'open') != 'open' and not self.env.su:
+                raise ValidationError('Las sesiones nuevas deben comenzar abiertas.')
+            values.setdefault('state', 'open')
+            if not self.env.su:
+                values['who_is_operating'] = self.env.user.id
         records = super().create(vals_list)
         for record in records:
             if not record.name:
@@ -133,7 +149,7 @@ class CashSession(models.Model):
             theoretical = sum(session.line_ids.mapped('theoretical_balance'))
             confirmed_lines = session.line_ids.filtered('confirmed_counted_balance')
             counted = sum(confirmed_lines.mapped('counted_balance')) if confirmed_lines else 0.0
-            session.with_context(cash_session_internal=True).write({
+            session.sudo().write({
                 'theoretical_balance': theoretical,
                 'counted_balance': counted,
                 'difference': counted - theoretical,
@@ -181,7 +197,7 @@ class CashSession(models.Model):
                 'payment_count': len(incoming | outgoing),
             }
             if category.id in existing:
-                existing[category.id].write(values)
+                existing[category.id].sudo().write(values)
             elif opening or movements or values['payment_count']:
                 self.env['cash_session_line'].create({
                     'cash_session_id': self.id,
@@ -191,7 +207,7 @@ class CashSession(models.Model):
                 })
 
         self._recompute_totals()
-        self.with_context(cash_session_internal=True).write({
+        self.sudo().write({
             'last_refresh_at': fields.Datetime.now(),
         })
         return True
@@ -228,7 +244,7 @@ class CashSession(models.Model):
         if self.line_ids.filtered(lambda line: not line.confirmed_counted_balance):
             raise ValidationError('No se puede cerrar la caja: existen categorías sin confirmar.')
         self._recompute_totals()
-        self.with_context(cash_session_internal=True).write({
+        self.sudo().write({
             'state': 'closed',
             'closed_at': fields.Datetime.now(),
             'who_closed': self.env.user.id,
@@ -252,13 +268,13 @@ class CashSession(models.Model):
         )
         if latest != self:
             raise ValidationError('Sólo se puede reabrir el último cierre de esta caja.')
-        self.line_ids.with_context(cash_session_reopen=True).write({
+        self.line_ids.sudo().write({
             'confirmed_counted_balance': False,
             'confirmed_by': False,
             'confirmed_at': False,
             'counted_balance': 0.0,
         })
-        self.with_context(cash_session_reopen=True).write({
+        self.sudo().write({
             'state': 'open',
             'closed_at': False,
             'who_closed': False,
@@ -267,9 +283,19 @@ class CashSession(models.Model):
         return True
 
     def write(self, values):
-        if self.env.context.get('cash_session_internal') or self.env.context.get('cash_session_reopen'):
+        if self.env.su:
             return super().write(values)
         for record in self:
             if record.state == 'closed':
                 raise ValidationError('No se puede modificar una caja cerrada.')
+            ensure_write_allowed_fields(
+                record,
+                self.env.user,
+                values,
+                {
+                    'werlen_repuestos_erp.group_accountant': {'observations'},
+                    'werlen_repuestos_erp.group_management': {'observations'},
+                    'werlen_repuestos_erp.group_system': {'*'},
+                },
+            )
         return super().write(values)

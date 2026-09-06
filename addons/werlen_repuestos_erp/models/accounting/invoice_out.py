@@ -201,6 +201,7 @@ class InvoiceOut(models.Model):
             record.billing_base_amount = record.total_cost * coefficient
 
     @api.depends(
+        'total_cost',
         'reconciliation_lines',
         'reconciliation_lines.amount',
         'reconciliation_lines.confirmed',
@@ -245,6 +246,42 @@ class InvoiceOut(models.Model):
 
     def get_amount_not_reconciliated(self):
         return self.amount_not_paid_unconfirmed
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.su:
+            ensure_user_in_groups(
+                self.env.user,
+                [
+                    'werlen_repuestos_erp.group_sales',
+                    'werlen_repuestos_erp.group_administration',
+                    'werlen_repuestos_erp.group_system',
+                ],
+                error_message='Necesitas permisos para crear facturas.',
+            )
+        for values in vals_list:
+            if values.get('total_cost', 0) <= 0:
+                raise UserError('El importe total de la factura debe ser mayor que 0.')
+            if values.get('is_draft') is False and not self.env.su:
+                raise UserError('Las facturas nuevas deben comenzar en estado de borrador.')
+            if (
+                not self.env.user.has_group('werlen_repuestos_erp.group_administration')
+                and not self.env.su
+            ):
+                values.setdefault('seller', self.env.user.id)
+                if values.get('seller') != self.env.user.id:
+                    raise UserError('Sólo puedes crear facturas para ti mismo como vendedor.')
+        return super().create(vals_list)
+
+    def create_new_payment(self):
+        self.ensure_one()
+        order = self.env['sale_fulfillment_order'].search(
+            [('invoice_id', '=', self.id)],
+            limit=1,
+        )
+        if not order:
+            raise UserError('La factura no tiene una orden logística asociada.')
+        return order.create_new_payment()
 
     def show_reconciliation_lines(self):
         self.ensure_one()

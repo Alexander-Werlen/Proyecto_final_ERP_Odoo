@@ -1,4 +1,5 @@
 from odoo import fields, models
+from ...utils.group_verification import ensure_user_in_groups
 
 class ResPartner(models.Model):
     _inherit = "res.partner"
@@ -17,17 +18,42 @@ class ResPartner(models.Model):
 
     def action_open_wizard_current_account_income(self):
         self.ensure_one()
+        ensure_user_in_groups(
+            self.env.user,
+            [
+                'werlen_repuestos_erp.group_sales',
+                'werlen_repuestos_erp.group_accountant',
+            ],
+            error_message='Necesitas permisos de Ventas o Caja para registrar ingresos a cuenta corriente.',
+        )
+        payment_method = self.env.ref(
+            'werlen_repuestos_erp.payment_method_efectivo',
+            raise_if_not_found=False,
+        )
+        journal = payment_method.get_default_journal(self.env.user) if payment_method else self.env.user.default_journal_id
         return {
             'name': 'Ingreso a cuenta corriente',
             'type': 'ir.actions.act_window',
             'res_model': 'wizard_current_account_income',
             'view_mode': 'form',
             'target': 'new',
-            'context': {'default_payer_id': self.id},
+            'context': {
+                'default_payer_id': self.id,
+                'default_payment_method_id': payment_method.id if payment_method else False,
+                'default_journal_id': journal.id,
+            },
         }
 
     def action_open_new_check_for_current_account(self):
         self.ensure_one()
+        ensure_user_in_groups(
+            self.env.user,
+            [
+                'werlen_repuestos_erp.group_accountant',
+                'werlen_repuestos_erp.group_management',
+            ],
+            error_message='Necesitas permisos de Caja o Gerencia para registrar cheques.',
+        )
         return {
             'name': 'Registrar cheque',
             'type': 'ir.actions.act_window',

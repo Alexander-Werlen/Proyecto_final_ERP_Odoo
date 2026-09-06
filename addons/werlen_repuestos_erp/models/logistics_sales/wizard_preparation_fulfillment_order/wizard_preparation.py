@@ -17,5 +17,4 @@ class WizardPreparation(models.TransientModel):
     def action_confirm(self):
         for sale_fulfillment_order in self.saler_order_ids:
             sale_fulfillment_order.finish_preparation()
-            sale_fulfillment_order.sudo().with_context(workflow_transition=True).write({'packages_count': self.packages_count})
-
+            sale_fulfillment_order.sudo().write({'packages_count': self.packages_count})

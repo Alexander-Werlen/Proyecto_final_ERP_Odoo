@@ -1,0 +1,7 @@
+<odoo>
+    <data noupdate="1">
+        <record id="base.user_admin" model="res.users">
+            <field name="default_journal_id" ref="journal_caja_1"/>
+        </record>
+    </data>
+</odoo>

@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
 class PaymentMethod(models.Model):
     _name = 'payment_method'
@@ -60,6 +60,103 @@ class PaymentMethod(models.Model):
         for record in self:
             if record.billing_coefficient <= 0 or record.billing_coefficient > 1:
                 raise UserError('El coeficiente debe ser mayor que 0 y menor o igual a 1.')
+
+    @api.constrains('allowed_journals', 'default_journal')
+    def _check_default_journal(self):
+        for record in self:
+            if record.default_journal and record.default_journal not in record.allowed_journals:
+                raise UserError(
+                    'El diario por defecto debe estar entre los diarios permitidos.'
+                )
+
+    def get_default_journal(self, user=None):
+        self.ensure_one()
+        user = user or self.env.user
+        if user.default_journal_id in self.allowed_journals:
+            return user.default_journal_id
+        if self.default_journal in self.allowed_journals:
+            return self.default_journal
+        return self.allowed_journals[:1]
+
+    @api.model
+    def backfill_configuration(self):
+        if not self.env.su:
+            raise AccessError('La configuración inicial sólo puede ejecutarse desde el sistema.')
+        parameters = self.env['ir.config_parameter'].sudo()
+        migration_key = 'werlen_repuestos_erp.default_payment_methods_migrated'
+        if not parameters.get_param(migration_key):
+            configurations = {
+                'payment_method_otros': ('closing_category_otros', 'journal_general', ('journal_caja_1', 'journal_caja_admin', 'journal_general'), True, False),
+                'payment_method_ajustes': ('closing_category_ajustes', 'journal_adjustments', ('journal_adjustments',), True, False),
+                'payment_method_cheque': ('closing_category_otros', 'journal_general', ('journal_caja_1', 'journal_caja_admin', 'journal_general'), False, False),
+                'payment_method_efectivo': ('closing_category_efectivo', 'journal_caja_1', ('journal_caja_1', 'journal_caja_admin', 'journal_general'), True, False),
+                'payment_method_cuenta_corriente': ('closing_category_otros', 'journal_general', ('journal_general',), False, True),
+                'payment_method_account_with_discount': ('closing_category_otros', 'journal_general', ('journal_general',), False, True),
+                'payment_method_account_net_net': ('closing_category_otros', 'journal_general', ('journal_general',), False, True),
+            }
+            for method_xmlid, (category_xmlid, default_journal_xmlid, allowed_xmlids, active, is_account) in configurations.items():
+                method = self.env.ref(
+                    f'werlen_repuestos_erp.{method_xmlid}',
+                    raise_if_not_found=False,
+                )
+                category = self.env.ref(
+                    f'werlen_repuestos_erp.{category_xmlid}',
+                    raise_if_not_found=False,
+                )
+                default_journal = self.env.ref(
+                    f'werlen_repuestos_erp.{default_journal_xmlid}',
+                    raise_if_not_found=False,
+                )
+                allowed_journals = self.env['journal'].browse([
+                    self.env.ref(
+                        f'werlen_repuestos_erp.{journal_xmlid}',
+                        raise_if_not_found=False,
+                    ).id
+                    for journal_xmlid in allowed_xmlids
+                ]).exists()
+                if method and category and default_journal and allowed_journals:
+                    method.sudo().write({
+                        'active_currently': active,
+                        'cash_closing_category_id': category.id,
+                        'default_journal': default_journal.id,
+                        'allowed_journals': [(6, 0, allowed_journals.ids)],
+                        'is_account_payment_method': is_account,
+                        'billing_coefficient': method.billing_coefficient or 1.0,
+                    })
+            parameters.set_param(migration_key, '1')
+
+        category = self.env['cash_closing_category'].sudo().search(
+            [('name', '=', 'OTROS')],
+            limit=1,
+        )
+        journals = self.env['journal'].sudo().search([])
+        if not category or not journals:
+            return False
+        default_journal = self.env.ref(
+            'werlen_repuestos_erp.journal_general',
+            raise_if_not_found=False,
+        ) or journals[:1]
+        for record in self.sudo().search([]):
+            values = {}
+            if not record.cash_closing_category_id:
+                values['cash_closing_category_id'] = category.id
+            if not record.allowed_journals:
+                values['allowed_journals'] = [(6, 0, journals.ids)]
+            if (
+                not record.default_journal
+                or record.default_journal not in record.allowed_journals
+            ):
+                values['default_journal'] = default_journal.id
+            if not record.billing_coefficient:
+                values['billing_coefficient'] = 1.0
+            if (
+                'cuenta corriente' in (record.name or '').lower()
+                and not record.is_account_payment_method
+            ):
+                values['is_account_payment_method'] = True
+            if values:
+                record.write(values)
+        return True
 
     """ SQL Constraints """
 

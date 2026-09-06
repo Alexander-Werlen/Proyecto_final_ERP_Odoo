@@ -1,0 +1,295 @@
+<odoo>
+    <record id="wizard_manual_payment_in_journal_form_view" model="ir.ui.view">
+        <field name="name">wizard.manual.payment.in.journal.form</field>
+        <field name="model">wizard_manual_payment_in_journal</field>
+        <field name="arch" type="xml">
+            <form string="Registrar ingreso">
+                <group>
+                    <field name="journal" readonly="1"/>
+                    <field name="payment_method" domain="[('allowed_journals', 'in', journal)]"/>
+                    <field name="amount"/>
+                    <field name="payer"/>
+                    <field name="payment_origin_explanation"/>
+                    <field name="observations"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Registrar" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_manual_payment_out_journal_form_view" model="ir.ui.view">
+        <field name="name">wizard.manual.payment.out.journal.form</field>
+        <field name="model">wizard_manual_payment_out_journal</field>
+        <field name="arch" type="xml">
+            <form string="Registrar egreso">
+                <group>
+                    <field name="journal" readonly="1"/>
+                    <field name="payment_method" domain="[('allowed_journals', 'in', journal)]"/>
+                    <field name="amount"/>
+                    <field name="payee" invisible="hide_field_payee"/>
+                    <field name="payment_origin_explanation"/>
+                    <field name="observations"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Registrar" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_change_payment_line_journal_form_view" model="ir.ui.view">
+        <field name="name">wizard.change.payment.line.journal.form</field>
+        <field name="model">wizard_change_payment_line_journal</field>
+        <field name="arch" type="xml">
+            <form string="Cambiar diario del pago">
+                <group>
+                    <field name="payment_line_id"/>
+                    <field name="payment_line_amount"/>
+                    <field name="current_journal_id"/>
+                    <field name="new_journal_id" domain="[('allowed_payment_methods', 'in', payment_line_id.payment_method)]"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Cambiar" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_change_check_journal_form_view" model="ir.ui.view">
+        <field name="name">wizard.change.check.journal.form</field>
+        <field name="model">wizard_change_check_journal</field>
+        <field name="arch" type="xml">
+            <form string="Cambiar diario del cheque">
+                <group>
+                    <field name="check_id"/>
+                    <field name="check_amount"/>
+                    <field name="current_journal_id"/>
+                    <field name="new_journal_id"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Cambiar" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_payment_line_out_credit_note_form_view" model="ir.ui.view">
+        <field name="name">wizard.payment.line.out.credit.note.form</field>
+        <field name="model">wizard_payment_line_out_credit_note</field>
+        <field name="arch" type="xml">
+            <form string="Reembolsar nota de crédito">
+                <group>
+                    <field name="credit_note_out_id" readonly="1"/>
+                    <field name="credit_note_out_total_amount" readonly="1"/>
+                    <field name="credit_note_out_amount_reconciliated" readonly="1"/>
+                    <field name="credit_note_out_amount_not_reconciliated" readonly="1"/>
+                    <field name="amount"/>
+                    <field name="payee" readonly="1"/>
+                    <field name="payment_method"/>
+                    <field name="journal" domain="[('allowed_payment_methods', 'in', payment_method)]"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Reembolsar" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_verification_credit_note_out_form_view" model="ir.ui.view">
+        <field name="name">wizard.verification.credit.note.out.form</field>
+        <field name="model">wizard_verification_credit_note_out</field>
+        <field name="arch" type="xml">
+            <form string="Verificar nota de crédito">
+                <group>
+                    <field name="credit_note_id" readonly="1"/>
+                    <field name="client" readonly="1"/>
+                    <field name="full_name" readonly="1"/>
+                    <field name="total_amount" readonly="1"/>
+                    <field name="date" readonly="1"/>
+                    <field name="seller_of_related_invoice" readonly="1"/>
+                    <field name="related_invoice" invisible="skip_related_invoice"/>
+                    <field name="skip_related_invoice"/>
+                    <field name="who_created"/>
+                    <field name="who_approved"/>
+                    <field name="observations"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm_verification" type="object" string="Verificar" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_create_credit_note_out_form_view" model="ir.ui.view">
+        <field name="name">wizard.create.credit.note.out.form</field>
+        <field name="model">wizard_create_credit_note_out</field>
+        <field name="arch" type="xml">
+            <form string="Crear nota de crédito">
+                <group>
+                    <field name="credit_note_id"/>
+                    <field name="invoice_type" domain="[('invoice_type_id', '=like', 'NC-%')]"/>
+                    <field name="client"/>
+                    <field name="full_name"/>
+                    <field name="total_amount"/>
+                    <field name="payment_method" domain="[('active_currently', '=', True)]"/>
+                    <field name="seller_of_related_invoice"/>
+                    <field name="date"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm_draft" type="object" string="Crear" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_create_account_payment_form_view" model="ir.ui.view">
+        <field name="name">wizard.create.account.payment.form</field>
+        <field name="model">wizard_create_account_payment</field>
+        <field name="arch" type="xml">
+            <form string="Crear recibo">
+                <group>
+                    <field name="account_payment_id"/>
+                    <field name="client"/>
+                    <field name="amount"/>
+                    <field name="discount_amount"/>
+                    <field name="date"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_create_account_payment" type="object" string="Crear" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_current_account_income_form_view" model="ir.ui.view">
+        <field name="name">wizard.current.account.income.form</field>
+        <field name="model">wizard_current_account_income</field>
+        <field name="arch" type="xml">
+            <form string="Ingreso a cuenta corriente">
+                <group>
+                    <field name="payer_id" readonly="1"/>
+                    <field name="amount"/>
+                    <field name="payment_method_id"/>
+                    <field name="journal_id" domain="[('allowed_payment_methods', 'in', payment_method_id)]"/>
+                    <field name="observations"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_create_payment_line" type="object" string="Registrar" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_verification_account_payment_form_view" model="ir.ui.view">
+        <field name="name">wizard.verification.account.payment.form</field>
+        <field name="model">wizard_verification_account_payment</field>
+        <field name="arch" type="xml">
+            <form string="Verificar recibo">
+                <group>
+                    <field name="account_payment" readonly="1"/>
+                    <field name="client" readonly="1"/>
+                    <field name="amount" readonly="1"/>
+                    <field name="discount_amount" readonly="1"/>
+                    <field name="date" readonly="1"/>
+                    <field name="who_created"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <separator string="Pagos y cheques a asociar"/>
+                <field name="related_payments" widget="many2many_tags"/>
+                <field name="related_checks" widget="many2many_tags"/>
+                <field name="amount_reconciliated" readonly="1"/>
+                <field name="amount_not_reconciliated" readonly="1"/>
+                <field name="observations"/>
+                <footer>
+                    <button name="action_confirm_verification" type="object" string="Verificar" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_payment_line_day_summary_view" model="ir.ui.view">
+        <field name="name">wizard.payment.line.day.summary.form</field>
+        <field name="model">wizard_payment_line_day_summary</field>
+        <field name="arch" type="xml">
+            <form string="Resumen de movimientos">
+                <group><field name="date"/></group>
+                <footer>
+                    <button name="action_open_lines" type="object" string="Ver movimientos" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_close_cash_session_form_view" model="ir.ui.view">
+        <field name="name">wizard.close.cash.session.form</field>
+        <field name="model">wizard_close_cash_session</field>
+        <field name="arch" type="xml">
+            <form string="Cerrar caja">
+                <group>
+                    <field name="cash_session_id" readonly="1"/>
+                    <field name="journal_id" readonly="1"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <field name="line_ids">
+                    <list editable="bottom" create="0" delete="0">
+                        <field name="category_id" readonly="1"/>
+                        <field name="opening_balance" readonly="1"/>
+                        <field name="movements_amount" readonly="1"/>
+                        <field name="theoretical_balance" readonly="1"/>
+                        <field name="counted_balance"/>
+                        <field name="difference" readonly="1"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_confirm_close" type="object" string="Cerrar caja" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_manual_payment_invoice_out_form_view" model="ir.ui.view">
+        <field name="name">wizard.manual.payment.invoice.out.form</field>
+        <field name="model">wizard_manual_payment_invoice_out</field>
+        <field name="arch" type="xml">
+            <form string="Registrar pago de factura">
+                <group>
+                    <field name="reconciliation_invoice_id" readonly="1"/>
+                    <field name="invoice_out_total_amount" readonly="1"/>
+                    <field name="invoice_out_amount_not_reconciliated" readonly="1"/>
+                    <field name="amount"/>
+                    <field name="payer" readonly="1"/>
+                    <field name="payment_method"/>
+                    <field name="journal" domain="[('allowed_payment_methods', 'in', payment_method)]"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Registrar" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,31 @@
+<odoo>
+    <record id="view_partner_form_financial_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.financial.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_open_wizard_current_account_income" type="object" string="Ingreso a CC" class="oe_highlight" groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_accountant"/>
+                    <button name="action_open_new_check_for_current_account" type="object" string="Cheque a CC" groups="werlen_repuestos_erp.group_manage_account_payments"/>
+                    <button name="action_open_pending_account_payments" type="object" string="Recibos pendientes" groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration"/>
+                </header>
+            </xpath>
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="unique_identifier"/>
+                <field name="city_relational_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_users_form_default_journal_inherit" model="ir.ui.view">
+        <field name="name">res.users.form.default.journal.inherit</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form_simple_modif"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='preferences']" position="inside">
+                <field name="default_journal_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -3,7 +3,7 @@ from odoo.exceptions import UserError
 from odoo.tools import float_compare
 
 from ...enums.accounting.payment_status import PAYMENT_STATUS_ENUM
-from ...utils.group_verification import ensure_user_in_groups
+from ...utils.group_verification import ensure_user_in_groups, ensure_write_allowed_fields
 
 
 class CreditNoteOut(models.Model):
@@ -174,6 +174,7 @@ class CreditNoteOut(models.Model):
             record.billing_base_amount = record.total_amount * coefficient
 
     @api.depends(
+        'total_amount',
         'reconciliation_lines',
         'reconciliation_lines.amount',
         'reconciliation_lines.confirmed',
@@ -207,6 +208,28 @@ class CreditNoteOut(models.Model):
     def get_amount_not_reconciliated(self):
         return self.amount_not_reconciliated_unconfirmed
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.su:
+            ensure_user_in_groups(
+                self.env.user,
+                [
+                    'werlen_repuestos_erp.group_sales',
+                    'werlen_repuestos_erp.group_administration',
+                    'werlen_repuestos_erp.group_system',
+                ],
+                error_message='Necesitas permisos para crear notas de crédito.',
+            )
+        for values in vals_list:
+            if values.get('total_amount', 0) <= 0:
+                raise UserError('El importe de la nota de crédito debe ser mayor que 0.')
+            if values.get('state') == 'verified' and not self.env.su:
+                raise UserError('Las notas de crédito nuevas deben comenzar en borrador.')
+            if not self.env.su:
+                values['state'] = 'draft'
+                values.setdefault('who_created', self.env.user.id)
+        return super().create(vals_list)
+
     def action_start_verification(self):
         self.ensure_one()
         ensure_user_in_groups(
@@ -223,7 +246,7 @@ class CreditNoteOut(models.Model):
             'date': self.date,
             'seller_of_related_invoice': self.seller_of_related_invoice.id,
             'who_created': self.who_created.id or self.env.user.id,
-            'who_approved': self.who_approved.id,
+            'who_approved': self.env.user.id,
             'related_invoice': self.related_invoice.id,
             'observations': self.observations,
         })
@@ -242,16 +265,18 @@ class CreditNoteOut(models.Model):
             ['werlen_repuestos_erp.group_accountant'],
             error_message='Necesitas permisos de Caja para reembolsar notas de crédito.',
         )
+        if self.state != 'verified':
+            raise UserError('Sólo se pueden reembolsar notas de crédito verificadas.')
+        payment_method = self.env.ref(
+            'werlen_repuestos_erp.payment_method_efectivo',
+            raise_if_not_found=False,
+        )
         wizard = self.env['wizard_payment_line_out_credit_note'].create({
             'credit_note_out_id': self.id,
             'amount': max(self.amount_not_reconciliated_unconfirmed, 0.0),
             'payee': self.client.id,
-            'payment_method': self.env.ref(
-                'werlen_repuestos_erp.payment_method_efectivo', raise_if_not_found=False
-            ).id if self.env.ref(
-                'werlen_repuestos_erp.payment_method_efectivo', raise_if_not_found=False
-            ) else False,
-            'journal': self.env.user.default_journal_id.id,
+            'payment_method': payment_method.id if payment_method else False,
+            'journal': payment_method.get_default_journal(self.env.user).id if payment_method else self.env.user.default_journal_id.id,
         })
         return {
             'type': 'ir.actions.act_window',
@@ -270,6 +295,38 @@ class CreditNoteOut(models.Model):
             'view_mode': 'list',
             'domain': [('credit_note_out_id', '=', self.id)],
         }
+
+    def show_payment_lines(self):
+        self.ensure_one()
+        return {
+            'name': f'Pagos asociados a {self.credit_note_id}',
+            'type': 'ir.actions.act_window',
+            'res_model': 'payment_line',
+            'view_mode': 'list,form',
+            'views': [
+                (self.env.ref('werlen_repuestos_erp.default_payment_line_list_view').id, 'list'),
+                (self.env.ref('werlen_repuestos_erp.default_payment_line_form_view').id, 'form'),
+            ],
+            'domain': [('reconciliation_lines_when_outgoing', 'in', self.reconciliation_lines.ids)],
+        }
+
+    def write(self, values):
+        if self.env.su:
+            return super().write(values)
+        for record in self:
+            ensure_write_allowed_fields(
+                record,
+                self.env.user,
+                values,
+                {
+                    'werlen_repuestos_erp.group_sales': {'observations'},
+                    'werlen_repuestos_erp.group_accountant': {'observations'},
+                    'werlen_repuestos_erp.group_administration': {'observations'},
+                    'werlen_repuestos_erp.group_management': {'observations'},
+                    'werlen_repuestos_erp.group_system': {'*'},
+                },
+            )
+        return super().write(values)
 
     @api.constrains('total_amount', 'amount_reconciliated_unconfirmed')
     def _check_amounts(self):

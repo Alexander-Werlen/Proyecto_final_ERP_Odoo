@@ -3,7 +3,7 @@ from odoo.exceptions import UserError
 from odoo.tools import float_compare
 
 from ...enums.accounting.payment_status import PAYMENT_STATUS_ENUM
-from ...utils.group_verification import ensure_user_in_groups
+from ...utils.group_verification import ensure_user_in_groups, ensure_write_allowed_fields
 
 
 class AccountPayment(models.Model):
@@ -137,6 +137,7 @@ class AccountPayment(models.Model):
             )
 
     @api.depends(
+        'amount',
         'reconciliation_lines',
         'reconciliation_lines.amount',
         'reconciliation_lines.confirmed',
@@ -165,6 +166,20 @@ class AccountPayment(models.Model):
     def get_amount_not_reconciliated(self):
         return self.amount_not_reconciliated_unconfirmed
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        for values in vals_list:
+            if values.get('amount', 0) <= 0:
+                raise UserError('El importe del recibo debe ser mayor que 0.')
+            if values.get('discount_amount', 0) < 0:
+                raise UserError('El descuento del recibo no puede ser negativo.')
+            if values.get('discount_amount', 0) > values.get('amount', 0):
+                raise UserError('El descuento del recibo no puede superar su importe.')
+            if not self.env.su:
+                values['status'] = 'draft'
+                values['who_created'] = self.env.user.id
+        return super().create(vals_list)
+
     def create_new_payment(self):
         self.ensure_one()
         ensure_user_in_groups(
@@ -172,6 +187,11 @@ class AccountPayment(models.Model):
             ['werlen_repuestos_erp.group_accountant'],
             error_message='Necesitas permisos de Caja para crear pagos a cuenta corriente.',
         )
+        payment_method = self.env.ref(
+            'werlen_repuestos_erp.payment_method_efectivo',
+            raise_if_not_found=False,
+        )
+        journal = payment_method.get_default_journal(self.env.user) if payment_method else self.env.user.default_journal_id
         return {
             'name': 'Ingreso a cuenta corriente',
             'type': 'ir.actions.act_window',
@@ -182,7 +202,8 @@ class AccountPayment(models.Model):
                 'default_payer_id': self.client.id,
                 'default_amount': max(self.amount_not_reconciliated_unconfirmed, 0.0),
                 'default_account_payment_for_auto_reconciliation': self.id,
-                'default_journal_id': self.env.user.default_journal_id.id,
+                'default_journal_id': journal.id,
+                'default_payment_method_id': payment_method.id if payment_method else False,
             },
         }
 
@@ -206,8 +227,8 @@ class AccountPayment(models.Model):
         self.ensure_one()
         ensure_user_in_groups(
             self.env.user,
-            ['werlen_repuestos_erp.group_accountant'],
-            error_message='Necesitas permisos de Caja para verificar recibos.',
+            ['werlen_repuestos_erp.group_management'],
+            error_message='Necesitas permisos de Gerencia para verificar recibos.',
         )
         wizard = self.env['wizard_verification_account_payment'].create({
             'account_payment': self.id,
@@ -236,6 +257,37 @@ class AccountPayment(models.Model):
             'view_mode': 'list',
             'domain': [('account_payment_id', '=', self.id)],
         }
+
+    def show_payment_lines(self):
+        self.ensure_one()
+        return {
+            'name': f'Pagos asociados a {self.account_payment_id}',
+            'type': 'ir.actions.act_window',
+            'res_model': 'payment_line',
+            'view_mode': 'list,form',
+            'views': [
+                (self.env.ref('werlen_repuestos_erp.default_payment_line_list_view').id, 'list'),
+                (self.env.ref('werlen_repuestos_erp.default_payment_line_form_view').id, 'form'),
+            ],
+            'domain': [('reconciliation_lines_when_incomming', 'in', self.reconciliation_lines.ids)],
+        }
+
+    def write(self, values):
+        if self.env.su:
+            return super().write(values)
+        for record in self:
+            ensure_write_allowed_fields(
+                record,
+                self.env.user,
+                values,
+                {
+                    'werlen_repuestos_erp.group_accountant': {'observations'},
+                    'werlen_repuestos_erp.group_administration': {'observations'},
+                    'werlen_repuestos_erp.group_management': {'observations'},
+                    'werlen_repuestos_erp.group_system': {'*'},
+                },
+            )
+        return super().write(values)
 
     @api.constrains('amount', 'amount_reconciliated_unconfirmed')
     def _check_amount_reconciliated(self):

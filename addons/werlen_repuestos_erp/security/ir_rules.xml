@@ -1,0 +1,175 @@
+<odoo>
+    <record id="sale_fulfillment_order_rule_internal_user_own" model="ir.rule">
+        <field name="name">Órdenes de venta propias</field>
+        <field name="model_id" ref="model_sale_fulfillment_order"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('seller', '=', user.id)]</field>
+    </record>
+    <record id="sale_fulfillment_order_rule_preparation_all" model="ir.rule">
+        <field name="name">Órdenes de venta para preparación</field>
+        <field name="model_id" ref="model_sale_fulfillment_order"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_preparation'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="sale_fulfillment_order_rule_accounting_all" model="ir.rule">
+        <field name="name">Órdenes de venta para caja</field>
+        <field name="model_id" ref="model_sale_fulfillment_order"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_accountant'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="sale_fulfillment_order_rule_administration_all" model="ir.rule">
+        <field name="name">Órdenes de venta para administración</field>
+        <field name="model_id" ref="model_sale_fulfillment_order"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_administration'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="sale_fulfillment_order_rule_management_all" model="ir.rule">
+        <field name="name">Todas las órdenes de venta para gerencia</field>
+        <field name="model_id" ref="model_sale_fulfillment_order"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_management'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="sale_fulfillment_order_rule_system_all" model="ir.rule">
+        <field name="name">Todas las órdenes de venta para sistema</field>
+        <field name="model_id" ref="model_sale_fulfillment_order"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="invoice_out_rule_internal_user_own" model="ir.rule">
+        <field name="name">Facturas propias</field>
+        <field name="model_id" ref="model_invoice_out"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('seller', '=', user.id)]</field>
+    </record>
+    <record id="invoice_out_rule_accounting_all" model="ir.rule">
+        <field name="name">Todas las facturas para caja</field>
+        <field name="model_id" ref="model_invoice_out"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_accountant'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="invoice_out_rule_administration_all" model="ir.rule">
+        <field name="name">Todas las facturas para administración</field>
+        <field name="model_id" ref="model_invoice_out"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_administration'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="invoice_out_rule_management_all" model="ir.rule">
+        <field name="name">Todas las facturas para gerencia</field>
+        <field name="model_id" ref="model_invoice_out"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_management'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="invoice_out_rule_system_all" model="ir.rule">
+        <field name="name">Todas las facturas para sistema</field>
+        <field name="model_id" ref="model_invoice_out"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="payment_line_rule_internal_user_own" model="ir.rule">
+        <field name="name">Pagos propuestos propios</field>
+        <field name="model_id" ref="model_payment_line"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('who_proposed_payment', '=', user.id)]</field>
+    </record>
+    <record id="payment_line_rule_accounting_all" model="ir.rule">
+        <field name="name">Todos los pagos para caja</field>
+        <field name="model_id" ref="model_payment_line"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_accountant'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="payment_line_rule_administration_all" model="ir.rule">
+        <field name="name">Todos los pagos para administración</field>
+        <field name="model_id" ref="model_payment_line"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_administration'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="payment_line_rule_management_all" model="ir.rule">
+        <field name="name">Todos los pagos para gerencia</field>
+        <field name="model_id" ref="model_payment_line"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_management'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="payment_line_rule_system_all" model="ir.rule">
+        <field name="name">Todos los pagos para sistema</field>
+        <field name="model_id" ref="model_payment_line"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="reconciliation_line_rule_internal_user_own" model="ir.rule">
+        <field name="name">Conciliaciones de facturas propias</field>
+        <field name="model_id" ref="model_reconciliation_line"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('invoice_out_id.seller', '=', user.id)]</field>
+    </record>
+    <record id="reconciliation_line_rule_accounting_all" model="ir.rule">
+        <field name="name">Todas las conciliaciones para caja</field>
+        <field name="model_id" ref="model_reconciliation_line"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_accountant'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="reconciliation_line_rule_administration_all" model="ir.rule">
+        <field name="name">Todas las conciliaciones para administración</field>
+        <field name="model_id" ref="model_reconciliation_line"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_administration'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="reconciliation_line_rule_management_all" model="ir.rule">
+        <field name="name">Todas las conciliaciones para gerencia</field>
+        <field name="model_id" ref="model_reconciliation_line"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_management'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="reconciliation_line_rule_system_all" model="ir.rule">
+        <field name="name">Todas las conciliaciones para sistema</field>
+        <field name="model_id" ref="model_reconciliation_line"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="credit_note_out_rule_internal_user_own" model="ir.rule">
+        <field name="name">Notas de crédito propias</field>
+        <field name="model_id" ref="model_credit_note_out"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('seller_of_related_invoice', '=', user.id)]</field>
+    </record>
+    <record id="credit_note_out_rule_accounting_all" model="ir.rule">
+        <field name="name">Todas las notas de crédito para caja</field>
+        <field name="model_id" ref="model_credit_note_out"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_accountant'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="credit_note_out_rule_management_all" model="ir.rule">
+        <field name="name">Todas las notas de crédito para gerencia</field>
+        <field name="model_id" ref="model_credit_note_out"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_management'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="credit_note_out_rule_system_all" model="ir.rule">
+        <field name="name">Todas las notas de crédito para sistema</field>
+        <field name="model_id" ref="model_credit_note_out"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="account_payment_in_aggregate_rule_internal_user_own" model="ir.rule">
+        <field name="name">Ingresos a cuenta corriente propios</field>
+        <field name="model_id" ref="model_account_payment_in_aggregate"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('who_created', '=', user.id)]</field>
+    </record>
+    <record id="account_payment_in_aggregate_rule_management_all" model="ir.rule">
+        <field name="name">Todos los ingresos a cuenta corriente para gerencia</field>
+        <field name="model_id" ref="model_account_payment_in_aggregate"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_management'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="account_payment_in_aggregate_rule_system_all" model="ir.rule">
+        <field name="name">Todos los ingresos a cuenta corriente para sistema</field>
+        <field name="model_id" ref="model_account_payment_in_aggregate"/>
+        <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+</odoo>

@@ -8,7 +8,7 @@
                     <field name="logistical_status"
                     widget="badge"
                     decoration-danger="logistical_status == 'draft'"
-                    decoration-warning="logistical_status == 'awaiting_preparation'"
+                    decoration-warning="logistical_status in ['awaiting_payment', 'awaiting_preparation']"
                     decoration-primary="logistical_status in ['prepared', 'in_preparation']"
                     decoration-success="logistical_status in ['sent', 'avoid_tracking']"
                     width="120px"
@@ -59,6 +59,10 @@
                     <filter name="awaiting_preparation"
                             string="A Preparar"
                             domain="[('logistical_status','=','awaiting_preparation')]"/>
+
+                    <filter name="awaiting_payment"
+                            string="A pagar"
+                            domain="[('logistical_status','=','awaiting_payment')]"/>
 
                     <filter name="in_preparation"
                             string="En preparación"

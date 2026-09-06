@@ -5,6 +5,14 @@
             <field name="model">invoice_out</field>
             <field name="arch" type="xml">
                 <form string="Facturas Emitidas" create="false" delete="false">
+                <header>
+                    <button name="confirm_draft" type="object" string="Confirmar" class="oe_highlight" groups="werlen_repuestos_erp.group_sales" invisible="not is_draft"/>
+                    <button name="create_new_payment" type="object" string="Registrar pago" class="oe_highlight" groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_accountant" invisible="is_draft or payment_status in ['paid', 'account']"/>
+                    <button name="open_manual_reconciliation_line_form" type="object" string="Reconciliar" groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration" invisible="is_draft or payment_status in ['paid', 'account']"/>
+                    <button name="show_payment_lines" type="object" string="Ver pagos" invisible="is_draft"/>
+                    <button name="show_reconciliation_lines" type="object" string="Ver reconciliaciones" invisible="is_draft"/>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid,account"/>
+                </header>
                 <sheet>
 
                     <widget name="web_ribbon" title="Borrador"
@@ -24,6 +32,7 @@
                         </group>
                         <group>
                             <field name="total_cost" readonly="is_draft == False"/>
+                            <field name="billing_base_amount" readonly="1"/>
                             <field name="payment_method" readonly="is_draft == False"/>
                         </group>
                     </group>
@@ -41,6 +50,14 @@
                         </group>
                     </group>
 
+                    <group string="Estado de pago" invisible="is_draft">
+                        <field name="amount_paid_confirmed" readonly="1"/>
+                        <field name="amount_not_paid_confirmed" readonly="1"/>
+                        <field name="amount_paid_unconfirmed" readonly="1"/>
+                        <field name="amount_not_paid_unconfirmed" readonly="1"/>
+                        <field name="is_account_move" readonly="1"/>
+                    </group>
+
                     <notebook>
                         <page string="Observaciones">
                             <field name="observations"/>
@@ -49,6 +66,9 @@
                             <group>
                                 <field name="is_manual_invoice" readonly="true" widget="boolean_toggle"/>
                             </group>
+                        </page>
+                        <page string="Reconciliaciones" invisible="is_draft">
+                            <field name="reconciliation_lines" readonly="1"/>
                         </page>
                     </notebook>
                 </sheet>

@@ -26,6 +26,98 @@
         <field name="view_mode">list</field>
     </record>
 
+    <record id="action_open_credit_notes_out" model="ir.actions.act_window">
+        <field name="name">Outgoing Credit Notes</field>
+        <field name="res_model">credit_note_out</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.default_credit_note_out_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.default_credit_note_out_search_view"/>
+    </record>
+
+    <record id="action_open_account_payments" model="ir.actions.act_window">
+        <field name="name">Account Current Receipts</field>
+        <field name="res_model">account_payment</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.default_account_payment_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.default_account_payment_search_view"/>
+    </record>
+
+    <record id="action_open_payment_lines" model="ir.actions.act_window">
+        <field name="name">Payment Lines</field>
+        <field name="res_model">payment_line</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.default_payment_line_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.default_payment_line_search_view"/>
+    </record>
+
+    <record id="action_open_checks" model="ir.actions.act_window">
+        <field name="name">Checks</field>
+        <field name="res_model">check</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.default_check_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.default_check_search_view"/>
+    </record>
+
+    <record id="action_open_journals" model="ir.actions.act_window">
+        <field name="name">Journals/Cash Registers</field>
+        <field name="res_model">journal</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.default_journal_list_view"/>
+    </record>
+
+    <record id="action_open_payment_methods" model="ir.actions.act_window">
+        <field name="name">Payment Methods</field>
+        <field name="res_model">payment_method</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.payment_method_list_view"/>
+    </record>
+
+    <record id="action_open_cash_closing_categories" model="ir.actions.act_window">
+        <field name="name">Cash Closing Categories</field>
+        <field name="res_model">cash_closing_category</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="werlen_repuestos_erp.cash_closing_category_list_view"/>
+    </record>
+
+    <record id="action_open_cash_sessions" model="ir.actions.act_window">
+        <field name="name">Cash Sessions</field>
+        <field name="res_model">cash_session</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.default_cash_session_list_view"/>
+    </record>
+
+    <record id="action_open_account_payment_in_aggregate" model="ir.actions.act_window">
+        <field name="name">Account Current Income</field>
+        <field name="res_model">account_payment_in_aggregate</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="werlen_repuestos_erp.account_payment_in_aggregate_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.account_payment_in_aggregate_search_view"/>
+    </record>
+
+    <record id="action_create_credit_note_out" model="ir.actions.act_window">
+        <field name="name">Create Credit Note</field>
+        <field name="res_model">wizard_create_credit_note_out</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.wizard_create_credit_note_out_form_view"/>
+        <field name="target">new</field>
+    </record>
+
+    <record id="action_create_account_payment" model="ir.actions.act_window">
+        <field name="name">Create Account Receipt</field>
+        <field name="res_model">wizard_create_account_payment</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.wizard_create_account_payment_form_view"/>
+        <field name="target">new</field>
+    </record>
+
+    <record id="action_open_payment_line_day_summary" model="ir.actions.act_window">
+        <field name="name">Daily Payment Summary</field>
+        <field name="res_model">wizard_payment_line_day_summary</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.wizard_payment_line_day_summary_view"/>
+        <field name="target">new</field>
+    </record>
+
     <record id="action_seller_dashboard" model="ir.actions.client">
         <field name="name">Sales Dashboard</field>
         <field name="tag">werlen_repuestos_erp.seller_dashboard</field>
@@ -82,7 +174,7 @@
         <field name="view_id" ref="werlen_repuestos_erp.accountant_sale_fulfillment_order_list_view"/>
         <field name="search_view_id" ref="werlen_repuestos_erp.accountant_sale_fulfillment_order_search_view"/>
         <field name="domain">
-            [('logistical_status', 'in', ['draft', 'awaiting_preparation', 'in_preparation', 'prepared'])]
+            [('logistical_status', 'in', ['draft', 'awaiting_payment', 'awaiting_preparation', 'in_preparation', 'prepared'])]
         </field>
     </record>
 
@@ -149,6 +241,12 @@
     groups="werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_system"/>
     <menuitem id="menu_accounting_settings_legacy_invoice_import" name="Synchronization"
         parent="menu_accounting_settings" action="action_open_legacy_invoice_imports" sequence="1"/>
+    <menuitem id="menu_accounting_settings_journals" name="Journals/Cash Registers"
+        parent="menu_accounting_settings" action="action_open_journals" sequence="2"/>
+    <menuitem id="menu_accounting_settings_payment_methods" name="Payment Methods"
+        parent="menu_accounting_settings" action="action_open_payment_methods" sequence="3"/>
+    <menuitem id="menu_accounting_settings_closing_categories" name="Closing Categories"
+        parent="menu_accounting_settings" action="action_open_cash_closing_categories" sequence="4"/>
 
     <menuitem id="menu_fulfillment" name="Operations" sequence="1"/>
 
@@ -156,6 +254,25 @@
     <menuitem id="menu_accounting_invoice_out" name="Outgoing Invoices" parent="menu_accounting" sequence="1"/>
     <menuitem id="menu_accounting_invoice_out_all" name="View All" parent="menu_accounting_invoice_out" action="action_open_invoices_out" sequence="1"/>
     <menuitem id="menu_accounting_invoice_out_create_new" name="Create New" parent="menu_accounting_invoice_out" action="action_invoice_out_create_wizard" sequence="2"/>
+
+    <menuitem id="menu_accounting_credit_notes" name="Outgoing Credit Notes" parent="menu_accounting" sequence="2"/>
+    <menuitem id="menu_accounting_credit_notes_all" name="View All" parent="menu_accounting_credit_notes" action="action_open_credit_notes_out" sequence="1"/>
+    <menuitem id="menu_accounting_credit_notes_create" name="Create New" parent="menu_accounting_credit_notes" action="action_create_credit_note_out" sequence="2" groups="werlen_repuestos_erp.group_sales"/>
+
+    <menuitem id="menu_accounting_receipts" name="Account Current Receipts" parent="menu_accounting" sequence="3" groups="werlen_repuestos_erp.group_management,werlen_repuestos_erp.group_system"/>
+    <menuitem id="menu_accounting_receipts_all" name="View All" parent="menu_accounting_receipts" action="action_open_account_payments" sequence="1"/>
+    <menuitem id="menu_accounting_receipts_create" name="Create New" parent="menu_accounting_receipts" action="action_create_account_payment" sequence="2" groups="werlen_repuestos_erp.group_management,werlen_repuestos_erp.group_system"/>
+
+    <menuitem id="menu_accounting_payment_lines" name="Payments" parent="menu_accounting" sequence="4"/>
+    <menuitem id="menu_accounting_payment_lines_all" name="View All" parent="menu_accounting_payment_lines" action="action_open_payment_lines" sequence="1"/>
+    <menuitem id="menu_accounting_payment_lines_summary" name="Daily Summary" parent="menu_accounting_payment_lines" action="action_open_payment_line_day_summary" sequence="2"/>
+
+    <menuitem id="menu_accounting_checks" name="Checks" parent="menu_accounting" sequence="5"/>
+    <menuitem id="menu_accounting_checks_all" name="View All" parent="menu_accounting_checks" action="action_open_checks" sequence="1"/>
+
+    <menuitem id="menu_accounting_cash_sessions" name="Cash Sessions" parent="menu_accounting" sequence="6"/>
+    <menuitem id="menu_accounting_cash_sessions_all" name="View All" parent="menu_accounting_cash_sessions" action="action_open_cash_sessions" sequence="1"/>
+    <menuitem id="menu_accounting_account_current_income" name="Account Current Income" parent="menu_accounting" action="action_open_account_payment_in_aggregate" sequence="7" groups="werlen_repuestos_erp.group_management,werlen_repuestos_erp.group_system"/>
 
     <!-- Operations Menu -->
     <menuitem id="menu_fulfillment_sales" name="Sales" parent="menu_fulfillment" sequence="1"
@@ -170,6 +287,7 @@
     />
     <menuitem id="menu_fulfillment_sales_relevant" name="Relevant" parent="menu_fulfillment_sales" action="action_open_relevant_seller_sale_fulfillment_order" sequence="2"/>
     <menuitem id="menu_fulfillment_sales_issued_by_self" name="My Sales" parent="menu_fulfillment_sales" action="action_open_issued_by_self_seller_sale_fulfillment_order" sequence="3"/>
+    <menuitem id="menu_fulfillment_sales_account_current_income" name="Account Current Income" parent="menu_fulfillment_sales" action="action_open_account_payment_in_aggregate" sequence="5" groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_management,werlen_repuestos_erp.group_system"/>
     <menuitem id="menu_fulfillment_sales_all" name="All" parent="menu_fulfillment_sales" action="action_open_seller_sale_fulfillment_order" sequence="4"
     groups="werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"
     />

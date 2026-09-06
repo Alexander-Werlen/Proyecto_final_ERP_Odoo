@@ -1,0 +1,601 @@
+<odoo>
+    <record id="default_payment_line_list_view" model="ir.ui.view">
+        <field name="name">payment.line.list</field>
+        <field name="model">payment_line</field>
+        <field name="arch" type="xml">
+            <list string="Pagos" create="0" edit="0" delete="0" default_order="time_of_payment_confirmation desc">
+                <field name="payment_origin_explanation" widget="badge"/>
+                <field name="name" string="Referencia"/>
+                <field name="payer" string="Paga"/>
+                <field name="payee" string="Recibe" optional="hide"/>
+                <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="payment_method" string="Método"/>
+                <field name="journal" string="Diario" optional="hide"/>
+                <field name="is_outgoing" string="Saliente" widget="boolean_toggle"/>
+                <field name="confirmed" string="Confirmado" widget="boolean_toggle"/>
+                <field name="payment_status" widget="badge"/>
+                <field name="time_of_payment_confirmation" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="default_payment_line_search_view" model="ir.ui.view">
+        <field name="name">payment.line.search</field>
+        <field name="model">payment_line</field>
+        <field name="arch" type="xml">
+            <search string="Buscar pagos">
+                <field name="name"/>
+                <field name="payer"/>
+                <field name="payee"/>
+                <field name="payment_method"/>
+                <field name="journal"/>
+                <field name="payment_origin_explanation"/>
+                <filter name="confirmed" string="Confirmados" domain="[('confirmed', '=', True)]"/>
+                <filter name="not_confirmed" string="No confirmados" domain="[('confirmed', '=', False)]"/>
+                <filter name="pending_reconciliation" string="Pendientes" domain="[('payment_status', 'in', ['not_paid', 'partially_paid'])]"/>
+                <filter name="account_in" string="Ingresos a cuenta corriente" domain="[('payment_origin_explanation', '=', 'account_in')]"/>
+                <group string="Agrupar por">
+                    <filter name="group_origin" string="Razón" context="{'group_by': 'payment_origin_explanation'}"/>
+                    <filter name="group_method" string="Método" context="{'group_by': 'payment_method'}"/>
+                    <filter name="group_journal" string="Diario" context="{'group_by': 'journal'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="default_payment_line_form_view" model="ir.ui.view">
+        <field name="name">payment.line.form</field>
+        <field name="model">payment_line</field>
+        <field name="arch" type="xml">
+            <form string="Pago" create="0" delete="0">
+                <header>
+                    <button name="confirm_payment" type="object" string="Confirmar" class="oe_highlight" groups="werlen_repuestos_erp.group_accountant" invisible="confirmed"/>
+                    <button name="action_open_change_journal_wizard" type="object" string="Cambiar diario" groups="werlen_repuestos_erp.group_management" invisible="confirmed == False"/>
+                    <button name="try_undo_last_step" type="object" string="Deshacer" class="btn-outline-danger" groups="werlen_repuestos_erp.group_accountant"/>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid,account"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="No confirmado" bg_color="bg-danger" invisible="confirmed"/>
+                    <widget name="web_ribbon" title="Confirmado" bg_color="bg-success" invisible="confirmed == False"/>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="is_outgoing" readonly="1"/>
+                            <field name="payment_method" readonly="1"/>
+                            <field name="journal" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="payment_origin_explanation" readonly="1"/>
+                            <field name="payer" readonly="1"/>
+                            <field name="payee" readonly="1"/>
+                            <field name="payment_status" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Importes">
+                        <field name="amount_reconciliated" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                        <field name="amount_not_reconciliated" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                    </group>
+                    <separator string="Auditoría"/>
+                    <group>
+                        <field name="who_proposed_payment" readonly="1"/>
+                        <field name="time_of_payment_proposal" readonly="1"/>
+                        <field name="who_confirmed_payment" readonly="1"/>
+                        <field name="time_of_payment_confirmation" readonly="1"/>
+                    </group>
+                    <separator string="Reconciliaciones"/>
+                    <field name="reconciliation_lines" readonly="1">
+                        <list create="0" edit="0" delete="0">
+                            <field name="amount" sum="Total"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="outgoing_move_ref"/>
+                            <field name="incomming_move_ref"/>
+                            <field name="auxiliar_is_confirmed"/>
+                        </list>
+                    </field>
+                    <separator string="Observaciones"/>
+                    <field name="observations"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="reconciliation_line_list_view" model="ir.ui.view">
+        <field name="name">reconciliation.line.list</field>
+        <field name="model">reconciliation_line</field>
+        <field name="arch" type="xml">
+            <list string="Líneas de reconciliación" create="0" edit="0" delete="0">
+                <field name="amount" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="outgoing_move_ref"/>
+                <field name="incomming_move_ref"/>
+                <field name="confirmed" widget="boolean_toggle"/>
+                <field name="auxiliar_is_confirmed"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="manual_reconciliation_line_form_view" model="ir.ui.view">
+        <field name="name">manual.reconciliation.line.form</field>
+        <field name="model">transient_reconciliation_line</field>
+        <field name="arch" type="xml">
+            <form string="Reconciliación manual">
+                <group>
+                    <field name="outgoing_move_ref"/>
+                    <field name="incomming_move_ref"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="outgoing_move_amount_not_reconciliated" readonly="1"/>
+                    <field name="incomming_move_amount_not_reconciliated" readonly="1"/>
+                    <field name="amount"/>
+                </group>
+                <footer>
+                    <button name="create_manual_reconciliation_line" type="object" string="Reconciliar" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="default_check_list_view" model="ir.ui.view">
+        <field name="name">check.list</field>
+        <field name="model">check</field>
+        <field name="arch" type="xml">
+            <list string="Cheques" create="0" delete="0" default_order="collection_date desc">
+                <field name="display_name" string="Identificador"/>
+                <field name="check_number" optional="hide"/>
+                <field name="bank"/>
+                <field name="issuer"/>
+                <field name="owner_of_credit"/>
+                <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="collection_date"/>
+                <field name="journal_id"/>
+                <field name="payment_status" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="default_check_search_view" model="ir.ui.view">
+        <field name="name">check.search</field>
+        <field name="model">check</field>
+        <field name="arch" type="xml">
+            <search string="Buscar cheques">
+                <field name="display_name"/>
+                <field name="check_number"/>
+                <field name="bank"/>
+                <field name="issuer"/>
+                <field name="owner_of_credit"/>
+                <field name="journal_id"/>
+                <filter name="pending" string="Pendientes" domain="[('payment_status', 'in', ['not_paid', 'partially_paid'])]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="default_check_form_view" model="ir.ui.view">
+        <field name="name">check.form</field>
+        <field name="model">check</field>
+        <field name="arch" type="xml">
+            <form string="Cheque" create="1" delete="0">
+                <header>
+                    <button name="action_open_change_journal_wizard" type="object" string="Cambiar diario" groups="werlen_repuestos_erp.group_management"/>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid,account"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="display_name" readonly="1"/>
+                            <field name="payment_origin_explanation"/>
+                            <field name="amount"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="owner_of_credit"/>
+                            <field name="journal_id"/>
+                        </group>
+                        <group>
+                            <field name="bank"/>
+                            <field name="check_number"/>
+                            <field name="issuer"/>
+                            <field name="city"/>
+                            <field name="collection_date"/>
+                        </group>
+                    </group>
+                    <group string="Importes">
+                        <field name="amount_reconciliated" readonly="1"/>
+                        <field name="amount_not_reconciliated" readonly="1"/>
+                    </group>
+                    <field name="previous_journal_id" readonly="1"/>
+                    <separator string="Reconciliaciones"/>
+                    <field name="reconciliation_lines" readonly="1">
+                        <list create="0" edit="0" delete="0">
+                            <field name="amount"/>
+                            <field name="outgoing_move_ref"/>
+                            <field name="incomming_move_ref"/>
+                            <field name="confirmed"/>
+                        </list>
+                    </field>
+                    <separator string="Observaciones"/>
+                    <field name="observations"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="credit_note_out_form_view" model="ir.ui.view">
+        <field name="name">credit.note.out.form</field>
+        <field name="model">credit_note_out</field>
+        <field name="arch" type="xml">
+            <form string="Nota de crédito" create="0" delete="0">
+                <header>
+                    <button name="action_start_verification" type="object" string="Verificar" class="oe_highlight" groups="werlen_repuestos_erp.group_administration" invisible="state != 'draft'"/>
+                    <button name="create_payment" type="object" string="Reembolsar" class="oe_highlight" groups="werlen_repuestos_erp.group_accountant" invisible="payment_status in ['paid', 'account']"/>
+                    <button name="show_payment_lines" type="object" string="Ver pagos" invisible="payment_status == 'account'"/>
+                    <button name="show_reconciliation_lines" type="object" string="Ver reconciliaciones" invisible="payment_status == 'account'"/>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid,account"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Borrador" bg_color="bg-danger" invisible="state != 'draft'"/>
+                    <group>
+                        <group>
+                            <field name="credit_note_id" readonly="1"/>
+                            <field name="invoice_type" readonly="1"/>
+                            <field name="client" readonly="1"/>
+                            <field name="full_name" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            <field name="billing_base_amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            <field name="payment_method" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Importes">
+                        <field name="amount_reconciliated_confirmed" readonly="1"/>
+                        <field name="amount_not_reconciliated_confirmed" readonly="1"/>
+                        <field name="amount_reconciliated_unconfirmed" readonly="1"/>
+                        <field name="amount_not_reconciliated_unconfirmed" readonly="1"/>
+                    </group>
+                    <group string="Información">
+                        <field name="related_invoice"/>
+                        <field name="seller_of_related_invoice" readonly="1"/>
+                        <field name="who_created"/>
+                        <field name="who_approved"/>
+                        <field name="date" readonly="1"/>
+                        <field name="is_manual_invoice" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Reconciliaciones">
+                            <field name="reconciliation_lines" readonly="1"/>
+                        </page>
+                        <page string="Observaciones">
+                            <field name="observations"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="default_credit_note_out_list_view" model="ir.ui.view">
+        <field name="name">credit.note.out.list</field>
+        <field name="model">credit_note_out</field>
+        <field name="arch" type="xml">
+            <list string="Notas de crédito" create="0" delete="0" default_order="date desc">
+                <field name="date"/>
+                <field name="credit_note_id"/>
+                <field name="client_identifier"/>
+                <field name="full_name"/>
+                <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge"/>
+                <field name="payment_status" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="default_credit_note_out_search_view" model="ir.ui.view">
+        <field name="name">credit.note.out.search</field>
+        <field name="model">credit_note_out</field>
+        <field name="arch" type="xml">
+            <search string="Buscar notas de crédito">
+                <field name="credit_note_id"/>
+                <field name="client"/>
+                <field name="full_name"/>
+                <field name="related_invoice"/>
+                <filter name="draft" string="Borrador" domain="[('state', '=', 'draft')]"/>
+                <filter name="pending" string="Pendientes" domain="[('payment_status', 'in', ['not_paid', 'partially_paid'])]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="default_account_payment_form_view" model="ir.ui.view">
+        <field name="name">account.payment.form</field>
+        <field name="model">account_payment</field>
+        <field name="arch" type="xml">
+            <form string="Recibo" create="0" delete="0">
+                <header>
+                    <button name="action_start_verification" type="object" string="Verificar" class="oe_highlight" groups="werlen_repuestos_erp.group_management" invisible="status != 'draft'"/>
+                    <button name="create_new_payment" type="object" string="Registrar ingreso" class="oe_highlight" groups="werlen_repuestos_erp.group_accountant" invisible="payment_status in ['paid', 'account']"/>
+                    <button name="open_manual_reconciliation_line_form" type="object" string="Reconciliar" groups="werlen_repuestos_erp.group_accountant" invisible="payment_status in ['paid', 'account']"/>
+                    <button name="show_payment_lines" type="object" string="Ver pagos"/>
+                    <button name="show_reconciliation_lines" type="object" string="Ver reconciliaciones"/>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid,account"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Borrador" bg_color="bg-danger" invisible="status != 'draft'"/>
+                    <group>
+                        <group>
+                            <field name="account_payment_id" readonly="1"/>
+                            <field name="client" readonly="1"/>
+                            <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            <field name="discount_amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="date" readonly="1"/>
+                            <field name="who_created" readonly="1"/>
+                            <field name="status" readonly="1"/>
+                            <field name="is_main_point_of_sale_category" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Importes">
+                        <field name="amount_reconciliated_confirmed" readonly="1"/>
+                        <field name="amount_not_reconciliated_confirmed" readonly="1"/>
+                        <field name="amount_reconciliated_unconfirmed" readonly="1"/>
+                        <field name="amount_not_reconciliated_unconfirmed" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Reconciliaciones">
+                            <field name="reconciliation_lines" readonly="1"/>
+                        </page>
+                        <page string="Observaciones">
+                            <field name="observations"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="default_account_payment_list_view" model="ir.ui.view">
+        <field name="name">account.payment.list</field>
+        <field name="model">account_payment</field>
+        <field name="arch" type="xml">
+            <list string="Recibos" create="0" delete="0" default_order="date desc">
+                <field name="date"/>
+                <field name="account_payment_id"/>
+                <field name="client"/>
+                <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="discount_amount" optional="hide"/>
+                <field name="status" widget="badge"/>
+                <field name="payment_status" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="default_account_payment_search_view" model="ir.ui.view">
+        <field name="name">account.payment.search</field>
+        <field name="model">account_payment</field>
+        <field name="arch" type="xml">
+            <search string="Buscar recibos">
+                <field name="account_payment_id"/>
+                <field name="client"/>
+                <field name="status"/>
+                <filter name="draft" string="Borradores" domain="[('status', '=', 'draft')]"/>
+                <filter name="pending" string="Pendientes" domain="[('payment_status', 'in', ['not_paid', 'partially_paid'])]"/>
+                <filter name="main_category" string="Punto de venta principal" domain="[('is_main_point_of_sale_category', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="default_journal_list_view" model="ir.ui.view">
+        <field name="name">journal.list</field>
+        <field name="model">journal</field>
+        <field name="arch" type="xml">
+            <list string="Diarios/Cajas" create="0" delete="0">
+                <field name="name"/>
+                <field name="allowed_payment_methods" widget="many2many_tags"/>
+                <field name="allowed_users" widget="many2many_tags"/>
+                <field name="current_cash_session"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="default_journal_form_view" model="ir.ui.view">
+        <field name="name">journal.form</field>
+        <field name="model">journal</field>
+        <field name="arch" type="xml">
+            <form string="Diario/Caja" create="0" delete="0">
+                <header>
+                    <button name="action_create_cash_session" type="object" string="Abrir caja" class="oe_highlight" groups="werlen_repuestos_erp.group_accountant"/>
+                    <button name="action_open_cash_session_form" type="object" string="Ver caja abierta" groups="werlen_repuestos_erp.group_management"/>
+                    <button name="action_manual_in_payment" type="object" string="Registrar ingreso" groups="werlen_repuestos_erp.group_accountant"/>
+                    <button name="action_manual_out_payment" type="object" string="Registrar egreso" groups="werlen_repuestos_erp.group_accountant"/>
+                </header>
+                <sheet>
+                    <h1><field name="name" readonly="1"/></h1>
+                    <group>
+                        <field name="allowed_payment_methods" widget="many2many_tags"/>
+                        <field name="allowed_users" widget="many2many_tags"/>
+                        <field name="current_cash_session" readonly="1"/>
+                    </group>
+                    <separator string="Sesiones"/>
+                    <field name="cash_sessions" readonly="1">
+                        <list create="0" edit="0" delete="0">
+                            <field name="name"/>
+                            <field name="opened_at"/>
+                            <field name="closed_at"/>
+                            <field name="state"/>
+                            <field name="theoretical_balance"/>
+                            <field name="counted_balance"/>
+                            <field name="difference"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="default_cash_session_list_view" model="ir.ui.view">
+        <field name="name">cash.session.list</field>
+        <field name="model">cash_session</field>
+        <field name="arch" type="xml">
+            <list string="Sesiones de caja" create="0" delete="0" default_order="opened_at desc">
+                <field name="name"/>
+                <field name="journal_id"/>
+                <field name="who_is_operating"/>
+                <field name="opened_at"/>
+                <field name="closed_at"/>
+                <field name="state" widget="badge"/>
+                <field name="theoretical_balance"/>
+                <field name="counted_balance"/>
+                <field name="difference"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="default_cash_session_form_view" model="ir.ui.view">
+        <field name="name">cash.session.form</field>
+        <field name="model">cash_session</field>
+        <field name="arch" type="xml">
+            <form string="Sesión de caja" create="0" delete="0">
+                <header>
+                    <button name="refresh_data" type="object" string="Actualizar" groups="werlen_repuestos_erp.group_accountant" invisible="state != 'open'"/>
+                    <button name="action_open_close_wizard" type="object" string="Cerrar caja" class="oe_highlight" groups="werlen_repuestos_erp.group_management" invisible="state != 'open'"/>
+                    <button name="action_reopen_cash_session" type="object" string="Reabrir" groups="werlen_repuestos_erp.group_management" invisible="state != 'closed'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,closed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="journal_id" readonly="1"/>
+                            <field name="who_is_operating" readonly="1"/>
+                            <field name="opened_at" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="closed_at" readonly="1"/>
+                            <field name="who_closed" readonly="1"/>
+                            <field name="last_refresh_at" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Totales">
+                        <field name="opening_balance" readonly="1"/>
+                        <field name="theoretical_balance" readonly="1"/>
+                        <field name="counted_balance" readonly="1"/>
+                        <field name="displayed_difference" readonly="1"/>
+                    </group>
+                    <separator string="Movimientos por categoría"/>
+                    <field name="line_ids" readonly="1">
+                        <list create="0" edit="0" delete="0">
+                            <field name="category_id"/>
+                            <field name="opening_balance"/>
+                            <field name="movements_amount"/>
+                            <field name="theoretical_balance"/>
+                            <field name="counted_balance"/>
+                            <field name="difference"/>
+                            <field name="payment_count"/>
+                            <field name="confirmed_counted_balance"/>
+                        </list>
+                    </field>
+                    <separator string="Retiros excluidos de la rendición"/>
+                    <field name="withdrawal_ids" readonly="1">
+                        <list create="0" edit="0" delete="0">
+                            <field name="name"/>
+                            <field name="amount"/>
+                            <field name="time_of_payment_confirmation"/>
+                            <field name="observations"/>
+                        </list>
+                    </field>
+                    <field name="observations"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="payment_method_form_view" model="ir.ui.view">
+        <field name="name">payment.method.form</field>
+        <field name="model">payment_method</field>
+        <field name="arch" type="xml">
+            <form string="Método de pago">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="active_currently"/>
+                        <field name="is_account_payment_method"/>
+                        <field name="billing_coefficient"/>
+                        <field name="cash_closing_category_id"/>
+                        <field name="default_journal"/>
+                        <field name="allowed_journals" widget="many2many_tags"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="payment_method_list_view" model="ir.ui.view">
+        <field name="name">payment.method.list</field>
+        <field name="model">payment_method</field>
+        <field name="arch" type="xml">
+            <list string="Métodos de pago">
+                <field name="name"/>
+                <field name="active_currently"/>
+                <field name="is_account_payment_method"/>
+                <field name="cash_closing_category_id"/>
+                <field name="default_journal"/>
+                <field name="billing_coefficient"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="cash_closing_category_list_view" model="ir.ui.view">
+        <field name="name">cash.closing.category.list</field>
+        <field name="model">cash_closing_category</field>
+        <field name="arch" type="xml">
+            <list string="Categorías de cierre">
+                <field name="name"/>
+                <field name="active_currently"/>
+                <field name="payment_method_ids"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="account_payment_in_aggregate_list_view" model="ir.ui.view">
+        <field name="name">account.payment.in.aggregate.list</field>
+        <field name="model">account_payment_in_aggregate</field>
+        <field name="arch" type="xml">
+            <list string="Ingresos a cuenta corriente" create="0" edit="0" delete="0">
+                <field name="date"/>
+                <field name="reference"/>
+                <field name="source_model" optional="hide"/>
+                <field name="partner_id"/>
+                <field name="payment_method"/>
+                <field name="original_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="unreconciled_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="payment_status" widget="badge"/>
+                <field name="who_created"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="account_payment_in_aggregate_search_view" model="ir.ui.view">
+        <field name="name">account.payment.in.aggregate.search</field>
+        <field name="model">account_payment_in_aggregate</field>
+        <field name="arch" type="xml">
+            <search string="Buscar ingresos a cuenta corriente">
+                <field name="reference"/>
+                <field name="partner_id"/>
+                <field name="payment_method"/>
+                <field name="who_created"/>
+                <filter name="pending" string="Pendientes" domain="[('payment_status', 'in', ['not_paid', 'partially_paid'])]"/>
+            </search>
+        </field>
+    </record>
+</odoo>

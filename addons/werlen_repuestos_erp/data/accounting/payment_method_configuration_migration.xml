@@ -1,0 +1,4 @@
+<odoo>
+    <function model="res.users" name="ensure_default_admin_access"/>
+    <function model="payment_method" name="backfill_configuration"/>
+</odoo>

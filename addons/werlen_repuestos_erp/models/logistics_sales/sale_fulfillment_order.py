@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 from markupsafe import Markup
 from datetime import datetime, time
@@ -37,6 +37,18 @@ class SaleFulfillmentOrder(models.Model):
         string='Fecha y hora de fin de preparación',
     )
 
+    allow_deferred_payment = fields.Boolean(
+        string='Permitir preparar sin pagar',
+        help='La factura deberá quedar paga antes de ser entregada.',
+        tracking=True,
+    )
+
+    allow_repayment = fields.Boolean(
+        string='Contra-reembolso',
+        help='Permite entregar el pedido para cobrarlo contra entrega.',
+        tracking=True,
+    )
+
     time_of_handing_over = fields.Datetime(
         string='Fecha y hora de entrega',
         index=True
@@ -53,6 +65,40 @@ class SaleFulfillmentOrder(models.Model):
         default='draft',
         tracking=True,
         index=True,
+    )
+
+    is_account_move = fields.Boolean(
+        string='Cuenta Corriente',
+        related='invoice_id.is_account_move',
+        store=True,
+        readonly=True,
+    )
+
+    payment_status = fields.Selection(
+        string='Estado de pago',
+        related='invoice_id.payment_status',
+        store=True,
+        readonly=True,
+    )
+
+    amount_not_paid_unconfirmed = fields.Monetary(
+        string='Importe pendiente',
+        related='invoice_id.amount_not_paid_unconfirmed',
+        store=True,
+        readonly=True,
+    )
+
+    amount_paid_confirmed = fields.Monetary(
+        string='Importe pagado confirmado',
+        related='invoice_id.amount_paid_confirmed',
+        store=True,
+        readonly=True,
+    )
+
+    related_payment_lines = fields.Many2many(
+        comodel_name='payment_line',
+        compute='_compute_related_payment_lines',
+        string='Pagos asociados',
     )
 
     who_withdraws = fields.Many2one(
@@ -196,7 +242,42 @@ class SaleFulfillmentOrder(models.Model):
     @api.depends('seller')
     def _compute_seller_user_id(self):
         for rec in self:
-            rec.seller_user_id = rec.seller.user_ids[:1] if rec.seller else False
+            rec.seller_user_id = rec.seller
+
+    @api.depends('invoice_id', 'invoice_id.reconciliation_lines')
+    def _compute_related_payment_lines(self):
+        payment_model = self.env['payment_line']
+        for record in self:
+            lines = record.invoice_id.reconciliation_lines if record.invoice_id else self.env['reconciliation_line']
+            record.related_payment_lines = payment_model.search([
+                ('reconciliation_lines_when_incomming', 'in', lines.ids),
+            ]) if lines else False
+
+    def _payment_allows_preparation(self):
+        self.ensure_one()
+        return (
+            self.payment_status in ('paid', 'account')
+            or self.allow_deferred_payment
+            or self.allow_repayment
+        )
+
+    def _payment_allows_delivery(self):
+        self.ensure_one()
+        return self.payment_status in ('paid', 'account') or self.allow_repayment
+
+    def _update_payment_workflow(self):
+        for record in self:
+            if record.logistical_status == 'awaiting_payment' and record._payment_allows_preparation():
+                record.sudo().write({
+                    'logistical_status': 'awaiting_preparation',
+                })
+            elif (
+                record.logistical_status in ('awaiting_preparation', 'in_preparation', 'prepared')
+                and not record._payment_allows_preparation()
+            ):
+                record.sudo().write({
+                    'logistical_status': 'awaiting_payment',
+                })
 
     """ Methods """
 
@@ -225,10 +306,46 @@ class SaleFulfillmentOrder(models.Model):
             author_id=self.env.user.partner_id.id,
         )
 
-    def log_action(self, message):
+    def create_new_payment(self):
         self.ensure_one()
-        if self.env.context.get('workflow_transition'):
-            self._log_action(message)
+        ensure_user_in_groups(
+            self.env.user,
+            ['werlen_repuestos_erp.group_sales', 'werlen_repuestos_erp.group_accountant'],
+            error_message='Necesitas permisos de Ventas o Caja para registrar pagos.',
+        )
+        wizard = self.env['wizard_manual_payment_invoice_out'].create({
+            'reconciliation_invoice_id': self.invoice_id.id,
+            'amount': max(self.invoice_id.amount_not_paid_unconfirmed, 0.0),
+            'invoice_out_total_amount': self.invoice_id.total_cost,
+            'invoice_out_amount_not_reconciliated': self.invoice_id.amount_not_paid_unconfirmed,
+            'payment_method': self.invoice_id.payment_method.id,
+            'journal': self.invoice_id.payment_method.get_default_journal(self.env.user).id,
+            'payer': self.client.id,
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'wizard_manual_payment_invoice_out',
+            'res_id': wizard.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
+    def show_reconciliation_lines(self):
+        self.ensure_one()
+        return self.invoice_id.show_reconciliation_lines()
+
+    def show_payment_lines(self):
+        self.ensure_one()
+        return self.invoice_id.show_payment_lines()
+
+    def open_manual_reconciliation_line_form(self):
+        self.ensure_one()
+        ensure_user_in_groups(
+            self.env.user,
+            ['werlen_repuestos_erp.group_accountant', 'werlen_repuestos_erp.group_administration'],
+            error_message='Necesitas permisos de Caja o Administración para reconciliar pagos.',
+        )
+        return self.invoice_id.open_manual_reconciliation_line_form()
 
     def action_skip_logistical_tracking(self):
         for record in self:
@@ -250,9 +367,9 @@ class SaleFulfillmentOrder(models.Model):
                 'time_of_handing_over': datetime.now(),
             }
 
-            record.sudo().with_context(workflow_transition=True).write(vals)
+            record.sudo().write(vals)
 
-            record.with_context(workflow_transition=True).log_action("Verificación omitida. Esta factura no seguirá el flujo normal.")
+            record.sudo()._log_action("Verificación omitida. Esta factura no seguirá el flujo normal.")
 
     def action_restart_logistical_flow(self):
         for record in self:
@@ -268,7 +385,11 @@ class SaleFulfillmentOrder(models.Model):
                 raise UserError("Solo se puede reiniciar el flujo de ordenes que estén en estado 'Sin Seguimiento'.")
 
             vals = {
-                'logistical_status': 'awaiting_preparation',
+                'logistical_status': (
+                    'awaiting_preparation'
+                    if record._payment_allows_preparation()
+                    else 'awaiting_payment'
+                ),
                 'time_of_preparation_start': False,
                 'time_of_preparation_end': False,
                 'time_of_handing_over': False,
@@ -276,9 +397,9 @@ class SaleFulfillmentOrder(models.Model):
                 'who_handed_over': False,
             }
 
-            record.with_context(workflow_transition=True).write(vals)
+            record.sudo().write(vals)
 
-            record.with_context(workflow_transition=True).log_action("Flujo logístico reiniciado. La orden vuelve al flujo normal.")
+            record.sudo()._log_action("Flujo logístico reiniciado. La orden vuelve al flujo normal.")
 
     def start_verification(self):
         # ACCESS CHECK
@@ -308,6 +429,15 @@ class SaleFulfillmentOrder(models.Model):
             'cellphone': self.client.phone,
         }
 
+        if self.invoice_id.payment_method.is_account_payment_method:
+            wizard_vals['is_account_move'] = True
+        else:
+            wizard_vals['payments'] = [(0, 0, {
+                'payment_method': self.invoice_id.payment_method.id,
+                'amount': self.total_cost,
+                    'journal': self.invoice_id.payment_method.get_default_journal(self.env.user).id,
+            })]
+
         wizard = self.env['wizard_fulfillment_order_verification'].create(wizard_vals)
 
         return {
@@ -335,7 +465,11 @@ class SaleFulfillmentOrder(models.Model):
         )
 
         # VALIDATION CHECK
-        if self.logistical_status != 'awaiting_preparation':
+        if not self._payment_allows_preparation():
+            raise UserError(
+                'Para iniciar la preparación debe pagarse la factura y confirmarse sus pagos.'
+            )
+        if self.logistical_status not in ('awaiting_payment', 'awaiting_preparation'):
             raise UserError("La factura no puede empezar a ser preparada.")
 
         # ACTION START
@@ -344,9 +478,9 @@ class SaleFulfillmentOrder(models.Model):
             'time_of_preparation_start': fields.Datetime.now(),
             'who_prepared': self.env.user
         }
-        self.sudo().with_context(workflow_transition=True).write(vals)
+        self.sudo().write(vals)
 
-        self._log_action("Inicio de Preparación.")
+        self.sudo()._log_action("Inicio de Preparación.")
 
     def start_preparation(self):
         self.ensure_one()
@@ -379,9 +513,9 @@ class SaleFulfillmentOrder(models.Model):
             'who_prepared': False
         }
 
-        self.sudo().with_context(workflow_transition=True).write(vals)
+        self.sudo().write(vals)
 
-        self._log_action("Deshacer Inicio de Preparación.")
+        self.sudo()._log_action("Deshacer Inicio de Preparación.")
 
     def _finish_preparation(self):
         # ACCESS CHECK
@@ -404,9 +538,9 @@ class SaleFulfillmentOrder(models.Model):
             'time_of_preparation_end': fields.Datetime.now(),
         }
 
-        self.sudo().with_context(workflow_transition=True).write(vals)
+        self.sudo().write(vals)
 
-        self._log_action("Fin de Preparación.")
+        self.sudo()._log_action("Fin de Preparación.")
 
     def finish_preparation(self):
         self.ensure_one()
@@ -468,9 +602,9 @@ class SaleFulfillmentOrder(models.Model):
             'packages_count': 'No Especificado'
         }
 
-        self.sudo().with_context(workflow_transition=True).write(vals)
+        self.sudo().write(vals)
 
-        self._log_action("Deshacer Fin de Preparación.")
+        self.sudo()._log_action("Deshacer Fin de Preparación.")
 
     def hand_out(self):
         # ACCESS CHECK
@@ -488,6 +622,8 @@ class SaleFulfillmentOrder(models.Model):
         for rec in self:
             if rec.logistical_status != 'prepared':
                 raise UserError("La factura no fue preparada y se intentó entregarla")
+            if not rec._payment_allows_delivery():
+                raise UserError("La factura no fue pagada y no se puede entregar.")
 
             # ACTION START
             vals = {
@@ -496,10 +632,10 @@ class SaleFulfillmentOrder(models.Model):
                 'time_of_handing_over': fields.Datetime.now(),
             }
 
-            rec.sudo().with_context(workflow_transition=True).write(vals)
+            rec.sudo().write(vals)
 
         for rec in self:
-            rec.sudo().with_context(workflow_transition=True).log_action("Entrega de Mercadería.")
+            rec.sudo()._log_action("Entrega de Mercadería.")
 
     def undo_hand_out(self):
         # ACCESS CHECK
@@ -534,10 +670,10 @@ class SaleFulfillmentOrder(models.Model):
                 'time_of_handing_over': False
             }
 
-            rec.sudo().with_context(workflow_transition=True).write(vals)
+            rec.sudo().write(vals)
 
         for rec in self:
-            rec.sudo().with_context(workflow_transition=True).log_action("Deshacer Entrega de Mercadería.")
+            rec.sudo()._log_action("Deshacer Entrega de Mercadería.")
 
     """ Methods for dashboard """
 
@@ -685,9 +821,29 @@ class SaleFulfillmentOrder(models.Model):
 
     """ Overrides """
 
-    def _check_write_permissions_one(self, vals):
-        # Only triggered when context workflow_transition == False. Which corresponds to a manual write, usually not using any wizard.
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.su:
+            ensure_user_in_groups(
+                self.env.user,
+                [
+                    'werlen_repuestos_erp.group_sales',
+                    'werlen_repuestos_erp.group_administration',
+                    'werlen_repuestos_erp.group_system',
+                ],
+                error_message='Necesitas permisos para crear Ordenes de Venta.',
+            )
+        for values in vals_list:
+            if values.get('logistical_status', 'draft') != 'draft' and not self.env.su:
+                raise UserError(
+                    'Las órdenes nuevas deben comenzar en estado de borrador.'
+                )
+            invoice = self.env['invoice_out'].browse(values.get('invoice_id')).exists()
+            if not invoice:
+                raise UserError('La orden debe estar asociada a una factura válida.')
+        return super().create(vals_list)
 
+    def _check_write_permissions_one(self, vals):
         user = self.env.user
 
         ensure_user_in_groups(
@@ -711,6 +867,7 @@ class SaleFulfillmentOrder(models.Model):
             ensure_write_allowed_fields(self, user, vals, EDITABLE_FIELDS_BY_GROUP)
 
         elif self.logistical_status in [
+            'awaiting_payment',
             'awaiting_preparation',
             'in_preparation',
             'prepared',
@@ -768,13 +925,6 @@ class SaleFulfillmentOrder(models.Model):
             ensure_write_allowed_fields(self, user, vals, EDITABLE_FIELDS_BY_GROUP)
 
     def _check_write_permissions(self, vals):
-        if self.env.context.get('workflow_transition'):
-            """
-            When write is called with workflow_transition=True it means that all access verifications should be skipped.
-            Trusting that they where done previously, right before the sudo().with_context(workflow_transition=True).write() call
-            """
-            return
-
         for rec in self:
             rec._check_write_permissions_one(vals)
 

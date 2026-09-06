@@ -82,6 +82,10 @@
                             string="A Preparar"
                             domain="[('logistical_status','=','awaiting_preparation')]"/>
 
+                    <filter name="awaiting_payment"
+                            string="A pagar"
+                            domain="[('logistical_status','=','awaiting_payment')]"/>
+
                     <filter name="in_preparation"
                             string="En preparación"
                             domain="[('logistical_status','=','in_preparation')]"/>

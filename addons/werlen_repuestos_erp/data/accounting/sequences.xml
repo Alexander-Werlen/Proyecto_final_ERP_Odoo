@@ -1,0 +1,10 @@
+<odoo>
+    <data noupdate="1">
+        <record id="seq_payment_line" model="ir.sequence">
+            <field name="name">Payment Line</field>
+            <field name="code">payment.line</field>
+            <field name="prefix">PAGO-</field>
+            <field name="padding">6</field>
+        </record>
+    </data>
+</odoo>

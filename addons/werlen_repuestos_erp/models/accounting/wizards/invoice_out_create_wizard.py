@@ -1,6 +1,6 @@
 from odoo import models, fields, api
 
-from ....utils.group_verification import display_warning_toast
+from ....utils.group_verification import display_warning_toast, ensure_user_in_groups
 
 class InvoiceOutCreateWizard(models.TransientModel):
     _name = 'invoice_out_create_wizard'
@@ -68,6 +68,11 @@ class InvoiceOutCreateWizard(models.TransientModel):
 
     def action_create_invoice(self):
         self.ensure_one()
+        ensure_user_in_groups(
+            self.env.user,
+            ['werlen_repuestos_erp.group_sales'],
+            error_message='Necesitas permisos de Ventas para crear facturas.',
+        )
 
         if self.total_cost <= 0:
             return display_warning_toast(
@@ -111,4 +116,3 @@ class InvoiceOutCreateWizard(models.TransientModel):
                 'res_id': fulfillment_order,
                 'target': 'current',
             }
-        

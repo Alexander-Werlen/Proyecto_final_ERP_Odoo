@@ -17,7 +17,25 @@
                         <group>
                             <field name="currency_id" invisible="1"/>
                             <field name="total_cost" readonly="1"/>
+                            <field name="is_account_move" readonly="1"/>
                         </group>
+                    </group>
+
+                    <group string="Condición de preparación" invisible="is_account_move">
+                        <field name="allow_deferred_payment"/>
+                        <field name="allow_repayment"/>
+                    </group>
+
+                    <group string="Pagos propuestos" invisible="is_account_move">
+                        <field name="payments">
+                            <list editable="bottom" delete="1">
+                                <field name="payment_method"/>
+                                <field name="journal"/>
+                                <field name="amount"/>
+                            </list>
+                        </field>
+                        <field name="wizard_payment_total" readonly="1"/>
+                        <field name="wizard_amount_remaining" readonly="1"/>
                     </group>
 
                     <footer>

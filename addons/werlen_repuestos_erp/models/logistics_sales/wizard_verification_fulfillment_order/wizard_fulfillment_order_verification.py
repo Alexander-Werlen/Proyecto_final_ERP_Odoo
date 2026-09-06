@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 from datetime import datetime
@@ -22,6 +22,22 @@ class WizardFulfillmentOrderVerification(models.TransientModel):
         selection=FULFILLMENT_VERIFICATION_STEP_ENUM,
         default='step_1',
         required=True
+    )
+
+    allow_deferred_payment = fields.Boolean(
+        string='Permitir preparar sin pagar',
+        help='La factura deberá pagarse antes de entregarse.',
+    )
+
+    allow_repayment = fields.Boolean(
+        string='Contra-reembolso',
+        help='Permite entregar el pedido para cobrarlo contra entrega.',
+    )
+
+    is_account_move = fields.Boolean(
+        string='Cuenta Corriente',
+        related='invoice_id.is_account_move',
+        readonly=True,
     )
 
     # ======================================================
@@ -81,6 +97,22 @@ class WizardFulfillmentOrderVerification(models.TransientModel):
         readonly=True
     )
 
+    payments = fields.One2many(
+        'wizard_fulfillment_order_verification_payment_line',
+        'wizard_fulfillment_order_verification_id',
+        string='Pagos',
+    )
+
+    wizard_payment_total = fields.Monetary(
+        string='Total pagos',
+        compute='_compute_payment_totals',
+    )
+
+    wizard_amount_remaining = fields.Monetary(
+        string='Importe pendiente',
+        compute='_compute_payment_totals',
+    )
+
     point_of_sale = fields.Many2one(
         'point_of_sale',
         string='Punto de venta',
@@ -121,6 +153,12 @@ class WizardFulfillmentOrderVerification(models.TransientModel):
     # ======================================================
     # NAVEGACIÓN
     # ======================================================
+
+    @api.depends('payments.amount', 'total_cost')
+    def _compute_payment_totals(self):
+        for wizard in self:
+            wizard.wizard_payment_total = sum(wizard.payments.mapped('amount'))
+            wizard.wizard_amount_remaining = wizard.total_cost - wizard.wizard_payment_total
 
     def action_next_step(self):
         self.ensure_one()
@@ -196,16 +234,62 @@ class WizardFulfillmentOrderVerification(models.TransientModel):
             if self.point_of_sale and self.point_of_sale.cellphone_required and not self.cellphone:
                 raise UserError("Debe definir el teléfono del punto de venta elegido.")
 
+        if self.current_step == 'step_1' and not self.is_account_move:
+            self._validate_payment_values()
+
+    def _validate_payment_values(self):
+        for payment in self.payments:
+            if payment.amount <= 0:
+                raise UserError('Todos los importes de pago deben ser mayores que 0.')
+            if not payment.payment_method or not payment.journal:
+                raise UserError('Todos los pagos deben indicar método y diario.')
+
+    def _validate_before_confirmation(self):
+        if self.current_step != 'step_4':
+            raise UserError('La verificación debe completarse antes de confirmar la orden.')
+
+        if self.has_delivery:
+            if not self.who_withdraws:
+                raise UserError('Debe definir quién retira.')
+            if not self.destination:
+                raise UserError('Debe definir el destino.')
+            if not self.city or not self.state:
+                raise UserError('Debe definir ciudad y provincia.')
+
+        if not self.point_of_sale:
+            raise UserError('Debe definir el punto de venta.')
+        if self.point_of_sale.cellphone_required and not self.cellphone:
+            raise UserError('Debe definir el teléfono del punto de venta elegido.')
+        if not self.is_account_move:
+            self._validate_payment_values()
+
     # ======================================================
     # CONFIRMACIÓN FINAL
     # ======================================================
 
     def action_confirm(self):
         self.ensure_one()
+        ensure_user_in_groups(
+            self.env.user,
+            ['werlen_repuestos_erp.group_sales', 'werlen_repuestos_erp.group_management'],
+            error_message='Necesitas permisos de Ventas para confirmar la orden.',
+        )
+        self._validate_before_confirmation()
+        order = self.sale_fulfillment_order_id
+        if order.invoice_id != self.invoice_id:
+            raise UserError('La orden y la factura de la verificación no coinciden.')
+        if order.logistical_status != 'draft':
+            raise UserError('La orden ya fue verificada.')
+        if not self.env.user.has_group('werlen_repuestos_erp.group_management') and order.seller != self.env.user:
+            raise UserError('Sólo el vendedor responsable puede verificar esta orden.')
 
         """ Update fields of sale_fulfillment_order """
         vals = {
-            'logistical_status': 'awaiting_preparation',
+            'logistical_status': (
+                'awaiting_preparation'
+                if self.is_account_move or self.allow_deferred_payment or self.allow_repayment
+                else 'awaiting_payment'
+            ),
             'point_of_sale': self.point_of_sale.id,
             'cellphone': self.cellphone,
             'is_asigned_to_preparation_team': self.is_asigned_to_preparation_team,
@@ -214,11 +298,26 @@ class WizardFulfillmentOrderVerification(models.TransientModel):
             'destination': self.destination,
             'city': self.city.id,
             'state': self.state.id,
+            'allow_deferred_payment': self.allow_deferred_payment,
+            'allow_repayment': self.allow_repayment,
         }
 
-        self.sale_fulfillment_order_id.sudo().with_context(workflow_transition=True).write(vals)
+        self.sale_fulfillment_order_id.sudo().write(vals)
 
-        self.sale_fulfillment_order_id.with_context(workflow_transition=True).log_action("Verificación finalizada.")
+        self.sale_fulfillment_order_id.sudo()._log_action("Verificación finalizada.")
+
+        for payment in self.payments:
+            self.env['payment_line'].sudo().create({
+                'amount': payment.amount,
+                'is_outgoing': False,
+                'payment_method': payment.payment_method.id,
+                'journal': payment.journal.id,
+                'confirmed': False,
+                'reconciliation_invoice_id': self.invoice_id.id,
+                'payer': self.client.id,
+                'payee': self.company_id.partner_id.id,
+                'payment_origin_explanation': 'payment_for_invoice_out',
+            })
 
         """ Update fields of client partner info """
         vals = {}
@@ -239,7 +338,6 @@ class WizardFulfillmentOrderVerification(models.TransientModel):
 
     def action_skip_verification(self):
         self.ensure_one()
-        self._validate_current_step()
 
         ensure_user_in_groups(
             self.env.user,
@@ -249,6 +347,10 @@ class WizardFulfillmentOrderVerification(models.TransientModel):
             ],
             error_message="Necesitas permisos de Gerencia o Administración para omitir el flujo común de las facturas.",
         )
+        if self.current_step != 'step_1':
+            raise UserError('La omisión sólo puede realizarse al iniciar la verificación.')
+        if self.sale_fulfillment_order_id.logistical_status != 'draft':
+            raise UserError('La orden ya fue verificada.')
 
         """ Update fields of sale_fulfillment_order """
         vals = {
@@ -257,9 +359,10 @@ class WizardFulfillmentOrderVerification(models.TransientModel):
             'time_of_handing_over': datetime.now(),
         }
 
-        self.sale_fulfillment_order_id.sudo().with_context(workflow_transition=True).write(vals)
+        self.sale_fulfillment_order_id.sudo().write(vals)
 
-        self.sale_fulfillment_order_id.with_context(workflow_transition=True).log_action("Verificación omitida. Esta factura no seguirá el flujo normal.")
+        self.sale_fulfillment_order_id.sudo()._log_action("Verificación omitida. Esta factura no seguirá el flujo normal.")
+        return {'type': 'ir.actions.act_window_close'}
 
     # ======================================================
     # UTILIDADES

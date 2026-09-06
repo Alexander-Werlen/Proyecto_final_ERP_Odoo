@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
-from ...utils.group_verification import ensure_user_in_groups
+from ...utils.group_verification import ensure_user_in_groups, ensure_write_allowed_fields
 
 
 class CashSessionLine(models.Model):
@@ -61,6 +61,24 @@ class CashSessionLine(models.Model):
                 if record.confirmed_counted_balance else 0.0
             )
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.su:
+            ensure_user_in_groups(
+                self.env.user,
+                ['werlen_repuestos_erp.group_accountant'],
+                error_message='Necesitas permisos de Caja para crear líneas de cierre.',
+            )
+        for values in vals_list:
+            session = self.env['cash_session'].browse(values.get('cash_session_id')).exists()
+            if not session or session.state != 'open':
+                raise ValidationError('Sólo se pueden crear líneas en una sesión abierta.')
+            if not self.env.su:
+                values['confirmed_counted_balance'] = False
+                values['confirmed_by'] = False
+                values['confirmed_at'] = False
+        return super().create(vals_list)
+
     def action_open_manual_out_payment_form(self):
         self.ensure_one()
         ensure_user_in_groups(
@@ -83,9 +101,23 @@ class CashSessionLine(models.Model):
         }
 
     def write(self, values):
-        if self.env.context.get('cash_session_reopen'):
+        if self.env.su:
             return super().write(values)
         for record in self:
             if record.cash_session_id.state == 'closed':
                 raise ValidationError('No se puede modificar una sesión de caja cerrada.')
+            ensure_write_allowed_fields(
+                record,
+                self.env.user,
+                values,
+                {
+                    'werlen_repuestos_erp.group_management': {
+                        'counted_balance',
+                        'confirmed_counted_balance',
+                        'confirmed_by',
+                        'confirmed_at',
+                    },
+                    'werlen_repuestos_erp.group_system': {'*'},
+                },
+            )
         return super().write(values)

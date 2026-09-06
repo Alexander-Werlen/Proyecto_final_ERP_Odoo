@@ -84,7 +84,7 @@ class PaymentLine(models.Model):
         required=True,
     )
 
-    confirmed_text = fields.Char(string='Confirmado', compute='_compute_confirmed_text')
+    confirmed_text = fields.Char(string='Estado de confirmación', compute='_compute_confirmed_text')
 
     amount_reconciliated = fields.Monetary(
         string='Importe reconciliado',
@@ -107,7 +107,7 @@ class PaymentLine(models.Model):
     invoice_out_amount_not_reconciliated = fields.Monetary()
     reconciliation_invoice_id = fields.Many2one(comodel_name='invoice_out')
 
-    reconciliation_lines = fields.One2many(
+    reconciliation_lines = fields.Many2many(
         comodel_name='reconciliation_line',
         compute='_compute_reconciliation_lines',
         string='Líneas de reconciliación',
@@ -140,6 +140,7 @@ class PaymentLine(models.Model):
             record.confirmed_text = 'SI' if record.confirmed else 'NO'
 
     @api.depends(
+        'amount',
         'reconciliation_lines_when_incomming',
         'reconciliation_lines_when_outgoing',
         'reconciliation_lines_when_incomming.amount',
@@ -188,6 +189,17 @@ class PaymentLine(models.Model):
                 f"No tienes permiso para confirmar movimientos en el diario '{journal.name}'."
             )
 
+    def _require_payment_method_journal(self, payment_method_id, journal_id):
+        payment_method = self.env['payment_method'].browse(payment_method_id)
+        journal = self.env['journal'].browse(journal_id)
+        if not payment_method.exists() or not journal.exists():
+            raise ValidationError('El pago debe tener un método y un diario válidos.')
+        if journal not in payment_method.allowed_journals:
+            raise ValidationError(
+                f"El diario '{journal.name}' no está permitido para el método "
+                f"'{payment_method.name}'."
+            )
+
     def confirm_payment(self):
         self.ensure_one()
         ensure_user_in_groups(
@@ -197,18 +209,19 @@ class PaymentLine(models.Model):
         )
         if self.confirmed:
             raise UserError('El pago ya estaba confirmado.')
+        self._require_payment_method_journal(self.payment_method.id, self.journal.id)
         self._require_journal_allowed_users(self.journal.id)
         self._require_open_journal_session(self.journal.id)
         self._confirm_payment_without_access_check()
 
     def _confirm_payment_without_access_check(self):
         self.ensure_one()
-        self.with_context(workflow_transition=True).write({
+        self.sudo().write({
             'confirmed': True,
             'who_confirmed_payment': self.env.user.id,
             'time_of_payment_confirmation': fields.Datetime.now(),
         })
-        self._get_reconciliation_lines().with_context(workflow_transition=True).write({
+        self._get_reconciliation_lines().sudo().write({
             'confirmed': True,
         })
         session = self.journal.sudo().current_cash_session
@@ -224,14 +237,23 @@ class PaymentLine(models.Model):
 
     def _reverse_confirmation_of_payment(self):
         self.ensure_one()
-        self._get_reconciliation_lines().with_context(workflow_transition=True).write({
+        self._get_reconciliation_lines().sudo().write({
             'confirmed': False,
         })
-        self.with_context(workflow_transition=True).write({
+        self.sudo().write({
             'confirmed': False,
             'who_confirmed_payment': False,
             'time_of_payment_confirmation': False,
         })
+        session = self.journal.sudo().current_cash_session
+        if session and session.state == 'open':
+            session.sudo().write({'last_refresh_at': False})
+            session.refresh_data()
+        invoice_ids = self._get_reconciliation_lines().mapped('invoice_out_id')
+        if invoice_ids:
+            self.env['sale_fulfillment_order'].search([
+                ('invoice_id', 'in', invoice_ids.ids),
+            ])._update_payment_workflow()
 
     def try_reverse_confirmation(self):
         self.ensure_one()
@@ -296,8 +318,6 @@ class PaymentLine(models.Model):
         )
 
     def write(self, values):
-        if self.env.context.get('workflow_transition'):
-            return super().write(values)
         for record in self:
             record._check_write_permissions_one(values)
         return super().write(values)
@@ -307,15 +327,28 @@ class PaymentLine(models.Model):
         for values in vals_list:
             if values.get('amount', 0) <= 0:
                 raise UserError('El importe del pago debe ser mayor que 0.')
+            if values.get('confirmed') and not self.env.su:
+                ensure_user_in_groups(
+                    self.env.user,
+                    ['werlen_repuestos_erp.group_accountant'],
+                    error_message='Necesitas permisos de Caja para confirmar pagos.',
+                )
             values.setdefault('name', self.env['ir.sequence'].next_by_code('payment.line') or 'Nuevo Pago')
-            values.setdefault('who_proposed_payment', self.env.user.id)
-            values.setdefault('time_of_payment_proposal', fields.Datetime.now())
+            values['who_proposed_payment'] = self.env.user.id
+            values['time_of_payment_proposal'] = fields.Datetime.now()
+            self._require_payment_method_journal(
+                values.get('payment_method'),
+                values.get('journal'),
+            )
             if values.get('confirmed'):
                 journal_id = values.get('journal')
                 self._require_journal_allowed_users(journal_id)
                 self._require_open_journal_session(journal_id)
-                values.setdefault('who_confirmed_payment', self.env.user.id)
-                values.setdefault('time_of_payment_confirmation', fields.Datetime.now())
+                values['who_confirmed_payment'] = self.env.user.id
+                values['time_of_payment_confirmation'] = fields.Datetime.now()
+            else:
+                values['who_confirmed_payment'] = False
+                values['time_of_payment_confirmation'] = False
         records = super().create(vals_list)
         for record in records:
             if record.reconciliation_invoice_id:

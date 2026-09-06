@@ -1,26 +1,59 @@
 <odoo>
-<data noupdate="1">
+    <data noupdate="1">
+        <record id="payment_method_otros" model="payment_method">
+            <field name="name">OTROS</field>
+            <field name="cash_closing_category_id" ref="closing_category_otros"/>
+            <field name="default_journal" ref="journal_general"/>
+            <field name="allowed_journals" eval="[(6, 0, [ref('journal_caja_1'), ref('journal_caja_admin'), ref('journal_general')])]"/>
+        </record>
 
-    <record id="payment_method_otros" model="payment_method">
-        <field name="name">OTROS</field>
-    </record>
+        <record id="payment_method_ajustes" model="payment_method">
+            <field name="name">AJUSTES</field>
+            <field name="cash_closing_category_id" ref="closing_category_ajustes"/>
+            <field name="default_journal" ref="journal_adjustments"/>
+            <field name="allowed_journals" eval="[(6, 0, [ref('journal_adjustments')])]"/>
+        </record>
 
-    <record id="payment_method_ajustes" model="payment_method">
-        <field name="name">AJUSTES</field>
-    </record>
+        <record id="payment_method_cheque" model="payment_method">
+            <field name="name">CHEQUE</field>
+            <field name="active_currently">False</field>
+            <field name="cash_closing_category_id" ref="closing_category_otros"/>
+            <field name="default_journal" ref="journal_general"/>
+            <field name="allowed_journals" eval="[(6, 0, [ref('journal_caja_1'), ref('journal_caja_admin'), ref('journal_general')])]"/>
+        </record>
 
-    <record id="payment_method_cheque" model="payment_method">
-        <field name="name">CHEQUE</field>
-        <field name="active_currently">False</field>
-    </record>
+        <record id="payment_method_efectivo" model="payment_method">
+            <field name="name">CONTADO EFECTIVO</field>
+            <field name="cash_closing_category_id" ref="closing_category_efectivo"/>
+            <field name="default_journal" ref="journal_caja_1"/>
+            <field name="allowed_journals" eval="[(6, 0, [ref('journal_caja_1'), ref('journal_caja_admin'), ref('journal_general')])]"/>
+        </record>
 
-    <record id="payment_method_efectivo" model="payment_method">
-        <field name="name">CONTADO EFECTIVO</field>
-    </record>
+        <record id="payment_method_cuenta_corriente" model="payment_method">
+            <field name="name">CUENTA CORRIENTE</field>
+            <field name="active_currently">False</field>
+            <field name="is_account_payment_method">True</field>
+            <field name="cash_closing_category_id" ref="closing_category_otros"/>
+            <field name="default_journal" ref="journal_general"/>
+            <field name="allowed_journals" eval="[(6, 0, [ref('journal_general')])]"/>
+        </record>
 
-    <record id="payment_method_cuenta_corriente" model="payment_method">
-        <field name="name">CUENTA CORRIENTE</field>
-    </record>
+        <record id="payment_method_account_with_discount" model="payment_method">
+            <field name="name">CUENTA CORRIENTE CON DESCUENTOS</field>
+            <field name="active_currently">False</field>
+            <field name="is_account_payment_method">True</field>
+            <field name="cash_closing_category_id" ref="closing_category_otros"/>
+            <field name="default_journal" ref="journal_general"/>
+            <field name="allowed_journals" eval="[(6, 0, [ref('journal_general')])]"/>
+        </record>
 
-</data>
+        <record id="payment_method_account_net_net" model="payment_method">
+            <field name="name">CUENTA CORRIENTE - NETO-NETO-</field>
+            <field name="active_currently">False</field>
+            <field name="is_account_payment_method">True</field>
+            <field name="cash_closing_category_id" ref="closing_category_otros"/>
+            <field name="default_journal" ref="journal_general"/>
+            <field name="allowed_journals" eval="[(6, 0, [ref('journal_general')])]"/>
+        </record>
+    </data>
 </odoo>
