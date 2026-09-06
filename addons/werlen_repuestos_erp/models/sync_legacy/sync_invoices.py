@@ -6,6 +6,7 @@ from decimal import Decimal, InvalidOperation
 from zoneinfo import ZoneInfo
 
 from odoo import api, models
+from odoo.exceptions import AccessError
 
 from .utils.custom_string_match import match_city, match_province
 
@@ -25,6 +26,8 @@ class SyncInvoices(models.Model):
 
     @api.model
     def import_file(self, path, correlation_id=None):
+        if not self.env.su:
+            raise AccessError('La importación legacy sólo puede ejecutarse desde el sistema.')
         if not os.path.isfile(path):
             raise FileNotFoundError(f"No existe el archivo a importar: {path}")
 
@@ -51,7 +54,9 @@ class SyncInvoices(models.Model):
                     self._process_invoice_out_line(row, os.path.basename(path))
                 elif voucher == "NC":
                     self._process_credit_note_out_line(row, os.path.basename(path))
-                elif voucher in {"RC", "RECIBO"} or "Descuentos" in fieldnames:
+                elif voucher in {"RC", "RECIBO"} or (
+                    not voucher and "Descuentos" in fieldnames
+                ):
                     self._process_account_payment_line(row, os.path.basename(path))
                 else:
                     raise UnsupportedVoucherError(
