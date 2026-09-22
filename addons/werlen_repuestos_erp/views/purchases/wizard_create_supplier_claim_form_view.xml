@@ -1,0 +1,15 @@
+<odoo>
+    <record id="wizard_create_supplier_claim_form_view" model="ir.ui.view">
+        <field name="name">wizard.create.supplier.claim.form</field>
+        <field name="model">wizard_create_supplier_claim</field>
+        <field name="arch" type="xml">
+            <form string="Crear reclamo a proveedor">
+                <group><field name="claim_type"/><field name="supplier_id"/><field name="product_id"/>
+                    <field name="list_price"/><field name="quantity"/><field name="purchase_invoice_id"/>
+                    <field name="reception_id"/><field name="observations"/></group>
+                <footer><button name="action_create" type="object" string="Crear" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/></footer>
+            </form>
+        </field>
+    </record>
+</odoo>

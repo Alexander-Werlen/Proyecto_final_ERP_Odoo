@@ -1,0 +1,12 @@
+<odoo>
+    <record id="purchase_product_list_view" model="ir.ui.view">
+        <field name="name">purchase.product.list</field>
+        <field name="model">purchase.product</field>
+        <field name="arch" type="xml">
+            <list string="Productos" create="true" edit="false" delete="false">
+                <field name="name" string="Código del producto"/>
+                <field name="description" string="Descripción"/>
+            </list>
+        </field>
+    </record>
+</odoo>

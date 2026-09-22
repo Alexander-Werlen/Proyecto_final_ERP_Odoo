@@ -1,0 +1,32 @@
+<odoo>
+    <record id="return_note_list_view" model="ir.ui.view">
+        <field name="name">return.note.list</field>
+        <field name="model">return_note</field>
+        <field name="arch" type="xml">
+            <list string="Notas de devolución" create="false" delete="false">
+                <field name="name" string="Identificador"/>
+                <field name="date" string="Fecha"/>
+                <field name="supplier_id" string="Proveedor"/>
+                <field name="state" widget="badge"
+                    decoration-info="state == 'draft'"
+                    decoration-warning="state == 'prepared'"
+                    decoration-primary="state == 'sent'"
+                    decoration-success="state == 'closed'"/>
+                <field name="package_count" string="Bultos"/>
+            </list>
+        </field>
+    </record>
+    <record id="return_note_search_view" model="ir.ui.view">
+        <field name="name">return.note.search</field>
+        <field name="model">return_note</field>
+        <field name="arch" type="xml">
+            <search string="Notas de devolución">
+                <field name="name"/><field name="supplier_id"/>
+                <filter name="draft" string="Borrador" domain="[('state', '=', 'draft')]"/>
+                <filter name="prepared" string="Preparadas" domain="[('state', '=', 'prepared')]"/>
+                <filter name="sent" string="Enviadas" domain="[('state', '=', 'sent')]"/>
+                <filter name="closed" string="Cerradas" domain="[('state', '=', 'closed')]"/>
+            </search>
+        </field>
+    </record>
+</odoo>

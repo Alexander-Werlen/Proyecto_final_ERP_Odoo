@@ -1,0 +1,37 @@
+<odoo>
+    <record id="supplier_claim_list_view" model="ir.ui.view">
+        <field name="name">supplier.claim.list</field>
+        <field name="model">supplier_claim</field>
+        <field name="arch" type="xml">
+            <list string="Reclamos a proveedor" create="false" delete="false">
+                <field name="name" string="Identificador"/>
+                <field name="claim_type" string="Tipo"/>
+                <field name="supplier_id" string="Proveedor"/>
+                <field name="product_id" string="Producto"/>
+                <field name="state" widget="badge"
+                    decoration-info="state == 'open'"
+                    decoration-warning="state == 'in_progress'"
+                    decoration-success="state == 'resolved'"
+                    decoration-danger="state == 'rejected'"/>
+                <field name="creation_date" string="Fecha" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="supplier_claim_search_view" model="ir.ui.view">
+        <field name="name">supplier.claim.search</field>
+        <field name="model">supplier_claim</field>
+        <field name="arch" type="xml">
+            <search string="Reclamos a proveedor">
+                <field name="name"/><field name="supplier_id"/><field name="product_id"/>
+                <filter name="open" string="Abiertos" domain="[('state', '=', 'open')]"/>
+                <filter name="in_progress" string="En gestión" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="resolved" string="Resueltos" domain="[('state', '=', 'resolved')]"/>
+                <filter name="rejected" string="Rechazados" domain="[('state', '=', 'rejected')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                    <filter name="group_supplier" string="Proveedor" context="{'group_by': 'supplier_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

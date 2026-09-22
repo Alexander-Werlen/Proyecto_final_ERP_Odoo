@@ -298,6 +298,53 @@
         <field name="domain">[('state', 'in', ['pending_delivery', 'pending_review', 'in_review'])]</field>
     </record>
 
+    <record id="action_create_supplier_claim" model="ir.actions.act_window">
+        <field name="name">Crear reclamo a proveedor</field>
+        <field name="res_model">wizard_create_supplier_claim</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.wizard_create_supplier_claim_form_view"/>
+        <field name="target">new</field>
+    </record>
+
+    <record id="action_open_supplier_claims" model="ir.actions.act_window">
+        <field name="name">Reclamos a proveedor</field>
+        <field name="res_model">supplier_claim</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('werlen_repuestos_erp.supplier_claim_list_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('werlen_repuestos_erp.supplier_claim_form_view')})
+        ]"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.supplier_claim_search_view"/>
+    </record>
+
+    <record id="action_create_return_note" model="ir.actions.act_window">
+        <field name="name">Crear nota de devolución</field>
+        <field name="res_model">wizard_create_return_note</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.wizard_create_return_note_form_view"/>
+        <field name="target">new</field>
+    </record>
+
+    <record id="action_open_return_notes" model="ir.actions.act_window">
+        <field name="name">Notas de devolución</field>
+        <field name="res_model">return_note</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('werlen_repuestos_erp.return_note_list_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('werlen_repuestos_erp.return_note_form_view')})
+        ]"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.return_note_search_view"/>
+    </record>
+
+    <record id="action_open_purchase_products" model="ir.actions.act_window">
+        <field name="name">Productos</field>
+        <field name="res_model">purchase.product</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="werlen_repuestos_erp.purchase_product_list_view"/>
+    </record>
+
     <!-- Root Menus -->
     <menuitem id="menu_accounting" name="Accounting" sequence="2"
     groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management,werlen_repuestos_erp.group_system"
@@ -327,6 +374,13 @@
         groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
     <menuitem id="menu_purchases_invoices_relevant" name="Pending" parent="menu_purchases_invoices" action="action_open_relevant_purchase_invoices" sequence="2"/>
     <menuitem id="menu_purchases_invoices_all" name="All" parent="menu_purchases_invoices" action="action_open_purchase_invoices" sequence="3"/>
+    <menuitem id="menu_purchases_claims" name="Supplier claims" parent="menu_purchases" sequence="3"/>
+    <menuitem id="menu_purchases_claims_create" name="Create" parent="menu_purchases_claims" action="action_create_supplier_claim" sequence="1" groups="werlen_repuestos_erp.group_administration"/>
+    <menuitem id="menu_purchases_claims_all" name="All" parent="menu_purchases_claims" action="action_open_supplier_claims" sequence="2"/>
+    <menuitem id="menu_purchases_returns" name="Return notes" parent="menu_purchases" sequence="4"/>
+    <menuitem id="menu_purchases_returns_create" name="Create" parent="menu_purchases_returns" action="action_create_return_note" sequence="1" groups="werlen_repuestos_erp.group_administration"/>
+    <menuitem id="menu_purchases_returns_all" name="All" parent="menu_purchases_returns" action="action_open_return_notes" sequence="2"/>
+    <menuitem id="menu_purchases_products" name="Products" parent="menu_purchases" action="action_open_purchase_products" sequence="5" groups="werlen_repuestos_erp.group_management,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_system"/>
 
     <!-- Accounting Menu -->
     <menuitem id="menu_accounting_invoice_out" name="Outgoing Invoices" parent="menu_accounting" sequence="1"/>

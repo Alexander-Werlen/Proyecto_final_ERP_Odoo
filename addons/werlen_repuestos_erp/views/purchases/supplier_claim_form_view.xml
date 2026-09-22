@@ -1,0 +1,51 @@
+<odoo>
+    <record id="supplier_claim_form_view" model="ir.ui.view">
+        <field name="name">supplier.claim.form</field>
+        <field name="model">supplier_claim</field>
+        <field name="arch" type="xml">
+            <form string="Reclamo a proveedor" create="false" delete="false">
+                <header>
+                    <button name="action_start_progress" type="object" string="Iniciar gestión"
+                        class="oe_highlight" invisible="state != 'open'"
+                        groups="werlen_repuestos_erp.group_administration"/>
+                    <button name="action_resolve" type="object" string="Resolver"
+                        class="oe_highlight" invisible="state not in ('open', 'in_progress')"
+                        groups="werlen_repuestos_erp.group_administration"/>
+                    <button name="action_reject" type="object" string="Rechazar"
+                        invisible="state not in ('open', 'in_progress')"
+                        groups="werlen_repuestos_erp.group_administration"/>
+                    <button name="action_reopen" type="object" string="Reabrir"
+                        invisible="state not in ('resolved', 'rejected')"
+                        groups="werlen_repuestos_erp.group_administration"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,in_progress,resolved,rejected"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Resuelto" bg_color="bg-success" invisible="state != 'resolved'"/>
+                    <widget name="web_ribbon" title="Rechazado" bg_color="bg-danger" invisible="state != 'rejected'"/>
+                    <h1>RECLAMO A PROVEEDOR</h1>
+                    <group string="Datos del reclamo">
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="claim_type" readonly="1"/>
+                            <field name="supplier_id" readonly="1"/>
+                            <field name="product_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="list_price" readonly="1"/>
+                            <field name="creation_date" readonly="1"/>
+                            <field name="who_created_id" readonly="1"/>
+                            <field name="purchase_invoice_id" readonly="1"/>
+                            <field name="reception_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <separator string="Observaciones"/>
+                    <field name="observations" nolabel="1" readonly="1"/>
+                    <separator string="Resolución" invisible="state not in ('resolved', 'rejected')"/>
+                    <field name="resolution_observations" nolabel="1" readonly="1"
+                        invisible="state not in ('resolved', 'rejected')"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+</odoo>

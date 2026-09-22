@@ -120,3 +120,16 @@ access_wizard_close_cash_session_user,access.wizard.close.cash.session.user,mode
 access_wizard_close_cash_session_line_user,access.wizard.close.cash.session.line.user,model_wizard_close_cash_session_line,base.group_user,1,1,1,1
 access_wizard_manual_payment_invoice_out_user,access.wizard.manual.payment.invoice.out.user,model_wizard_manual_payment_invoice_out,base.group_user,1,1,1,1
 access_wizard_fulfillment_order_verification_payment_line_user,access.wizard.fulfillment.order.verification.payment.line.user,model_wizard_fulfillment_order_verification_payment_line,base.group_user,1,1,1,1
+access_purchase_product_user,access.purchase.product.user,model_purchase_product,base.group_user,1,1,1,0
+access_purchase_product_management,access.purchase.product.management,model_purchase_product,werlen_repuestos_erp.group_management,1,1,1,1
+access_purchase_product_system,access.purchase.product.system,model_purchase_product,werlen_repuestos_erp.group_system,1,1,1,1
+access_supplier_claim_user,access.supplier.claim.user,model_supplier_claim,base.group_user,1,0,0,0
+access_supplier_claim_administration,access.supplier.claim.administration,model_supplier_claim,werlen_repuestos_erp.group_administration,1,1,1,1
+access_supplier_claim_system,access.supplier.claim.system,model_supplier_claim,werlen_repuestos_erp.group_system,1,1,1,1
+access_return_note_user,access.return.note.user,model_return_note,base.group_user,1,0,0,0
+access_return_note_administration,access.return.note.administration,model_return_note,werlen_repuestos_erp.group_administration,1,1,1,1
+access_return_note_reception,access.return.note.reception,model_return_note,werlen_repuestos_erp.group_reception,1,1,0,0
+access_return_line_user,access.return.line.user,model_return_line,base.group_user,1,0,0,0
+access_return_line_administration,access.return.line.administration,model_return_line,werlen_repuestos_erp.group_administration,1,1,1,1
+access_wizard_create_supplier_claim_user,access.wizard.create.supplier.claim.user,model_wizard_create_supplier_claim,base.group_user,1,1,1,1
+access_wizard_create_return_note_user,access.wizard.create.return.note.user,model_wizard_create_return_note,base.group_user,1,1,1,1

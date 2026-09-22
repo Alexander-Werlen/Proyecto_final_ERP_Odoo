@@ -1,0 +1,14 @@
+<odoo>
+    <record id="wizard_create_return_note_form_view" model="ir.ui.view">
+        <field name="name">wizard.create.return.note.form</field>
+        <field name="model">wizard_create_return_note</field>
+        <field name="arch" type="xml">
+            <form string="Crear nota de devolución">
+                <group><field name="supplier_id"/><field name="carrier_id"/>
+                    <field name="package_count"/><field name="observations"/></group>
+                <footer><button name="action_create" type="object" string="Crear" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/></footer>
+            </form>
+        </field>
+    </record>
+</odoo>
