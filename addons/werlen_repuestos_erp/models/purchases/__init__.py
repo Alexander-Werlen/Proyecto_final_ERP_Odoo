@@ -5,3 +5,7 @@ from . import return_note
 from . import return_line
 from . import wizard_create_supplier_claim
 from . import wizard_create_return_note
+from . import wizard_associate_return_line_claim
+from . import wizard_supplier_claim_transition
+from . import wizard_prepare_return_note
+from . import wizard_send_return_note

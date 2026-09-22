@@ -5,6 +5,8 @@
         <field name="arch" type="xml">
             <form string="Nota de devolución" create="false" delete="false">
                 <header>
+                    <button name="action_open_associate_claim" type="object" string="Asociar reclamo"
+                        invisible="state != 'draft'" groups="werlen_repuestos_erp.group_administration"/>
                     <button name="action_prepare" type="object" string="Preparar" class="oe_highlight"
                         invisible="state != 'draft'" groups="werlen_repuestos_erp.group_administration"/>
                     <button name="action_send" type="object" string="Enviar" class="oe_highlight"

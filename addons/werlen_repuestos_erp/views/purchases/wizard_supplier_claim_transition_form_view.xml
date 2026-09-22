@@ -1,0 +1,13 @@
+<odoo>
+    <record id="wizard_supplier_claim_transition_form_view" model="ir.ui.view">
+        <field name="name">wizard.supplier.claim.transition.form</field>
+        <field name="model">wizard_supplier_claim_transition</field>
+        <field name="arch" type="xml">
+            <form string="Cambiar estado del reclamo">
+                <group><field name="claim_id"/><field name="action"/><field name="observations"/></group>
+                <footer><button name="action_apply" type="object" string="Aplicar" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/></footer>
+            </form>
+        </field>
+    </record>
+</odoo>

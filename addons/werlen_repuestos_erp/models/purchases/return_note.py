@@ -98,3 +98,17 @@ class ReturnNote(models.Model):
             raise UserError('Solo se puede reabrir una nota cerrada.')
         self.sudo().write({'state': 'draft', 'closing_datetime': False})
         self._log_action('Reabrió la nota de devolución.')
+
+    def action_open_associate_claim(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Asociar reclamo',
+            'res_model': 'wizard_associate_return_line_claim',
+            'view_mode': 'form',
+            'view_id': self.env.ref(
+                'werlen_repuestos_erp.wizard_associate_return_line_claim_form_view'
+            ).id,
+            'target': 'new',
+            'context': {'default_return_note_id': self.id},
+        }

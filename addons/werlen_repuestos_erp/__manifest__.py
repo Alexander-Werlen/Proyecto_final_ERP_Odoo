@@ -55,6 +55,10 @@
         'views/purchases/return_note_list_view.xml',
         'views/purchases/return_note_form_view.xml',
         'views/purchases/wizard_create_return_note_form_view.xml',
+        'views/purchases/wizard_associate_return_line_claim_form_view.xml',
+        'views/purchases/wizard_supplier_claim_transition_form_view.xml',
+        'views/purchases/wizard_prepare_return_note_form_view.xml',
+        'views/purchases/wizard_send_return_note_form_view.xml',
         'views/menu/menu_selectors.xml',
     ],
     'assets': {
