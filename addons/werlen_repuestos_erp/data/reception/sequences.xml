@@ -1,0 +1,10 @@
+<odoo>
+    <data noupdate="1">
+        <record id="seq_reception" model="ir.sequence">
+            <field name="name">Ingreso de mercadería</field>
+            <field name="code">reception</field>
+            <field name="prefix">ING-</field>
+            <field name="padding">6</field>
+        </record>
+    </data>
+</odoo>

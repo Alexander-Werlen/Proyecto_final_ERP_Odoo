@@ -1,0 +1,10 @@
+<odoo>
+    <data noupdate="1">
+        <record id="seq_purchase_invoice" model="ir.sequence">
+            <field name="name">Factura de compra</field>
+            <field name="code">purchase.invoice</field>
+            <field name="prefix">FC-</field>
+            <field name="padding">6</field>
+        </record>
+    </data>
+</odoo>

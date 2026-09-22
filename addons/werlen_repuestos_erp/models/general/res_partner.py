@@ -16,6 +16,16 @@ class ResPartner(models.Model):
         tracking=True
     )
 
+    is_supplier = fields.Boolean(
+        string='Es proveedor',
+        tracking=True,
+    )
+
+    is_carrier = fields.Boolean(
+        string='Es transportista',
+        tracking=True,
+    )
+
     def action_open_wizard_current_account_income(self):
         self.ensure_one()
         ensure_user_in_groups(

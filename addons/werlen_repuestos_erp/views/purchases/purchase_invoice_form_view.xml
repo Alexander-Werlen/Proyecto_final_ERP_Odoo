@@ -1,0 +1,66 @@
+<odoo>
+    <record id="purchase_invoice_form_view" model="ir.ui.view">
+        <field name="name">purchase.invoice.form</field>
+        <field name="model">purchase_invoice</field>
+        <field name="arch" type="xml">
+            <form string="Factura de compra" create="false" delete="false">
+                <header>
+                    <field name="state" widget="statusbar"
+                        statusbar_visible="pending_delivery,pending_review,in_review,reviewed"/>
+                    <button name="action_move_to_pending_review" type="object"
+                        string="Marcar como recibida" class="oe_highlight"
+                        invisible="state != 'pending_delivery'"
+                        groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
+                    <button name="action_start_review" type="object"
+                        string="Iniciar revisión" class="oe_highlight"
+                        invisible="state != 'pending_review'"
+                        groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
+                    <button name="action_finish_review" type="object"
+                        string="Finalizar revisión" class="oe_highlight"
+                        invisible="state != 'in_review'"
+                        groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
+                    <button name="action_revert_to_pending_delivery" type="object"
+                        string="Volver a entrega pendiente" class="btn btn-outline-danger"
+                        invisible="state != 'pending_review'"
+                        groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
+                    <button name="action_cancel_review" type="object"
+                        string="Cancelar revisión" class="btn btn-outline-danger"
+                        invisible="state != 'in_review'"
+                        groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
+                    <button name="action_reopen_review" type="object"
+                        string="Reabrir revisión" class="btn btn-outline-danger"
+                        invisible="state != 'reviewed'"
+                        groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Falta recibir" bg_color="bg-warning"
+                        invisible="state != 'pending_delivery'"/>
+                    <widget name="web_ribbon" title="Falta revisar" bg_color="bg-danger"
+                        invisible="state != 'pending_review'"/>
+                    <widget name="web_ribbon" title="En revisión" bg_color="bg-info"
+                        invisible="state != 'in_review'"/>
+                    <widget name="web_ribbon" title="Revisada" bg_color="bg-success"
+                        invisible="state != 'reviewed'"/>
+                    <h1>FACTURA DE COMPRA</h1>
+                    <group string="Datos de la factura">
+                        <group>
+                            <field name="supplier_id" readonly="1"
+                                options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="name" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="controlled_datetime_start" readonly="1"/>
+                            <field name="controlled_datetime_end" readonly="1"/>
+                            <field name="who_controlled_ids" widget="many2many_tags" readonly="1"/>
+                        </group>
+                    </group>
+                    <separator string="Ingresos"/>
+                    <field name="reception_ids" widget="many2many_tags" readonly="1"/>
+                    <separator string="Observaciones"/>
+                    <field name="observations" nolabel="1"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+</odoo>

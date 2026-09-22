@@ -6,6 +6,18 @@ access_wizard_preparation_user,access.wizard.preparation,model_wizard_preparatio
 
 access_wizard_fulfillment_order_verification_user,access.wizard.fulfillment.order.verification,model_wizard_fulfillment_order_verification,base.group_user,1,1,1,1
 access_wizard_fulfillment_order_verification_payment_line_user,access.wizard.fulfillment.order.verification.payment.line,model_wizard_fulfillment_order_verification_payment_line,base.group_user,1,1,1,1
+access_reception_user,reception.user,model_reception,base.group_user,1,0,0,0
+access_reception_reception,reception.reception,model_reception,werlen_repuestos_erp.group_reception,1,1,1,0
+access_reception_control,reception.control,model_reception,werlen_repuestos_erp.group_reception_control,1,1,0,0
+access_reception_administration,reception.administration,model_reception,werlen_repuestos_erp.group_administration,1,1,1,1
+access_reception_system,reception.system,model_reception,werlen_repuestos_erp.group_system,1,1,1,1
+access_purchase_invoice_user,purchase.invoice.user,model_purchase_invoice,base.group_user,1,0,0,0
+access_purchase_invoice_reception,purchase.invoice.reception,model_purchase_invoice,werlen_repuestos_erp.group_reception,1,0,0,0
+access_purchase_invoice_control,purchase.invoice.control,model_purchase_invoice,werlen_repuestos_erp.group_reception_control,1,1,1,0
+access_purchase_invoice_administration,purchase.invoice.administration,model_purchase_invoice,werlen_repuestos_erp.group_administration,1,1,1,1
+access_purchase_invoice_system,purchase.invoice.system,model_purchase_invoice,werlen_repuestos_erp.group_system,1,1,1,1
+access_wizard_create_reception_reception,wizard.create.reception.reception,model_wizard_create_reception,werlen_repuestos_erp.group_reception,1,1,1,1
+access_wizard_create_purchase_invoice_control,wizard.create.purchase.invoice.control,model_wizard_create_purchase_invoice,werlen_repuestos_erp.group_reception_control,1,1,1,1
 
 access_partner_user,access.res.partner.user,base.model_res_partner,base.group_user,1,0,0,0
 access_partner_administration,access.res.partner.administration,base.model_res_partner,werlen_repuestos_erp.group_administration,1,1,1,0
