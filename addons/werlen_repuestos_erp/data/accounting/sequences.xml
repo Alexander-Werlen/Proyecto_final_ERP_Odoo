@@ -6,5 +6,11 @@
             <field name="prefix">PAGO-</field>
             <field name="padding">6</field>
         </record>
+        <record id="seq_supplier_payment" model="ir.sequence">
+            <field name="name">Supplier Payment</field>
+            <field name="code">supplier.payment</field>
+            <field name="prefix">PP-</field>
+            <field name="padding">6</field>
+        </record>
     </data>
 </odoo>

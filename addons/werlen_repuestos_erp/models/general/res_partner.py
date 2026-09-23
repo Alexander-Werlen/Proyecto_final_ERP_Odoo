@@ -26,6 +26,12 @@ class ResPartner(models.Model):
         tracking=True,
     )
 
+    supplier_payment_destination_ids = fields.One2many(
+        comodel_name='supplier_payment_destination',
+        inverse_name='partner_id',
+        string='Destinos de pago',
+    )
+
     def action_open_wizard_current_account_income(self):
         self.ensure_one()
         ensure_user_in_groups(

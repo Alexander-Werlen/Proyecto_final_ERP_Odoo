@@ -9,3 +9,5 @@ from . import wizard_associate_return_line_claim
 from . import wizard_supplier_claim_transition
 from . import wizard_prepare_return_note
 from . import wizard_send_return_note
+from . import supplier_payments
+from . import supplier_payment_supplier

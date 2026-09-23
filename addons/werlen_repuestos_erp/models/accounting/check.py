@@ -72,6 +72,11 @@ class Check(models.Model):
         readonly=True,
     )
 
+    supplier_payment_ids = fields.Many2many(
+        comodel_name='supplier_payment',
+        string='Pagos a proveedor asociados',
+    )
+
     company_id = fields.Many2one(
         comodel_name='res.company',
         required=True,
@@ -181,6 +186,21 @@ class Check(models.Model):
 
     def get_amount_not_reconciliated(self):
         return self.amount_not_reconciliated
+
+    def action_undo_supplier_payment_usage(self):
+        ensure_user_in_groups(
+            self.env.user,
+            ['werlen_repuestos_erp.group_management'],
+            error_message='Necesitas permisos de Gerencia para deshacer el uso de un cheque en un pago a proveedor.',
+        )
+        for check in self:
+            if check.previous_journal_id:
+                check.write({
+                    'journal_id': check.previous_journal_id.id,
+                    'previous_journal_id': False,
+                })
+            if check.supplier_payment_ids:
+                check.write({'supplier_payment_ids': [(5, 0, 0)]})
 
     def action_open_change_journal_wizard(self):
         self.ensure_one()
