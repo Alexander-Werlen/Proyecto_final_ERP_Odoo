@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="role_sales" model="werlen.user.role"><field name="name">Ventas</field><field name="code">sales</field><field name="sequence">10</field><field name="group_id" ref="werlen_repuestos_erp.group_sales"/></record>
+        <record id="role_sales_meli" model="werlen.user.role"><field name="name">Ventas (MercadoLibre)</field><field name="code">sales_meli</field><field name="sequence">20</field><field name="group_id" ref="werlen_repuestos_erp.group_sales_meli"/></record>
+        <record id="role_accountant" model="werlen.user.role"><field name="name">Caja</field><field name="code">accountant</field><field name="sequence">30</field><field name="group_id" ref="werlen_repuestos_erp.group_accountant"/></record>
+        <record id="role_account_income" model="werlen.user.role"><field name="name">Ingresos a cuenta corriente</field><field name="code">account_income</field><field name="sequence">40</field><field name="group_id" ref="werlen_repuestos_erp.group_manage_account_payments"/></record>
+        <record id="role_reception" model="werlen.user.role"><field name="name">Recepción</field><field name="code">reception</field><field name="sequence">50</field><field name="group_id" ref="werlen_repuestos_erp.group_reception"/></record>
+        <record id="role_reception_control" model="werlen.user.role"><field name="name">Control de recepción</field><field name="code">reception_control</field><field name="sequence">60</field><field name="group_id" ref="werlen_repuestos_erp.group_reception_control"/></record>
+        <record id="role_administration" model="werlen.user.role"><field name="name">Administración</field><field name="code">administration</field><field name="sequence">70</field><field name="group_id" ref="werlen_repuestos_erp.group_administration"/></record>
+        <record id="role_preparation" model="werlen.user.role"><field name="name">Preparación</field><field name="code">preparation</field><field name="sequence">80</field><field name="group_id" ref="werlen_repuestos_erp.group_preparation"/></record>
+        <record id="role_management" model="werlen.user.role"><field name="name">Gerencia</field><field name="code">management</field><field name="sequence">90</field><field name="group_id" ref="werlen_repuestos_erp.group_management"/></record>
+        <record id="role_galvez" model="werlen.user.role"><field name="name">Gálvez</field><field name="code">galvez</field><field name="sequence">100</field><field name="group_id" ref="werlen_repuestos_erp.group_galvez"/></record>
+    </data>
+</odoo>

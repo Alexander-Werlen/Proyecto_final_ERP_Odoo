@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="werlen_user_management_list_view" model="ir.ui.view">
+            <field name="name">res.users.werlen.management.list</field>
+            <field name="model">res.users</field>
+            <field name="arch" type="xml">
+                <list string="Usuarios" create="false" delete="false">
+                    <field name="name"/>
+                    <field name="employee_identifier" string="Usuario"/>
+                    <field name="role_ids" widget="many2many_tags"/>
+                    <field name="needs_completion" optional="show"/>
+                    <field name="default_journal_id" optional="hide"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="werlen_user_management_search_view" model="ir.ui.view">
+            <field name="name">res.users.werlen.management.search</field>
+            <field name="model">res.users</field>
+            <field name="arch" type="xml">
+                <search string="Buscar usuarios">
+                    <field name="name"/>
+                    <field name="employee_identifier" string="Número de empleado"/>
+                    <field name="role_ids"/>
+                    <filter name="active_users" string="Activos" domain="[('active', '=', True)]"/>
+                    <filter name="inactive_users" string="Inactivos" domain="[('active', '=', False)]"/>
+                    <filter name="needs_completion" string="Pendientes de completar" domain="[('needs_completion', '=', True)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="werlen_user_management_form_view" model="ir.ui.view">
+            <field name="name">res.users.werlen.management.form</field>
+            <field name="model">res.users</field>
+            <field name="arch" type="xml">
+                <form string="Usuario" create="false" delete="false">
+                    <header>
+                        <button name="action_open_new_password" type="object" string="Cambiar contraseña" class="btn-secondary"/>
+                    </header>
+                    <sheet>
+                        <widget name="web_ribbon" title="Inactivo" bg_color="text-bg-danger" invisible="active"/>
+                        <group>
+                            <group>
+                                <field name="name" required="1"/>
+                                <field name="employee_identifier" required="1" readonly="1"/>
+                                <field name="login" string="Identificador de acceso" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="active"/>
+                                <field name="default_journal_id"/>
+                                <field name="notification_type" invisible="1"/>
+                            </group>
+                        </group>
+                        <separator string="Roles"/>
+                        <field name="role_ids" widget="many2many_tags" options="{'no_create': True, 'no_open': True}" domain="[('active', '=', True)]" nolabel="1"/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="wizard_werlen_user_create_form_view" model="ir.ui.view">
+            <field name="name">wizard.werlen.user.create.form</field>
+            <field name="model">wizard.werlen.user.create</field>
+            <field name="arch" type="xml">
+                <form string="Crear usuario" create="false" delete="false" autocomplete="off">
+                    <group>
+                        <group>
+                            <field name="name" default_focus="1" placeholder="Ej.: Juan Pérez"/>
+                            <field name="employee_number" placeholder="Ej.: 123 o E123"/>
+                            <field name="default_journal_id" placeholder="Ej.: Caja 1"/>
+                        </group>
+                        <group>
+                            <field name="password" password="True" autocomplete="new-password"/>
+                            <field name="password_confirmation" password="True" autocomplete="new-password"/>
+                        </group>
+                    </group>
+                    <separator string="Roles"/>
+                    <field name="role_ids" widget="many2many_tags" options="{'no_create': True, 'no_open': True}" domain="[('active', '=', True)]" nolabel="1"/>
+                    <footer>
+                        <button name="action_create_user" type="object" string="Crear usuario" class="btn-primary"/>
+                        <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="wizard_werlen_user_password_form_view" model="ir.ui.view">
+            <field name="name">wizard.werlen.user.password.form</field>
+            <field name="model">wizard.werlen.user.password</field>
+            <field name="arch" type="xml">
+                <form string="Cambiar contraseña" create="false" delete="false" autocomplete="off">
+                    <group>
+                        <field name="user_id"/>
+                        <field name="password" password="True" autocomplete="new-password"/>
+                        <field name="password_confirmation" password="True" autocomplete="new-password"/>
+                    </group>
+                    <footer>
+                        <button name="action_change_password" type="object" string="Guardar contraseña" class="btn-primary"/>
+                        <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_open_werlen_users" model="ir.actions.act_window">
+            <field name="name">Usuarios</field>
+            <field name="res_model">res.users</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('share', '=', False)]</field>
+            <field name="search_view_id" ref="werlen_repuestos_erp.werlen_user_management_search_view"/>
+            <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('werlen_repuestos_erp.werlen_user_management_list_view')}), (0, 0, {'view_mode': 'form', 'view_id': ref('werlen_repuestos_erp.werlen_user_management_form_view')})]"/>
+        </record>
+
+        <record id="action_create_werlen_user" model="ir.actions.act_window">
+            <field name="name">Nuevo usuario</field>
+            <field name="res_model">wizard.werlen.user.create</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="werlen_repuestos_erp.wizard_werlen_user_create_form_view"/>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>

@@ -382,6 +382,15 @@
 
     <menuitem id="menu_fulfillment" name="Operations" sequence="1"/>
 
+    <menuitem id="menu_user_management_root" name="Gerencia" sequence="4"
+        groups="werlen_repuestos_erp.group_management"/>
+    <menuitem id="menu_user_management" name="Usuarios y accesos"
+        parent="menu_user_management_root" groups="werlen_repuestos_erp.group_management" sequence="1"/>
+    <menuitem id="menu_user_management_list" name="Usuarios"
+        parent="menu_user_management" action="action_open_werlen_users" sequence="1"/>
+    <menuitem id="menu_user_management_create" name="Nuevo usuario"
+        parent="menu_user_management" action="action_create_werlen_user" sequence="2"/>
+
     <menuitem id="menu_purchases" name="Purchases" sequence="3"
         groups="werlen_repuestos_erp.group_reception,werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"/>
     <menuitem id="menu_purchases_reception" name="Reception" parent="menu_purchases" sequence="1"/>

@@ -26,6 +26,10 @@ access_partner_system,access.res.partner.system,base.model_res_partner,werlen_re
 
 access_res_users_user,access.res.users.user,base.model_res_users,base.group_user,1,1,0,0
 access_res_users_system,access.res.users.system,base.model_res_users,werlen_repuestos_erp.group_system,1,1,1,0
+access_res_users_management,access.res.users.management,base.model_res_users,werlen_repuestos_erp.group_management,1,1,1,0
+access_werlen_user_role_user,access.werlen.user.role.user,model_werlen_user_role,base.group_user,1,0,0,0
+access_wizard_werlen_user_create,access.wizard.werlen.user.create,model_wizard_werlen_user_create,werlen_repuestos_erp.group_management,1,1,1,1
+access_wizard_werlen_user_password,access.wizard.werlen.user.password,model_wizard_werlen_user_password,werlen_repuestos_erp.group_management,1,1,1,1
 
 access_invoice_type_user,access.invoice.type,model_invoice_type,base.group_user,1,0,0,0
 access_invoice_type_management,access.invoice.type.management,model_invoice_type,werlen_repuestos_erp.group_management,1,1,1,1

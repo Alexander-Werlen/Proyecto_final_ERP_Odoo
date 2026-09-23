@@ -1,8 +1,19 @@
 from odoo import fields, models
+from odoo.exceptions import ValidationError
 from ...utils.group_verification import ensure_user_in_groups
 
 class ResPartner(models.Model):
     _inherit = "res.partner"
+
+    def write(self, vals):
+        if 'unique_identifier' in vals:
+            protected = self.with_context(active_test=False).filtered(lambda partner: bool(partner.user_ids))
+            changed = protected.filtered(lambda partner: vals['unique_identifier'] != partner.unique_identifier)
+            if changed:
+                raise ValidationError(
+                    'El identificador de un contacto asociado a un usuario no puede modificarse.'
+                )
+        return super().write(vals)
 
     city_relational_id = fields.Many2one(
         comodel_name="city",

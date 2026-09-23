@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="rule_res_users_user_management" model="ir.rule">
+            <field name="name">Gestión de usuarios: usuarios internos</field>
+            <field name="model_id" ref="base.model_res_users"/>
+            <field name="domain_force">[('share', '=', False)]</field>
+            <field name="groups" eval="[(4, ref('werlen_repuestos_erp.group_management'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+    </data>
+</odoo>
