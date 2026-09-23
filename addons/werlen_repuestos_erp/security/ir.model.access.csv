@@ -137,3 +137,7 @@ access_wizard_associate_return_line_claim_user,access.wizard.associate.return.li
 access_wizard_supplier_claim_transition_user,access.wizard.supplier.claim.transition.user,model_wizard_supplier_claim_transition,base.group_user,1,1,1,1
 access_wizard_prepare_return_note_user,access.wizard.prepare.return.note.user,model_wizard_prepare_return_note,base.group_user,1,1,1,1
 access_wizard_send_return_note_user,access.wizard.send.return.note.user,model_wizard_send_return_note,base.group_user,1,1,1,1
+access_client_claim_user,access.client.claim.user,model_client_claim,base.group_user,1,0,0,0
+access_client_claim_administration,access.client.claim.administration,model_client_claim,werlen_repuestos_erp.group_administration,1,1,1,1
+access_wizard_create_client_claim_user,access.wizard.create.client.claim.user,model_wizard_create_client_claim,base.group_user,1,1,1,1
+access_wizard_client_claim_resolution_user,access.wizard.client.claim.resolution.user,model_wizard_client_claim_resolution,base.group_user,1,1,1,1

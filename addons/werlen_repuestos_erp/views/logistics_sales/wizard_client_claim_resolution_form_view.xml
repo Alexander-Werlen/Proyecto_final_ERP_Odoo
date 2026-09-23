@@ -1,0 +1,7 @@
+<odoo><record id="wizard_client_claim_resolution_form_view" model="ir.ui.view">
+    <field name="name">wizard.client.claim.resolution.form</field><field name="model">wizard_client_claim_resolution</field>
+    <field name="arch" type="xml"><form string="Resolver reclamo de cliente">
+        <group><field name="claim_id"/><field name="target_state"/><field name="observations"/></group>
+        <footer><button name="action_apply" type="object" string="Aplicar" class="oe_highlight"/><button string="Cancelar" special="cancel"/></footer>
+    </form></field>
+</record></odoo>

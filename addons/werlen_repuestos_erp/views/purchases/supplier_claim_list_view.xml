@@ -8,6 +8,7 @@
                 <field name="claim_type" string="Tipo"/>
                 <field name="supplier_id" string="Proveedor"/>
                 <field name="product_id" string="Producto"/>
+                <field name="client_claim_id" string="Reclamo de cliente" optional="show"/>
                 <field name="state" widget="badge"
                     decoration-info="state == 'open'"
                     decoration-warning="state == 'in_progress'"

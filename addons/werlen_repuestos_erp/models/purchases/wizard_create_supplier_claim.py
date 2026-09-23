@@ -17,6 +17,7 @@ class WizardCreateSupplierClaim(models.TransientModel):
     observations = fields.Text(string='Observaciones')
     purchase_invoice_id = fields.Many2one('purchase_invoice', string='Factura de compra')
     reception_id = fields.Many2one('reception', string='Ingreso de mercadería')
+    client_claim_id = fields.Many2one('client_claim', string='Reclamo de cliente', readonly=True)
 
     @api.model
     def default_get(self, fields_list):
@@ -40,7 +41,10 @@ class WizardCreateSupplierClaim(models.TransientModel):
                 'observations': (self.observations or '').strip() or False,
                 'purchase_invoice_id': self.purchase_invoice_id.id or False,
                 'reception_id': self.reception_id.id or False,
+                'client_claim_id': self.client_claim_id.id or False,
             })
+        if self.client_claim_id:
+            self.client_claim_id.sudo().write({'supplier_claim_id': claims[0].id})
         return {
             'type': 'ir.actions.act_window',
             'name': 'Reclamos a proveedor',

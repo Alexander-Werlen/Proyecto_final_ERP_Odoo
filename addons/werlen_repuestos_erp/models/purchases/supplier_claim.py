@@ -37,6 +37,8 @@ class SupplierClaim(models.Model):
                                           readonly=True, tracking=True)
     reception_id = fields.Many2one('reception', string='Ingreso de mercadería',
                                    readonly=True, tracking=True)
+    client_claim_id = fields.Many2one('client_claim', string='Reclamo de cliente',
+                                      readonly=True, tracking=True)
     return_line_ids = fields.One2many('return_line', 'claim_id', string='Líneas de devolución',
                                       readonly=True)
     active_return_line_id = fields.Many2one('return_line', string='Línea activa', readonly=True)

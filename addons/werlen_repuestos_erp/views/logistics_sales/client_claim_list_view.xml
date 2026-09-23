@@ -1,0 +1,22 @@
+<odoo>
+    <record id="client_claim_list_view" model="ir.ui.view">
+        <field name="name">client.claim.list</field><field name="model">client_claim</field>
+        <field name="arch" type="xml"><list string="Reclamos de cliente" create="false" delete="false">
+            <field name="name" string="Número"/><field name="claim_date" string="Fecha"/>
+            <field name="client_name" string="Cliente"/><field name="product_id" string="Producto"/>
+            <field name="state" widget="badge"/><field name="supplier_claim_id" string="Reclamo a proveedor" optional="show"/>
+            <field name="supplier_claim_state" string="Estado del reclamo a proveedor" widget="badge" optional="show"/>
+            <field name="reason" optional="hide"/>
+        </list></field>
+    </record>
+    <record id="client_claim_search_view" model="ir.ui.view">
+        <field name="name">client.claim.search</field><field name="model">client_claim</field>
+        <field name="arch" type="xml"><search string="Reclamos de cliente">
+            <field name="name"/><field name="client_name"/><field name="product_id"/>
+            <filter name="draft" string="Borradores" domain="[('state', '=', 'draft')]"/>
+            <filter name="valid" string="Válidos" domain="[('state', '=', 'valid')]"/>
+            <filter name="resolved" string="Resueltos" domain="[('state', '=', 'resolved')]"/>
+            <filter name="canceled" string="Cancelados" domain="[('state', '=', 'canceled')]"/>
+        </search></field>
+    </record>
+</odoo>

@@ -1,0 +1,33 @@
+<odoo>
+    <record id="client_claim_form_view" model="ir.ui.view">
+        <field name="name">client.claim.form</field><field name="model">client_claim</field>
+        <field name="arch" type="xml"><form string="Reclamo de cliente" create="false" delete="false">
+            <header>
+                <button name="action_validate" type="object" string="Validar" class="oe_highlight" invisible="state != 'draft'" groups="werlen_repuestos_erp.group_administration"/>
+                <button name="action_open_resolve_wizard" type="object" string="Resolver" class="oe_highlight" invisible="state != 'valid'" groups="werlen_repuestos_erp.group_administration"/>
+                <button name="action_open_cancel_wizard" type="object" string="Cancelar" invisible="state != 'valid'" groups="werlen_repuestos_erp.group_administration"/>
+                <button name="action_revert_to_draft" type="object" string="Volver a borrador" invisible="state != 'valid'" groups="werlen_repuestos_erp.group_administration"/>
+                <field name="state" widget="statusbar" statusbar_visible="draft,valid,resolved,canceled"/>
+            </header>
+            <sheet><h1>RECLAMO DE CLIENTE</h1>
+                <group string="Datos del reclamo"><group>
+                    <field name="name" readonly="1"/><field name="claim_date" readonly="state != 'draft'"/>
+                    <field name="product_id" readonly="state != 'draft'"/><field name="product_brand" readonly="state != 'draft'"/>
+                    <field name="vehicle_description" readonly="state != 'draft'"/>
+                </group><group>
+                    <field name="client_name" readonly="state != 'draft'"/><field name="client_address" readonly="state != 'draft'"/>
+                    <field name="client_phone" readonly="state != 'draft'"/><field name="sale_fulfillment_order_id" readonly="1"/>
+                    <field name="who_created_id" readonly="1"/>
+                </group></group>
+                <separator string="Motivo"/><field name="reason" nolabel="1" readonly="state != 'draft'"/>
+                <group string="Reclamo a proveedor">
+                    <button name="action_open_wizard_create_supplier_claim" type="object" string="Crear reclamo a proveedor" class="btn btn-outline-secondary" invisible="supplier_claim_id or state in ['resolved', 'canceled']" groups="werlen_repuestos_erp.group_administration"/>
+                    <field name="supplier_claim_id" readonly="1" options="{'no_create': True, 'no_create_edit': True}"/>
+                    <field name="supplier_claim_state" widget="badge" readonly="1" invisible="not supplier_claim_id"/>
+                </group>
+                <separator string="Cierre" invisible="state not in ['resolved', 'canceled']"/>
+                <field name="resolution_observations" nolabel="1" readonly="1" invisible="state not in ['resolved', 'canceled']"/>
+            </sheet><chatter/>
+        </form></field>
+    </record>
+</odoo>

@@ -6,7 +6,7 @@
             <form string="Crear reclamo a proveedor">
                 <group><field name="claim_type"/><field name="supplier_id"/><field name="product_id"/>
                     <field name="list_price"/><field name="quantity"/><field name="purchase_invoice_id"/>
-                    <field name="reception_id"/><field name="observations"/></group>
+                    <field name="reception_id"/><field name="client_claim_id" invisible="1"/><field name="observations"/></group>
                 <footer><button name="action_create" type="object" string="Crear" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/></footer>
             </form>
