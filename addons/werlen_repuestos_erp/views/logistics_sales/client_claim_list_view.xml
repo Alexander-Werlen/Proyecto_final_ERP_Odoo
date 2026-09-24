@@ -4,8 +4,16 @@
         <field name="arch" type="xml"><list string="Reclamos de cliente" create="false" delete="false">
             <field name="name" string="Número"/><field name="claim_date" string="Fecha"/>
             <field name="client_name" string="Cliente"/><field name="product_id" string="Producto"/>
-            <field name="state" widget="badge"/><field name="supplier_claim_id" string="Reclamo a proveedor" optional="show"/>
-            <field name="supplier_claim_state" string="Estado del reclamo a proveedor" widget="badge" optional="show"/>
+            <field name="state" widget="badge"
+                decoration-info="state == 'draft'"
+                decoration-warning="state == 'valid'"
+                decoration-success="state == 'resolved'"
+                decoration-danger="state == 'canceled'"/>
+            <field name="supplier_claim_id" string="Reclamo a proveedor" optional="show"/>
+            <field name="supplier_claim_state" string="Estado del reclamo a proveedor" widget="badge" optional="show"
+                decoration-success="supplier_claim_state == 'resolved'"
+                decoration-danger="supplier_claim_state == 'rejected'"
+                decoration-warning="supplier_claim_state in ('open', 'in_progress')"/>
             <field name="reason" optional="hide"/>
         </list></field>
     </record>
