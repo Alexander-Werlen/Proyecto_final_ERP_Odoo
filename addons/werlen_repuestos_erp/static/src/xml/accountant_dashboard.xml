@@ -1,0 +1,33 @@
+<templates xml:space="preserve">
+    <t t-name="werlen_repuestos_erp.AccountantDashboard">
+        <div class="dashboard-wrapper">
+            <t t-if="state.loading">
+                <div class="dashboard-card"><h3>Cargando estado de caja…</h3></div>
+            </t>
+            <t t-else="">
+                <div class="dashboard-title-row">
+                    <h2>Caja · Estado de las ventas <span class="dashboard-user">(<t t-esc="state.userName"/>)</span></h2>
+                    <button type="button" class="btn btn-outline-secondary position-relative" t-on-click="onCreditNotesClick">
+                        Notas de crédito pendientes
+                        <span class="badge text-bg-warning ms-2"><t t-esc="state.creditNotes"/></span>
+                    </button>
+                </div>
+                <div class="dashboard-card">
+                    <div class="dashboard-columns">
+                        <t t-foreach="state.columns" t-as="col" t-key="col.key">
+                            <div class="dashboard-column" t-on-click="() => this.onColumnClick(col)">
+                                <div class="column-total"><t t-esc="col.total"/></div>
+                                <div class="column-label"><t t-esc="col.label"/></div>
+                                <div class="accountant-segments">
+                                    <t t-foreach="col.segments" t-as="seg" t-key="seg.key">
+                                        <span class="badge rounded-pill" t-att-class="seg.css"><t t-esc="seg.label"/>: <t t-esc="seg.count"/></span>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

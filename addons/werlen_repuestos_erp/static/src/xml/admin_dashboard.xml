@@ -1,0 +1,91 @@
+<templates xml:space="preserve">
+
+    <t t-name="werlen_repuestos_erp.AdminDashboard">
+
+        <div class="dashboard-wrapper">
+
+            <t t-if="state.loading">
+                <div class="dashboard-skeleton">
+                    <div class="skeleton-header skeleton-shimmer"></div>
+                    <div class="skeleton-card">
+                        <div class="skeleton-grid">
+                            <div class="skeleton-admin-card skeleton-shimmer"></div>
+                            <div class="skeleton-admin-card skeleton-shimmer"></div>
+                            <div class="skeleton-admin-card skeleton-shimmer"></div>
+                            <div class="skeleton-admin-card skeleton-shimmer"></div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
+            <t t-else="">
+                <div class="dashboard-title-row">
+                    <h2>
+                        Panel de Administración
+                        <span class="dashboard-user">
+                            (<t t-esc="state.userName"/>)
+                        </span>
+                    </h2>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="admin-dashboard-grid" t-att-class="{ 'is-first-load': state.isFirstLoad }">
+
+                        <t t-foreach="state.layoutGroups" t-as="group" t-key="group.key">
+                            <div class="admin-dashboard-group"
+                                t-att-class="'admin-dashboard-group-' + group.key">
+
+                                <t t-foreach="group.models" t-as="model" t-key="model.key">
+                                    <div class="admin-dashboard-card"
+                                        t-att-style="'--card-index: ' + model_index">
+
+                                        <div class="card-title">
+                                            <t t-esc="model.label"/>
+                                        </div>
+
+                                        <div class="card-issues">
+
+                                            <t t-if="model.issues.length">
+                                                <t t-foreach="model.issues" t-as="issue" t-key="issue.key">
+
+                                                    <div class="issue-row"
+                                                        t-att-class="'issue-row risk-' + (issue.risk_level || 'normal')"
+                                                        t-on-click="() => this.onIssueClick(issue)"
+                                                        t-att-style="'--issue-index: ' + issue_index">
+
+                                                        <span class="issue-count">
+                                                            <t t-esc="issue.displayCount !== undefined ? issue.displayCount : issue.count"/>
+                                                        </span>
+
+                                                        <span class="issue-label">
+                                                            <t t-esc="issue.label"/>
+                                                        </span>
+
+                                                    </div>
+
+                                                </t>
+                                            </t>
+                                            <t t-else="">
+                                                <div class="issue-row issue-empty">
+                                                    <span class="issue-count">✓</span>
+                                                    <span class="issue-label">Sin problemas detectados</span>
+                                                </div>
+                                            </t>
+
+                                        </div>
+
+                                    </div>
+                                </t>
+
+                            </div>
+                        </t>
+
+                    </div>
+                </div>
+            </t>
+
+        </div>
+
+    </t>
+
+</templates>

@@ -1,0 +1,81 @@
+<templates xml:space="preserve">
+    <t t-name="werlen_repuestos_erp.ReceptionDashboard">
+        <div class="dashboard-wrapper">
+
+            <t t-if="state.loading">
+                <div class="dashboard-skeleton">
+                    <div class="skeleton-header skeleton-shimmer"></div>
+                    <div class="skeleton-card">
+                        <div class="skeleton-prep-grid">
+                            <div class="skeleton-prep-boxes skeleton-shimmer"></div>
+                            <div class="skeleton-prep-boxes skeleton-shimmer"></div>
+                            <div class="skeleton-prep-boxes skeleton-shimmer"></div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
+            <t t-else="">
+                <div class="dashboard-title-row">
+                    <h2>
+                        Recepción · Ingresos de Mercadería
+                        <span class="dashboard-user">
+                            (<t t-esc="state.userName"/>)
+                        </span>
+                    </h2>
+                    <div class="dashboard-actions">
+                        <button type="button"
+                                class="btn btn-primary"
+                                t-on-click="onCreateReceptionClick">
+                            Crear Ingreso
+                        </button>
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                t-on-click="onOpenAllClick">
+                            Ver Todos
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="dashboard-columns" t-att-class="{ 'is-first-load': state.isFirstLoad }">
+                        <t t-foreach="state.columns" t-as="col" t-key="col.key">
+                            <div class="dashboard-column" t-att-style="'--col-index: ' + col_index">
+
+                                <t t-if="col.overflow">
+                                    <div class="prep-overflow">
+                                        +<t t-esc="col.overflow"/>
+                                    </div>
+                                </t>
+
+                                <div class="prep-column-boxes" t-att-class="'status-' + col.key"
+                                t-on-click="() => this.onColumnClick(col)"
+                                >
+                                    <div class="prep-box-grid">
+                                        <t t-foreach="Array(col.boxes)" t-as="item" t-key="item_index + '_box'">
+                                            <div class="prep-box" t-att-style="'--box-index: ' + item_index"/>
+                                        </t>
+                                        <t t-foreach="Array(col.empty)"  t-as="item" t-key="item_index + '_empty'">
+                                            <div class="prep-box empty"/>
+                                        </t>
+                                    </div>
+                                </div>
+
+                                <div class="column-total">
+                                    <t t-esc="col.displayTotal !== undefined ? col.displayTotal : col.count"/>
+                                </div>
+
+                                <div class="column-label">
+                                    <t t-esc="col.label"/>
+                                </div>
+
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </t>
+
+        </div>
+    </t>
+</templates>
+

@@ -107,3 +107,82 @@ class SupplierClaim(models.Model):
             raise UserError('Solo se puede reabrir un reclamo resuelto o rechazado.')
         self.sudo().write({'state': 'open', 'resolution_observations': False})
         self._log_action('Reabrió el reclamo.')
+
+    @api.model
+    def get_claims_returns_dashboard_data(self):
+        active_claims = self.sudo().search([('state', 'in', ('open', 'in_progress'))])
+        active_returns = self.env['return_note'].sudo().search([
+            ('state', 'in', ('draft', 'prepared', 'sent')),
+        ])
+        claim_type_label = {
+            'missing': 'Faltante', 'excess': 'Sobrante', 'defective': 'Defectuoso',
+        }
+        supplier_map = {}
+
+        def supplier_data(supplier):
+            return supplier_map.setdefault(supplier.id, {
+                'id': supplier.id, 'name': supplier.name,
+                'open_claims_raw': [], 'in_progress_claims_raw': [], 'open_returns': [],
+            })
+
+        for claim in active_claims:
+            key = 'open_claims_raw' if claim.state == 'open' else 'in_progress_claims_raw'
+            supplier_data(claim.supplier_id)[key].append(claim)
+
+        return_states = dict(self.env['return_note']._fields['state'].selection)
+        for note in active_returns:
+            supplier_data(note.supplier_id)['open_returns'].append({
+                'id': note.id, 'name': note.name, 'state': note.state,
+                'state_label': return_states.get(note.state, note.state),
+            })
+
+        def build_section(claims):
+            grouped = {}
+            for claim in claims:
+                by_product = grouped.setdefault(claim.claim_type, {})
+                product = by_product.setdefault(claim.product_id.id, {
+                    'id': claim.product_id.id,
+                    'code': claim.product_id.name,
+                    'name': claim.product_id.description or '',
+                    'observations': [],
+                })
+                product['observations'].append((claim.observations or '').strip())
+            result = []
+            for claim_type in ('missing', 'excess', 'defective'):
+                products = []
+                for product in grouped.get(claim_type, {}).values():
+                    observations = set(product['observations'])
+                    common = next(iter(observations), '') if len(observations) == 1 else False
+                    products.append({
+                        'id': product['id'], 'code': product['code'], 'name': product['name'],
+                        'count': len(product['observations']),
+                        'common_observation': common or False,
+                    })
+                if products:
+                    result.append({
+                        'claim_type': claim_type,
+                        'claim_type_label': claim_type_label.get(claim_type, claim_type),
+                        'count': sum(product['count'] for product in products),
+                        'products': products,
+                    })
+            return result
+
+        suppliers = []
+        for data in supplier_map.values():
+            open_claims = build_section(data['open_claims_raw'])
+            in_progress_claims = build_section(data['in_progress_claims_raw'])
+            open_total = sum(group['count'] for group in open_claims)
+            in_progress_total = sum(group['count'] for group in in_progress_claims)
+            returns_total = len(data['open_returns'])
+            suppliers.append({
+                'id': data['id'], 'name': data['name'],
+                'open_claims': open_claims,
+                'in_progress_claims': in_progress_claims,
+                'open_returns': data['open_returns'],
+                '_open_claims_total': open_total,
+                '_in_progress_claims_total': in_progress_total,
+                '_returns_total': returns_total,
+                '_total_activity': open_total + in_progress_total + returns_total,
+            })
+        suppliers.sort(key=lambda item: (-item['_total_activity'], item['name']))
+        return {'suppliers': suppliers}

@@ -1,0 +1,55 @@
+.claims-returns-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.supplier-card {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: .5rem;
+    box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075);
+    overflow: hidden;
+}
+
+.supplier-header, .section-title, .claim-type-group, .product-line {
+    cursor: pointer;
+}
+
+.supplier-header {
+    background: #f8f9fa;
+    font-weight: 600;
+    padding: .75rem 1rem;
+}
+
+.claims-section {
+    border-top: 1px solid #e9ecef;
+    padding: .75rem 1rem;
+}
+
+.section-title {
+    color: #495057;
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+
+.claim-type-group, .product-line {
+    padding: .35rem 0;
+}
+
+.product-line { padding-left: 1rem; }
+.product-count { color: #6c757d; }
+.empty-section, .claims-returns-empty { color: #6c757d; padding: .5rem 0; }
+
+.accountant-segments {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 10px;
+}
+
+.accountant-segments .segment-paid { background: #198754; }
+.accountant-segments .segment-partial { background: #ffc107; color: #212529; }
+.accountant-segments .segment-unpaid { background: #dc3545; }
+.accountant-segments .segment-account { background: #0d6efd; }

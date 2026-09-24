@@ -819,6 +819,95 @@ class SaleFulfillmentOrder(models.Model):
             "max_boxes": MAX_BOXES,
         }
 
+    @api.model
+    def get_accountant_dashboard_data(self):
+        """Return the payment-status columns used by the cashier dashboard."""
+        self = self.sudo()
+        logistics = [
+            ("draft", "Borrador"),
+            ("awaiting_payment", "A pagar"),
+            ("awaiting_preparation", "A preparar"),
+            ("in_preparation", "En preparación"),
+            ("prepared", "Preparado"),
+            ("sent", "Entregado hoy"),
+        ]
+        payment_states = [
+            ("paid", "Pagado", "segment-paid"),
+            ("partially_paid", "Parcial", "segment-partial"),
+            ("not_paid", "No pagado", "segment-unpaid"),
+            ("account", "Cuenta corriente", "segment-account"),
+        ]
+        grouped = self.read_group(
+            domain=[],
+            fields=["logistical_status", "payment_status"],
+            groupby=["logistical_status", "payment_status"],
+            lazy=False,
+        )
+        counter = defaultdict(int)
+        for row in grouped:
+            status = row["logistical_status"]
+            if status == "avoid_tracking":
+                status = "sent"
+            counter[(status, row["payment_status"])] += row["__count"]
+        columns = []
+        for status, label in logistics:
+            segments = []
+            total = 0
+            for payment, payment_label, css in payment_states:
+                count = counter[(status, payment)]
+                total += count
+                segments.append({"key": payment, "label": payment_label, "count": count, "css": css})
+            columns.append({"key": status, "label": label, "total": total, "segments": segments})
+        credit_notes = self.env["credit_note_out"].search_count(
+            [("payment_status", "in", ["not_paid", "partially_paid"])]
+        )
+        return {"columns": columns, "unreconciled_credit_notes_count": credit_notes}
+
+    @api.model
+    def get_admin_dashboard_data(self):
+        """Return actionable health indicators for management."""
+        self = self.sudo()
+
+        def issue(key, label, count, action):
+            return {
+                "key": key,
+                "label": label,
+                "count": count,
+                "risk_level": "critical" if count > 5 else ("warning" if count else "normal"),
+                "action": action,
+            }
+
+        def model(key, label, issues):
+            return {"key": key, "label": label, "issues": issues}
+
+        sales = self.env["sale_fulfillment_order"]
+        credit_notes = self.env["credit_note_out"]
+        supplier_claims = self.env["supplier_claim"]
+        client_claims = self.env["client_claim"]
+        return_notes = self.env["return_note"]
+        payments = self.env["account_payment"]
+        return {
+            "models": [
+                model("sale_fulfillment_order", "Ventas", [
+                    issue("draft", "En borrador", sales.search_count([("logistical_status", "=", "draft")]), "werlen_repuestos_erp.action_open_seller_sale_fulfillment_order"),
+                    issue("unpaid", "Pendientes de pago", sales.search_count([("payment_status", "in", ["not_paid", "partially_paid"])]), "werlen_repuestos_erp.action_open_relevant_accountant_sale_fulfillment_order_list_view"),
+                ]),
+                model("credit_note_out", "Notas de crédito", [
+                    issue("draft", "No verificadas", credit_notes.search_count([("state", "=", "draft")]), "werlen_repuestos_erp.action_open_credit_notes_out"),
+                ]),
+                model("supplier_claim", "Reclamos a proveedores", [
+                    issue("open", "Abiertos", supplier_claims.search_count([("state", "=", "open")]), "werlen_repuestos_erp.action_open_supplier_claims"),
+                    issue("returns", "Devoluciones pendientes", return_notes.search_count([("state", "in", ["draft", "prepared"])]), "werlen_repuestos_erp.action_open_return_notes"),
+                ]),
+                model("client_claim", "Reclamos de clientes", [
+                    issue("open", "Abiertos", client_claims.search_count([("state", "=", "open")]), "werlen_repuestos_erp.action_open_client_claims"),
+                ]),
+                model("account_payment", "Recibos", [
+                    issue("draft", "Sin verificar", payments.search_count([("status", "=", "draft")]), "werlen_repuestos_erp.action_open_account_payments"),
+                ]),
+            ]
+        }
+
     """ Overrides """
 
     @api.model_create_multi

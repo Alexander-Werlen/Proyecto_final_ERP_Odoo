@@ -180,3 +180,21 @@ class Reception(models.Model):
             'controlled_datetime_end': False,
         })
         self._log_action('Reabrió la revisión del ingreso.')
+
+    @api.model
+    def get_reception_dashboard_data(self):
+        today_start = fields.Datetime.start_of(fields.Datetime.now(), 'day')
+        return {
+            'max_boxes': 12,
+            'columns': [
+                {'key': 'pending_review', 'label': 'Pendientes',
+                 'count': self.search_count([('state', '=', 'pending_review')])},
+                {'key': 'in_review', 'label': 'En revisión',
+                 'count': self.search_count([('state', '=', 'in_review')])},
+                {'key': 'reviewed', 'label': 'Revisados hoy',
+                 'count': self.search_count([
+                     ('state', '=', 'reviewed'),
+                     ('controlled_datetime_end', '>=', today_start),
+                 ])},
+            ],
+        }
