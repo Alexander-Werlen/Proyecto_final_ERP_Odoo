@@ -145,6 +145,7 @@ access_client_claim_user,access.client.claim.user,model_client_claim,base.group_
 access_client_claim_administration,access.client.claim.administration,model_client_claim,werlen_repuestos_erp.group_administration,1,1,1,1
 access_wizard_create_client_claim_user,access.wizard.create.client.claim.user,model_wizard_create_client_claim,base.group_user,1,1,1,1
 access_wizard_client_claim_resolution_user,access.wizard.client.claim.resolution.user,model_wizard_client_claim_resolution,base.group_user,1,1,1,1
+access_wizard_client_claim_supplier_claim_user,access.wizard.client.claim.supplier.claim.user,model_wizard_client_claim_supplier_claim,werlen_repuestos_erp.group_administration,1,1,1,1
 access_supplier_payment_method_user,access.supplier.payment.method.user,model_supplier_payment_method,base.group_user,1,0,0,0
 access_supplier_payment_method_management,access.supplier.payment.method.management,model_supplier_payment_method,werlen_repuestos_erp.group_management,1,1,1,1
 access_supplier_payment_method_system,access.supplier.payment.method.system,model_supplier_payment_method,werlen_repuestos_erp.group_system,1,1,1,1

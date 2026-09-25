@@ -61,6 +61,7 @@
         'views/logistics_sales/client_claim_form_view.xml',
         'views/logistics_sales/wizard_create_client_claim_form_view.xml',
         'views/logistics_sales/wizard_client_claim_resolution_form_view.xml',
+        'views/logistics_sales/wizard_client_claim_supplier_claim_decision_form_view.xml',
         'views/reception/reception_list_view.xml',
         'views/reception/reception_form_view.xml',
         'views/reception/wizard_create_reception_form_view.xml',

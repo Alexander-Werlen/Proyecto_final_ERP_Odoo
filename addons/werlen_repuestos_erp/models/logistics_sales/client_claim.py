@@ -38,8 +38,43 @@ class ClientClaim(models.Model):
                                        tracking=True)
     supplier_claim_state = fields.Selection(related='supplier_claim_id.state',
                                             string='Estado del reclamo a proveedor', store=True)
+    supplier_claim_not_required = fields.Boolean(
+        string='No reclamar al proveedor', default=False, tracking=True,
+    )
+    supplier_claim_pending = fields.Boolean(
+        string='Pendiente de reclamo a proveedor', compute='_compute_supplier_claim_pending',
+        store=True, index=True,
+    )
     who_created_id = fields.Many2one('res.users', string='Registrado por',
                                      default=lambda self: self.env.user, readonly=True)
+
+    @api.depends('state', 'supplier_claim_id', 'supplier_claim_not_required')
+    def _compute_supplier_claim_pending(self):
+        for claim in self:
+            claim.supplier_claim_pending = bool(
+                claim.state != 'draft'
+                and not claim.supplier_claim_id
+                and not claim.supplier_claim_not_required
+            )
+
+    def _check_admin_permission(self):
+        self._check_admin()
+
+    def action_open_supplier_claim_decision_wizard(self):
+        self.ensure_one(); self._check_admin_permission()
+        if self.state == 'draft':
+            raise UserError('Solo se puede decidir sobre el reclamo a proveedor luego de validar el reclamo de cliente.')
+        if self.supplier_claim_id or self.supplier_claim_not_required:
+            raise UserError('El reclamo de cliente ya tiene una decisión sobre el reclamo a proveedor.')
+        return {
+            'type': 'ir.actions.act_window',
+            'name': '¿Se quiere reclamar al proveedor?',
+            'res_model': 'wizard.client.claim.supplier.claim',
+            'view_mode': 'form',
+            'view_id': self.env.ref('werlen_repuestos_erp.wizard_client_claim_supplier_claim_decision_form_view').id,
+            'target': 'new',
+            'context': {'default_client_claim_id': self.id},
+        }
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -55,8 +90,11 @@ class ClientClaim(models.Model):
         if protected.intersection(vals):
             raise UserError('Los cambios de estado solo pueden realizarse mediante las acciones del flujo.')
         if self.filtered(lambda claim: claim.state != 'draft') and vals:
-            if set(vals) != {'supplier_claim_id'} or self.filtered(lambda claim: claim.state != 'valid'):
+            allowed_followup = set(vals).issubset({'supplier_claim_id', 'supplier_claim_not_required'})
+            if not allowed_followup or self.filtered(lambda claim: claim.state != 'valid'):
                 raise UserError('Solo se pueden modificar reclamos en Borrador.')
+            if vals.get('supplier_claim_not_required') and self.filtered('supplier_claim_id'):
+                raise UserError('No se puede marcar que no se reclamará al proveedor porque ya existe un reclamo asociado.')
             ensure_user_in_groups(self.env.user, ['werlen_repuestos_erp.group_administration'])
         return super().write(vals)
 
@@ -81,6 +119,9 @@ class ClientClaim(models.Model):
         for claim in self:
             claim.with_context(workflow_transition=True).write({'state': 'valid'})
             claim._log_action('Validación', 'El reclamo fue marcado como válido.')
+        if len(self) == 1 and not self.supplier_claim_id and not self.supplier_claim_not_required:
+            return self.action_open_supplier_claim_decision_wizard()
+        return True
 
     def action_revert_to_draft(self):
         self.ensure_one(); self._check_admin()
