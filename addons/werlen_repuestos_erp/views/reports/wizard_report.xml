@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="wizard_report_form_view" model="ir.ui.view">
+        <field name="name">wizard.report.form</field>
+        <field name="model">wizard_report</field>
+        <field name="arch" type="xml">
+            <form string="Generar Informe">
+                <group>
+                    <field name="report_type"/>
+                    <field name="date_preset"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                </group>
+                <footer>
+                    <button name="action_generate" string="Generar" type="object" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_seller_list_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.seller.list</field>
+        <field name="model">wizard_report_result_by_seller</field>
+        <field name="arch" type="xml">
+            <list string="Ventas por Vendedor" create="false" default_order="balance desc">
+                <field name="seller_id"/>
+                <field name="amount_invoices" sum="Cant. Facturas"/>
+                <field name="amount_credit_notes" sum="Cant. Notas de Crédito"/>
+                <field name="total_sold" sum="Total vendido"/>
+                <field name="total_credit" sum="Total crédito"/>
+                <field name="balance" sum="Balance"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_seller_search_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.seller.search</field>
+        <field name="model">wizard_report_result_by_seller</field>
+        <field name="arch" type="xml">
+            <search string="Ventas por Vendedor">
+                <field name="seller_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_client_list_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.client.list</field>
+        <field name="model">wizard_report_result_by_client</field>
+        <field name="arch" type="xml">
+            <list string="Ventas por Cliente" create="false" default_order="net_amount desc">
+                <field name="client_id"/>
+                <field name="total_invoiced" sum="Total"/>
+                <field name="total_credit_notes" sum="Total"/>
+                <field name="net_amount" sum="Total"/>
+                <field name="invoice_count" sum="Cant."/>
+                <field name="credit_note_count" sum="Cant."/>
+                <field name="account_percentage" sum="Promedio"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_client_search_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.client.search</field>
+        <field name="model">wizard_report_result_by_client</field>
+        <field name="arch" type="xml">
+            <search string="Ventas por Cliente">
+                <field name="client_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_payment_method_list_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.payment.method.list</field>
+        <field name="model">wizard_report_result_by_payment_method</field>
+        <field name="arch" type="xml">
+            <list string="Ventas por Método de Pago" create="false" default_order="total_invoiced desc">
+                <field name="payment_method_id"/>
+                <field name="invoice_count" sum="Cant. Facturas"/>
+                <field name="total_invoiced" sum="Total Facturado"/>
+                <field name="percentage_of_total" sum="% del Total"/>
+                <field name="is_account_move" widget="boolean_toggle"/>
+                <field name="cash_closing_category_id"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_payment_method_search_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.payment.method.search</field>
+        <field name="model">wizard_report_result_by_payment_method</field>
+        <field name="arch" type="xml">
+            <search string="Ventas por Método de Pago">
+                <field name="payment_method_id"/>
+                <filter string="Cuenta Corriente" name="is_account_move" domain="[('is_account_move', '=', True)]"/>
+                <filter string="No es Cuenta Corriente" name="is_not_account_move" domain="[('is_account_move', '=', False)]"/>
+                <field name="cash_closing_category_id"/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Cuenta Corriente" name="group_by_is_account_move" context="{'group_by': 'is_account_move'}"/>
+                    <filter string="Categoría de Cierre" name="group_by_cash_closing_category" context="{'group_by': 'cash_closing_category_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_city_list_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.city.list</field>
+        <field name="model">wizard_report_result_by_city</field>
+        <field name="arch" type="xml">
+            <list string="Ventas por Ciudad" create="false" default_order="total_invoiced desc">
+                <field name="city_id"/>
+                <field name="invoice_count" sum="Cant. Facturas"/>
+                <field name="total_invoiced" sum="Total Facturado"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_city_search_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.city.search</field>
+        <field name="model">wizard_report_result_by_city</field>
+        <field name="arch" type="xml">
+            <search string="Ventas por Ciudad">
+                <field name="city_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_withdrawer_list_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.withdrawer.list</field>
+        <field name="model">wizard_report_result_by_withdrawer</field>
+        <field name="arch" type="xml">
+            <list string="Ventas por Quien Retira" create="false" default_order="total_cost desc">
+                <field name="withdrawer_id"/>
+                <field name="order_count" sum="Cant. Ordenes"/>
+                <field name="total_cost" sum="Importe Total"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_withdrawer_search_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.withdrawer.search</field>
+        <field name="model">wizard_report_result_by_withdrawer</field>
+        <field name="arch" type="xml">
+            <search string="Ventas por Quien Retira">
+                <field name="withdrawer_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_point_of_sale_list_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.point.of.sale.list</field>
+        <field name="model">wizard_report_result_by_point_of_sale</field>
+        <field name="arch" type="xml">
+            <list string="Ventas por Punto de Venta" create="false" default_order="total_cost desc">
+                <field name="point_of_sale_id"/>
+                <field name="order_count" sum="Cant. Ordenes"/>
+                <field name="total_cost" sum="Importe Total"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_point_of_sale_search_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.point.of.sale.search</field>
+        <field name="model">wizard_report_result_by_point_of_sale</field>
+        <field name="arch" type="xml">
+            <search string="Ventas por Punto de Venta">
+                <field name="point_of_sale_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_preparer_list_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.preparer.list</field>
+        <field name="model">wizard_report_result_by_preparer</field>
+        <field name="arch" type="xml">
+            <list string="Tiempo de Preparación por Preparador" create="false" default_order="in_range_count desc">
+                <field name="preparer_id"/>
+                <field name="total_invoices" sum="Cant. Facturas"/>
+                <field name="in_range_count" sum="Cant. en Rango"/>
+                <field name="avg_preparation_time"/>
+                <field name="under_5_min_count" sum="&lt; 5 min"/>
+                <field name="over_4_hours_count" sum="&gt; 4 horas"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="wizard_report_result_by_preparer_search_view" model="ir.ui.view">
+        <field name="name">wizard.report.result.by.preparer.search</field>
+        <field name="model">wizard_report_result_by_preparer</field>
+        <field name="arch" type="xml">
+            <search string="Tiempo de Preparación por Preparador">
+                <field name="preparer_id"/>
+            </search>
+        </field>
+    </record>
+
+</odoo>

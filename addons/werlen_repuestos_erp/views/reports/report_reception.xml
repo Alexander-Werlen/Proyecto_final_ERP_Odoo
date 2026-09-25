@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="paperformat_reception" model="report.paperformat">
+        <field name="name">Ingreso de mercadería A4 horizontal</field>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">7</field>
+        <field name="margin_bottom">7</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_reception" model="ir.actions.report">
+        <field name="name">Ingreso de mercadería</field>
+        <field name="model">reception</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">werlen_repuestos_erp.report_reception</field>
+        <field name="report_file">reception_report</field>
+        <field name="print_report_name">'Ingreso-Mercaderia-%s' % (object.name or object.id)</field>
+        <field name="paperformat_id" ref="werlen_repuestos_erp.paperformat_reception"/>
+        <field name="binding_model_id" ref="model_reception"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[
+            (4, ref('werlen_repuestos_erp.group_reception')),
+            (4, ref('werlen_repuestos_erp.group_reception_control')),
+            (4, ref('werlen_repuestos_erp.group_administration')),
+        ]"/>
+    </record>
+
+    <template id="report_reception">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="company" t-value="res_company"/>
+                <div class="article" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id"
+                    t-att-data-oe-lang="o.env.context.get('lang')">
+                    <div class="page reception-page">
+                        <table class="reception-copies">
+                            <tbody>
+                                <tr>
+                                    <td class="reception-copy reception-copy-left">
+                                        <t t-call="werlen_repuestos_erp.report_reception_copy"/>
+                                    </td>
+                                    <td class="reception-copy reception-copy-right">
+                                        <t t-call="werlen_repuestos_erp.report_reception_copy"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_reception_copy">
+        <div class="reception-copy-content">
+            <table class="reception-copy-header">
+                <tbody>
+                    <tr>
+                        <td class="reception-logo-cell">
+                            <img t-if="company.logo" class="reception-logo"
+                                t-att-src="image_data_uri(company.logo)" alt="Logo"/>
+                        </td>
+                        <td class="reception-title-cell">
+                            <div>INGRESO DE</div>
+                            <div>MERCADERÍA</div>
+                        </td>
+                        <td class="reception-identifier-cell">
+                            <span class="reception-identifier-label">IDENTIFICADOR</span>
+                            <span class="reception-identifier" t-esc="o.name"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="reception-primary-fields">
+                <tbody>
+                    <tr>
+                        <td class="reception-primary-supplier">
+                            <span class="reception-field-label">PROVEEDOR</span>
+                            <span class="reception-primary-value"
+                                t-esc="o.supplier_id.name if o.supplier_id else ''"/>
+                        </td>
+                        <td class="reception-primary-packages">
+                            <span class="reception-field-label">BULTOS</span>
+                            <span class="reception-primary-value"
+                                t-esc="o.packages_description or ''"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="reception-secondary-fields">
+                <tbody>
+                    <tr>
+                        <td>
+                            <span class="reception-field-label">TRANSPORTISTA</span>
+                            <span class="reception-field-value"
+                                t-esc="o.carrier_id.name if o.carrier_id else ''"/>
+                        </td>
+                        <td>
+                            <span class="reception-field-label">NÚMERO DE REMITO</span>
+                            <span class="reception-field-value"
+                                t-esc="o.remito_number or ''"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="reception-field-label">RECIBIDO POR</span>
+                            <span class="reception-field-value"
+                                t-esc="o.get_print_received_by()"/>
+                        </td>
+                        <td>
+                            <span class="reception-field-label">FECHA Y HORA DE RECEPCIÓN</span>
+                            <span class="reception-field-value" t-if="o.reception_datetime"
+                                t-field="o.reception_datetime"
+                                t-options='{"widget": "datetime"}'/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="reception-observations">
+                <span class="reception-field-label">OBSERVACIONES</span>
+                <span class="reception-observations-value" t-esc="o.observations or ''"/>
+            </div>
+        </div>
+    </template>
+</odoo>

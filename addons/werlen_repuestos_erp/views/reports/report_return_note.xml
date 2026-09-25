@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="paperformat_return_note" model="report.paperformat">
+        <field name="name">Nota de devolución A4</field>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">8</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_return_note" model="ir.actions.report">
+        <field name="name">Nota de devolución</field>
+        <field name="model">return_note</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">werlen_repuestos_erp.report_return_note</field>
+        <field name="report_file">return_note_report</field>
+        <field name="print_report_name">'Nota-Devolucion-%s' % (object.name or object.id)</field>
+        <field name="paperformat_id" ref="werlen_repuestos_erp.paperformat_return_note"/>
+        <field name="binding_model_id" ref="model_return_note"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[
+            (4, ref('werlen_repuestos_erp.group_administration')),
+            (4, ref('werlen_repuestos_erp.group_reception')),
+        ]"/>
+    </record>
+
+    <template id="report_return_note">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="company" t-value="res_company"/>
+                <t t-set="company_data" t-value="o.get_print_company_data()"/>
+                <t t-set="supplier_data" t-value="o.get_print_supplier_data()"/>
+                <div class="article" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id"
+                    t-att-data-oe-lang="o.env.context.get('lang')">
+                    <div class="page return-note-page">
+                        <table class="return-note-company-header">
+                            <tbody>
+                                <tr>
+                                    <td class="return-note-company-brand">
+                                        <img t-if="company.logo" class="return-note-company-logo"
+                                            t-att-src="image_data_uri(company.logo)" alt="Logo"/>
+                                    </td>
+                                    <td class="return-note-company-details">
+                                        <div class="return-note-company-name"
+                                            t-esc="company_data['name']"/>
+                                        <div class="return-note-company-address"
+                                            t-if="company_data['address']"
+                                            t-esc="company_data['address']"/>
+                                        <div class="return-note-company-address"
+                                            t-if="company_data['location']"
+                                            t-esc="company_data['location']"/>
+                                        <div class="return-note-company-contact"
+                                            t-if="company_data['phone'] or company_data['email']">
+                                            <span t-esc="company_data['phone']" t-if="company_data['phone']"/>
+                                            <span t-if="company_data['phone'] and company_data['email']"> · </span>
+                                            <span t-esc="company_data['email']" t-if="company_data['email']"/>
+                                        </div>
+                                        <div class="return-note-company-contact"
+                                            t-if="company_data['website'] or company_data['tax_id']">
+                                            <span t-esc="company_data['website']" t-if="company_data['website']"/>
+                                            <span t-if="company_data['website'] and company_data['tax_id']"> · </span>
+                                            <span t-if="company_data['tax_id']">ID fiscal: <span t-esc="company_data['tax_id']"/></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="return-note-document-meta">
+                            <span class="return-note-document-title">
+                                <strong>NOTA DE DEVOLUCIÓN</strong>
+                            </span><span class="return-note-document-number">
+                                <span class="return-note-label">N°</span>
+                                <strong class="return-note-document-value" t-esc="o.name"/>
+                            </span><span class="return-note-document-date">
+                                <span class="return-note-label">FECHA</span>
+                                <span t-field="o.date" t-options='{"widget": "date"}'/>
+                            </span>
+                        </div>
+
+                        <div class="return-note-section-title">
+                            <span>Datos del proveedor</span>
+                        </div>
+                        <table class="return-note-partner-box">
+                            <tbody>
+                                <tr>
+                                    <td colspan="4">
+                                        <span class="return-note-field-label">Proveedor</span>
+                                        <span class="return-note-field-value"
+                                            t-esc="supplier_data['name']"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="4">
+                                        <span class="return-note-field-label">DIRECCION</span>
+                                        <span class="return-note-field-value"
+                                            t-esc="supplier_data['address']"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="return-note-field-half" colspan="2">
+                                        <span class="return-note-field-label">Localidad</span>
+                                        <span class="return-note-field-value"
+                                            t-esc="supplier_data['city']"/>
+                                    </td>
+                                    <td class="return-note-field-quarter">
+                                        <span class="return-note-field-label">C.P.</span>
+                                        <span class="return-note-field-value"
+                                            t-esc="supplier_data['zip']"/>
+                                    </td>
+                                    <td class="return-note-field-quarter">
+                                        <span class="return-note-field-label">Teléfono</span>
+                                        <span class="return-note-field-value"
+                                            t-esc="supplier_data['phone']"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="return-note-section-title return-note-lines-title">
+                            <span>Detalle de artículos</span>
+                        </div>
+                        <table class="return-note-lines-table">
+                            <colgroup>
+                                <col class="return-note-col-quantity"/>
+                                <col class="return-note-col-code"/>
+                                <col class="return-note-col-description"/>
+                                <col class="return-note-col-reason"/>
+                                <col class="return-note-col-observations"/>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>CANT.</th>
+                                    <th>CÓDIGO</th>
+                                    <th>DESCRIPCIÓN</th>
+                                    <th>MOT. DEVOLUCIÓN</th>
+                                    <th>OBSERVACIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.get_print_lines()" t-as="line">
+                                    <tr class="return-note-line-row">
+                                        <td class="return-note-centered">
+                                            <span class="return-note-cell-value" t-esc="line['quantity']"/>
+                                        </td>
+                                        <td><span class="return-note-cell-value" t-esc="line['product_code']"/></td>
+                                        <td><span class="return-note-cell-value" t-esc="line['product_description']"/></td>
+                                        <td><span class="return-note-cell-value" t-esc="line['reason']"/></td>
+                                        <td><span class="return-note-cell-value" t-esc="line['observations']"/></td>
+                                    </tr>
+                                </t>
+                                <t t-foreach="range(o.get_print_blank_row_count())" t-as="blank_row">
+                                    <tr class="return-note-line-row return-note-empty-row">
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <div class="return-note-section-title return-note-logistics-title">
+                            <span>Despacho y transporte</span>
+                        </div>
+                        <table class="return-note-logistics-row">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <span class="return-note-field-label">Cantidad de bultos</span>
+                                        <span class="return-note-field-value"
+                                            t-esc="o.package_count or ''"/>
+                                    </td>
+                                    <td>
+                                        <span class="return-note-field-label">Transportista</span>
+                                        <span class="return-note-field-value"
+                                            t-esc="o.carrier_id.name if o.carrier_id else ''"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="return-note-signatures">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="return-note-signature-space"></div>
+                                        <div class="return-note-signature-line"></div>
+                                        <strong>FIRMA DESPACHANTE</strong>
+                                    </td>
+                                    <td>
+                                        <div class="return-note-signature-space"></div>
+                                        <div class="return-note-signature-line"></div>
+                                        <strong>FIRMA TRANSPORTISTA</strong>
+                                    </td>
+                                    <td>
+                                        <div class="return-note-signature-space"></div>
+                                        <div class="return-note-signature-line"></div>
+                                        <strong>FIRMA DESTINATARIO</strong>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

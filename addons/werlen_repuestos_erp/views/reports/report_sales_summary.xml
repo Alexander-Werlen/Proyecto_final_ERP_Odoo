@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="action_report_sales_summary" model="ir.actions.report">
+        <field name="name">Resumen de Ventas General</field>
+        <field name="model">wizard_report</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">werlen_repuestos_erp.report_sales_summary</field>
+        <field name="print_report_name">'Resumen de Ventas General'</field>
+        <field name="binding_model_id" eval="False"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_sales_summary">
+        <t t-call="web.html_container">
+            <t t-set="head">
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+                <style type="text/css">
+                    @page { margin: 0; }
+                    body { margin: 0; padding: 0; }
+                    .page, .article { padding-top: 0 !important; margin-top: 0 !important; }
+                </style>
+            </t>
+            <t t-foreach="docs" t-as="o">
+                <t t-set="data" t-value="o.get_sales_summary_data()"/>
+
+                <div style="font-family: Arial, Helvetica, sans-serif; padding: 8px 12px;">
+                    <h2 style="text-align: center; margin-bottom: 5px; color: #1a202c;">Resumen de Ventas General</h2>
+                    <p style="text-align: center; color: #666; margin-bottom: 40px; font-size: 14px;">
+                        Periodo: <t t-esc="o.date_from"/> al <t t-esc="o.date_to"/>
+                    </p>
+
+                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 25px;">
+                        <tr>
+                            <td valign="top" style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #f7fafc; text-align: center;">
+                                <h3 style="margin-top:0; margin-bottom: 12px; color: #2d3748; font-size: 18px;">Totales Generales</h3>
+                                <div style="font-size: 32px; font-weight: bold; color: #2d3748; margin-bottom: 5px;">
+                                    <t t-esc="o.format_currency(data['total']['net_sales'])"/>
+                                </div>
+                                <div style="color: #666; font-size: 13px; margin-bottom: 18px;">Total Neto Ventas (con factor de correccion)</div>
+                                <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 13px; color: #333;">
+                                    <tr>
+                                        <td width="33%" align="center">Facturas: <strong><t t-esc="data['total']['invoice_count']"/></strong> (<t t-esc="o.format_currency(data['total']['invoice_amount'])"/>)</td>
+                                        <td width="33%" align="center">Notas de Credito: <strong><t t-esc="data['total']['credit_note_count']"/></strong> (<t t-esc="o.format_currency(data['total']['credit_note_amount'])"/>)</td>
+                                        <td width="33%" align="center">Descuentos (RC-B): <strong><t t-esc="data['total']['discount_count']"/></strong> (<t t-esc="o.format_currency(data['total']['discount_amount'])"/>)</td>
+                                    </tr>
+                                </table>
+                                <div style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 10px; font-size: 12px; color: #555; line-height: 1.6;">
+                                    <div>Neto real (sin correccion): <strong><t t-esc="o.format_currency(data['total']['net_sales_raw'])"/></strong></div>
+                                    <div>Facturas (real): <strong><t t-esc="o.format_currency(data['total']['invoice_amount_raw'])"/></strong></div>
+                                    <div>Notas de Credito (real): <strong><t t-esc="o.format_currency(data['total']['credit_note_amount_raw'])"/></strong></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                        <tr>
+                            <td width="48%" valign="top" style="padding: 20px; border: 1px solid #c6f6d5; border-radius: 8px; background-color: #f0fff4;">
+                                <h3 style="margin-top:0; margin-bottom: 12px; color: #276749; font-size: 18px;">Contado</h3>
+                                <div style="font-size: 36px; font-weight: bold; color: #276749; margin-bottom: 5px;">
+                                    <t t-esc="o.format_currency(data['cash']['net_sales'])"/>
+                                </div>
+                                <div style="color: #666; font-size: 13px; margin-bottom: 18px;">Neto Ventas (con factor de correccion)</div>
+                                <div style="border-top: 1px solid #c6f6d5; padding-top: 12px; font-size: 13px; color: #333; line-height: 1.6;">
+                                    <div>Facturas: <strong><t t-esc="data['cash']['invoice_count']"/></strong> (<t t-esc="o.format_currency(data['cash']['invoice_amount'])"/>)</div>
+                                    <div>Notas de Credito: <strong><t t-esc="data['cash']['credit_note_count']"/></strong> (<t t-esc="o.format_currency(data['cash']['credit_note_amount'])"/>)</div>
+                                </div>
+                                <div style="margin-top: 10px; border-top: 1px dashed #c6f6d5; padding-top: 10px; font-size: 12px; color: #555; line-height: 1.6;">
+                                    <div>Neto real (sin correccion): <strong><t t-esc="o.format_currency(data['cash']['net_sales_raw'])"/></strong></div>
+                                    <div>Facturas (real): <strong><t t-esc="o.format_currency(data['cash']['invoice_amount_raw'])"/></strong></div>
+                                    <div>Notas de Credito (real): <strong><t t-esc="o.format_currency(data['cash']['credit_note_amount_raw'])"/></strong></div>
+                                </div>
+                            </td>
+                            <td width="4%"></td>
+                            <td width="48%" valign="top" style="padding: 20px; border: 1px solid #bee3f8; border-radius: 8px; background-color: #ebf8ff;">
+                                <h3 style="margin-top:0; margin-bottom: 12px; color: #2c5282; font-size: 18px;">Cuenta Corriente</h3>
+                                <div style="font-size: 36px; font-weight: bold; color: #2c5282; margin-bottom: 5px;">
+                                    <t t-esc="o.format_currency(data['account']['net_sales'])"/>
+                                </div>
+                                <div style="color: #666; font-size: 13px; margin-bottom: 18px;">Neto Ventas (con factor de correccion)</div>
+                                <div style="border-top: 1px solid #bee3f8; padding-top: 12px; font-size: 13px; color: #333; line-height: 1.6;">
+                                    <div>Facturas: <strong><t t-esc="data['account']['invoice_count']"/></strong> (<t t-esc="o.format_currency(data['account']['invoice_amount'])"/>)</div>
+                                    <div>Notas de Credito: <strong><t t-esc="data['account']['credit_note_count']"/></strong> (<t t-esc="o.format_currency(data['account']['credit_note_amount'])"/>)</div>
+                                    <div>Descuentos (RC-B): <strong><t t-esc="data['account']['discount_count']"/></strong> (<t t-esc="o.format_currency(data['account']['discount_amount'])"/>)</div>
+                                </div>
+                                <div style="margin-top: 10px; border-top: 1px dashed #bee3f8; padding-top: 10px; font-size: 12px; color: #555; line-height: 1.6;">
+                                    <div>Neto real (sin correccion): <strong><t t-esc="o.format_currency(data['account']['net_sales_raw'])"/></strong></div>
+                                    <div>Facturas (real): <strong><t t-esc="o.format_currency(data['account']['invoice_amount_raw'])"/></strong></div>
+                                    <div>Notas de Credito (real): <strong><t t-esc="o.format_currency(data['account']['credit_note_amount_raw'])"/></strong></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <h3 style="margin-top: 0; margin-bottom: 16px; color: #2d3748; font-size: 18px; text-align: center;">Matriz por Categoría y Tipo</h3>
+
+                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px; font-size: 13px; border-collapse: collapse;">
+                        <tr style="background-color: #edf2f7; font-weight: bold;">
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e0;">Categoría</td>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e0; text-align: center;">Contado</td>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e0; text-align: center;">Cuenta Corriente</td>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e0; text-align: center;">Total</td>
+                        </tr>
+                        <t t-foreach="data['matrix']['categories']" t-as="category">
+                            <tr>
+                                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><strong><t t-esc="category"/></strong></td>
+                                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center;"><t t-esc="o.format_currency(data['matrix']['cells'][category + '_cash'])"/></td>
+                                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center;"><t t-esc="o.format_currency(data['matrix']['cells'][category + '_account'])"/></td>
+                                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;"><t t-esc="o.format_currency(data['matrix']['row_totals'][category])"/></td>
+                            </tr>
+                        </t>
+                        <tr style="background-color: #f7fafc; font-weight: bold;">
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e0;">Total</td>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e0; text-align: center;"><t t-esc="o.format_currency(data['matrix']['col_totals']['cash'])"/></td>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e0; text-align: center;"><t t-esc="o.format_currency(data['matrix']['col_totals']['account'])"/></td>
+                            <td style="padding: 8px 12px; border: 1px solid #cbd5e0; text-align: center;"><t t-esc="o.format_currency(data['matrix']['grand'])"/></td>
+                        </tr>
+                    </table>
+
+                    <div style="page-break-before: always;">
+                        <h3 style="margin-top:0; margin-bottom: 16px; color: #2d3748; font-size: 18px; text-align: center;">Resumen Logistico</h3>
+
+                        <div style="margin-bottom: 20px; font-size: 14px; text-align: center;">
+                            Total de ordenes: <strong><t t-esc="data['logistics']['total_orders']"/></strong>
+                        </div>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 25px; font-size: 13px; border-collapse: collapse;">
+                            <tr style="background-color: #edf2f7; font-weight: bold;">
+                                <td style="padding: 8px 12px; border: 1px solid #cbd5e0;">Punto de Venta</td>
+                                <td style="padding: 8px 12px; border: 1px solid #cbd5e0; text-align: center;">Cantidad</td>
+                                <td style="padding: 8px 12px; border: 1px solid #cbd5e0; text-align: center;">%</td>
+                                <td style="padding: 8px 12px; border: 1px solid #cbd5e0; text-align: center;">Monto</td>
+                            </tr>
+                            <t t-foreach="data['logistics']['points_of_sale']" t-as="pos">
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><t t-esc="pos['name']"/></td>
+                                    <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center;"><t t-esc="pos['count']"/></td>
+                                    <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center;"><t t-esc="'%.2f' % pos['percentage']"/>%</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center;"><t t-esc="o.format_currency(pos['amount'])"/></td>
+                                </tr>
+                            </t>
+                        </table>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 13px;">
+                            <tr>
+                                <td width="31%" valign="top" style="padding: 14px; border: 1px solid #e2e8f0; border-radius: 6px; background-color: #fff; text-align: center;">
+                                    <div style="font-size: 26px; font-weight: bold; color: #2d3748;"><t t-esc="data['logistics']['delivery_count']"/></div>
+                                    <div style="color: #666; font-size: 12px;">Envio con flete</div>
+                                    <div style="color: #999; font-size: 11px;">(<t t-esc="'%.2f' % data['logistics']['delivery_percentage']"/>%)</div>
+                                    <div style="margin-top: 6px; font-size: 13px; color: #333; font-weight: bold;"><t t-esc="o.format_currency(data['logistics']['delivery_amount'])"/></div>
+                                </td>
+                                <td width="3.5%"></td>
+                                <td width="31%" valign="top" style="padding: 14px; border: 1px solid #e2e8f0; border-radius: 6px; background-color: #fff; text-align: center;">
+                                    <div style="font-size: 26px; font-weight: bold; color: #2d3748;"><t t-esc="data['logistics']['preparation_count']"/></div>
+                                    <div style="color: #666; font-size: 12px;">Preparar al fondo</div>
+                                    <div style="color: #999; font-size: 11px;">(<t t-esc="'%.2f' % data['logistics']['preparation_percentage']"/>%)</div>
+                                    <div style="margin-top: 6px; font-size: 13px; color: #333; font-weight: bold;"><t t-esc="o.format_currency(data['logistics']['preparation_amount'])"/></div>
+                                </td>
+                                <td width="3.5%"></td>
+                                <td width="31%" valign="top" style="padding: 14px; border: 1px solid #e2e8f0; border-radius: 6px; background-color: #fff; text-align: center;">
+                                    <div style="font-size: 26px; font-weight: bold; color: #2d3748;"><t t-esc="data['logistics']['repayment_count']"/></div>
+                                    <div style="color: #666; font-size: 12px;">Contra-reembolso</div>
+                                    <div style="color: #999; font-size: 11px;">(<t t-esc="'%.2f' % data['logistics']['repayment_percentage']"/>%)</div>
+                                    <div style="margin-top: 6px; font-size: 13px; color: #333; font-weight: bold;"><t t-esc="o.format_currency(data['logistics']['repayment_amount'])"/></div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

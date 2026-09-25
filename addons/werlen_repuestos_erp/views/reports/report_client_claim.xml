@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="paperformat_client_claim" model="report.paperformat">
+        <field name="name">Reclamo de cliente A4 horizontal</field>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">7</field>
+        <field name="margin_bottom">8</field>
+        <field name="margin_left">9</field>
+        <field name="margin_right">9</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_client_claim" model="ir.actions.report">
+        <field name="name">Reclamo de cliente</field>
+        <field name="model">client_claim</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">werlen_repuestos_erp.report_client_claim</field>
+        <field name="report_file">client_claim_report</field>
+        <field name="print_report_name">'Reclamo-Cliente-%s' % (object.name or object.id)</field>
+        <field name="paperformat_id" ref="werlen_repuestos_erp.paperformat_client_claim"/>
+        <field name="binding_model_id" ref="model_client_claim"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[
+            (4, ref('werlen_repuestos_erp.group_sales')),
+            (4, ref('werlen_repuestos_erp.group_administration')),
+        ]"/>
+    </record>
+
+    <template id="report_client_claim">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="company" t-value="res_company"/>
+                <t t-set="company_data" t-value="o.get_print_company_data()"/>
+                <t t-set="sale_data" t-value="o.get_print_sale_data()"/>
+                <t t-set="resolution_data" t-value="o.get_print_resolution_data()"/>
+
+                <div class="article" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id"
+                    t-att-data-oe-lang="o.env.context.get('lang')">
+                    <div class="page client-claim-page">
+                        <table class="client-claim-company-header">
+                            <tbody>
+                                <tr>
+                                    <td class="client-claim-company-brand">
+                                        <img t-if="company.logo" class="client-claim-company-logo"
+                                            t-att-src="image_data_uri(company.logo)" alt="Logo"/>
+                                    </td>
+                                    <td class="client-claim-company-details">
+                                        <div class="client-claim-company-name"
+                                            t-esc="company_data['name']"/>
+                                        <div class="client-claim-company-line"
+                                            t-if="company_data['address']"
+                                            t-esc="company_data['address']"/>
+                                        <div class="client-claim-company-line"
+                                            t-if="company_data['location']"
+                                            t-esc="company_data['location']"/>
+                                        <div class="client-claim-company-line"
+                                            t-if="company_data['phone'] or company_data['email']">
+                                            <span t-if="company_data['phone']"
+                                                t-esc="company_data['phone']"/>
+                                            <span t-if="company_data['phone'] and company_data['email']"> · </span>
+                                            <span t-if="company_data['email']"
+                                                t-esc="company_data['email']"/>
+                                        </div>
+                                        <div class="client-claim-company-line"
+                                            t-if="company_data['website'] or company_data['tax_id']">
+                                            <span t-if="company_data['website']"
+                                                t-esc="company_data['website']"/>
+                                            <span t-if="company_data['website'] and company_data['tax_id']"> · </span>
+                                            <span t-if="company_data['tax_id']">
+                                                ID fiscal: <span t-esc="company_data['tax_id']"/>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="client-claim-document-meta">
+                                        <div class="client-claim-document-title">
+                                            RECLAMO DE CLIENTE
+                                        </div>
+                                        <div class="client-claim-document-line">
+                                            <span class="client-claim-document-label">N° DE RECLAMO</span>
+                                            <span class="client-claim-document-value" t-esc="o.name"/>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="client-claim-main-grid">
+                            <tbody>
+                                <tr>
+                                    <td class="client-claim-left-column">
+                                        <div class="client-claim-section">
+                                            <div class="client-claim-section-title">DATOS DEL PRODUCTO</div>
+                                            <table class="client-claim-field-table">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="client-claim-field-half">
+                                                            <span class="client-claim-field-label">MARCA</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-esc="o.product_brand or ''"/>
+                                                        </td>
+                                                        <td class="client-claim-field-half">
+                                                            <span class="client-claim-field-label">CÓDIGO</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-esc="o.product_id.name if o.product_id else ''"/>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="2">
+                                                            <span class="client-claim-field-label">VEHÍCULO</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-esc="o.vehicle_description or ''"/>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="client-claim-section">
+                                            <div class="client-claim-section-title">DATOS DE LA VENTA</div>
+                                            <table class="client-claim-field-table">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="client-claim-field-half">
+                                                            <span class="client-claim-field-label">FACTURA</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-esc="sale_data['invoice_number']"/>
+                                                        </td>
+                                                        <td class="client-claim-field-half">
+                                                            <span class="client-claim-field-label">FECHA DE VENTA</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-field="o.sale_invoice_date"
+                                                                t-options='{"widget": "date"}'/>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="client-claim-section">
+                                            <div class="client-claim-section-title">DATOS DEL CLIENTE</div>
+                                            <table class="client-claim-field-table">
+                                                <tbody>
+                                                    <tr>
+                                                        <td colspan="2">
+                                                            <span class="client-claim-field-label">NOMBRE</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-esc="o.client_name or ''"/>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="client-claim-field-half">
+                                                            <span class="client-claim-field-label">DNI</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-esc="o.client_dni or ''"/>
+                                                        </td>
+                                                        <td class="client-claim-field-half">
+                                                            <span class="client-claim-field-label">TELÉFONO</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-esc="o.client_phone or ''"/>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="2">
+                                                            <span class="client-claim-field-label">DIRECCIÓN</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-esc="o.client_address or ''"/>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+
+                                    <td class="client-claim-right-column">
+                                        <div class="client-claim-section">
+                                            <div class="client-claim-section-title">RECLAMO</div>
+                                            <table class="client-claim-field-table">
+                                                <tbody>
+                                                    <tr>
+                                                        <td colspan="2">
+                                                            <span class="client-claim-field-label">FECHA DE RECLAMO</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-field="o.claim_date"
+                                                                t-options='{"widget": "date"}'/>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <div class="client-claim-text-area client-claim-reason-area">
+                                                <span class="client-claim-text-label">MOTIVO DEL RECLAMO</span>
+                                                <span class="client-claim-text-value"
+                                                    t-esc="o.reason or ''"/>
+                                            </div>
+                                        </div>
+
+                                        <div class="client-claim-section">
+                                            <div class="client-claim-section-title">RESOLUCIÓN</div>
+                                            <table class="client-claim-field-table">
+                                                <tbody>
+                                                    <tr>
+                                                        <td colspan="2">
+                                                            <span class="client-claim-field-label">TIPO DE RESOLUCIÓN</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-esc="resolution_data['type']"/>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="client-claim-field-half">
+                                                            <span class="client-claim-field-label">FECHA DE CIERRE</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-field="o.resolution_date"
+                                                                t-options='{"widget": "date"}'/>
+                                                        </td>
+                                                        <td class="client-claim-field-half">
+                                                            <span class="client-claim-field-label">COMPROBANTE / OPERACIÓN</span>
+                                                            <span class="client-claim-field-value"
+                                                                t-esc="resolution_data['reference']"/>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="client-claim-signatures">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="client-claim-signature-space"></div>
+                                        <div class="client-claim-signature-line"></div>
+                                        <strong>FIRMA DE CONFORMIDAD</strong>
+                                    </td>
+                                    <td>
+                                        <div class="client-claim-signature-space"></div>
+                                        <div class="client-claim-signature-line"></div>
+                                        <strong>DOCUMENTO</strong>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

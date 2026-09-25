@@ -198,3 +198,10 @@ class Reception(models.Model):
                  ])},
             ],
         }
+
+    def get_print_received_by(self):
+        self.ensure_one()
+        return ', '.join(self.who_received_ids.mapped('name'))
+
+    def _validate_printable_content(self):
+        self.ensure_one()

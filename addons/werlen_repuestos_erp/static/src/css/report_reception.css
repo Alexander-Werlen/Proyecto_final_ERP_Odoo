@@ -1,0 +1,204 @@
+.reception-page {
+    box-sizing: border-box;
+    color: #222;
+    font-family: "Lato", Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.reception-page strong {
+    font-weight: 700;
+}
+
+.reception-copies {
+    border-collapse: collapse;
+    border-spacing: 0;
+    height: 196mm;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.reception-copies > tbody > tr > td {
+    box-sizing: border-box;
+    height: 196mm;
+    padding: 0 5mm;
+    vertical-align: top;
+    width: 50%;
+}
+
+.reception-copy-left {
+    border-right: 1px dashed #666;
+}
+
+.reception-copy-content {
+    min-height: 196mm;
+    page-break-inside: avoid;
+}
+
+.reception-copy-header {
+    border: 0 !important;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-bottom: 1.2px solid #333 !important;
+    table-layout: fixed;
+    margin: 0 0 4mm;
+    width: 100%;
+}
+
+.reception-copy-header td {
+    border: 0 !important;
+    padding: 0 0 2.5mm;
+    vertical-align: middle;
+}
+
+.reception-logo-cell {
+    width: 28%;
+}
+
+.reception-logo {
+    display: block;
+    max-height: 19mm;
+    max-width: 34mm;
+}
+
+.reception-title-cell {
+    color: #444;
+    font-size: 9.5pt;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    line-height: 1.15;
+    text-align: center;
+    text-transform: uppercase;
+    width: 34%;
+}
+
+.reception-identifier-cell {
+    text-align: right;
+    width: 38%;
+}
+
+.reception-identifier-label {
+    color: #555;
+    display: block;
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 0.35px;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+.reception-identifier {
+    color: #111;
+    display: block;
+    font-size: 21pt;
+    font-weight: 700;
+    line-height: 1.05;
+    margin-top: 1mm;
+    white-space: nowrap;
+}
+
+.reception-primary-fields,
+.reception-secondary-fields {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.reception-primary-fields {
+    border: 1.2px solid #555;
+    margin-bottom: 4mm;
+}
+
+.reception-primary-fields td {
+    border-right: 1px solid #999;
+    padding: 2.5mm 2.5mm 2.8mm;
+    vertical-align: top;
+}
+
+.reception-primary-fields td:last-child {
+    border-right: 0;
+}
+
+.reception-primary-supplier {
+    width: 64%;
+}
+
+.reception-primary-packages {
+    width: 36%;
+}
+
+.reception-field-label {
+    color: #555;
+    display: block;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    line-height: 1.1;
+    margin-bottom: 1.2mm;
+    text-transform: uppercase;
+}
+
+.reception-primary-value {
+    color: #111;
+    display: block;
+    font-size: 13.5pt;
+    font-weight: 700;
+    line-height: 1.15;
+    min-height: 7mm;
+    overflow-wrap: break-word;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.reception-secondary-fields {
+    border: 1px solid #888;
+    margin-bottom: 4mm;
+}
+
+.reception-secondary-fields td {
+    border-bottom: 1px solid #bbb;
+    border-right: 1px solid #bbb;
+    height: 22mm;
+    padding: 2.3mm 2.5mm;
+    vertical-align: top;
+    width: 50%;
+}
+
+.reception-secondary-fields tr:last-child td {
+    border-bottom: 0;
+}
+
+.reception-secondary-fields td:last-child {
+    border-right: 0;
+}
+
+.reception-field-value {
+    color: #222;
+    display: block;
+    font-size: 10.5pt;
+    font-weight: 700;
+    line-height: 1.2;
+    min-height: 5mm;
+    overflow-wrap: break-word;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.reception-observations {
+    border: 1px solid #888;
+    box-sizing: border-box;
+    min-height: 54mm;
+    padding: 2.5mm;
+}
+
+.reception-observations-value {
+    color: #222;
+    display: block;
+    font-size: 10.5pt;
+    line-height: 1.2;
+    min-height: 42mm;
+    overflow-wrap: break-word;
+    white-space: pre-line;
+    word-break: break-word;
+}

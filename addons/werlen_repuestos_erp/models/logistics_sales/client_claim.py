@@ -27,6 +27,7 @@ class ClientClaim(models.Model):
     sale_invoice_date = fields.Datetime(related='sale_fulfillment_order_id.invoice_id.date',
                                         string='Fecha de la factura', store=True)
     client_name = fields.Char(string='Nombre cliente', required=True, tracking=True)
+    client_dni = fields.Char(string='DNI', tracking=True)
     client_address = fields.Char(string='Dirección', tracking=True)
     client_phone = fields.Char(string='Teléfono', tracking=True)
     state = fields.Selection(CLIENT_CLAIM_STATE_ENUM, string='Estado', default='draft',
@@ -101,6 +102,35 @@ class ClientClaim(models.Model):
     def _check_admin(self):
         ensure_user_in_groups(self.env.user, ['werlen_repuestos_erp.group_administration'],
                               error_message='No tiene permisos para gestionar reclamos de cliente.')
+
+    def get_print_company_data(self):
+        self.ensure_one()
+        company = self.env.company
+        partner = company.partner_id
+        return {
+            'name': company.name or partner.name or '',
+            'address': ', '.join(value for value in (partner.street, partner.street2) if value),
+            'location': ', '.join(value for value in (partner.city, partner.state_id.name if partner.state_id else '') if value),
+            'phone': partner.phone or partner.mobile or company.phone or '',
+            'email': partner.email or company.email or '',
+            'website': partner.website or company.website or '',
+            'tax_id': company.vat or partner.vat or '',
+        }
+
+    def get_print_sale_data(self):
+        self.ensure_one()
+        invoice = self.sale_fulfillment_order_id.invoice_id if self.sale_fulfillment_order_id else False
+        return {'invoice_number': invoice.invoice_id if invoice else ''}
+
+    def get_print_resolution_data(self):
+        self.ensure_one()
+        return {
+            'type': 'Resuelto' if self.state == 'resolved' else ('Cancelado' if self.state == 'canceled' else ''),
+            'reference': self.resolution_observations or '',
+        }
+
+    def _validate_printable_content(self):
+        self.ensure_one()
 
     def _log_action(self, action, description):
         self.ensure_one()

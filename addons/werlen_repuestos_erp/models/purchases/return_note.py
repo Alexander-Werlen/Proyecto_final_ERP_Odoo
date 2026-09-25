@@ -43,6 +43,55 @@ class ReturnNote(models.Model):
     creation_date = fields.Datetime(string='Fecha de creación', default=fields.Datetime.now,
                                     required=True, readonly=True, index=True)
 
+    def get_print_lines(self):
+        self.ensure_one()
+        grouped = {}
+        for line in self.line_ids:
+            values = {
+                'product_code': line.product_code or '',
+                'product_description': line.product_description or '',
+                'reason': line.reason or '',
+                'observations': line.observations or '',
+                'quantity': line.quantity,
+            }
+            key = tuple(values[field] for field in ('product_code', 'product_description', 'reason', 'observations'))
+            if key in grouped:
+                grouped[key]['quantity'] += line.quantity
+            else:
+                grouped[key] = values
+        return list(grouped.values())
+
+    def get_print_blank_row_count(self):
+        return max(0, 6 - len(self.get_print_lines()))
+
+    def get_print_supplier_data(self):
+        self.ensure_one()
+        supplier = self.supplier_id
+        return {
+            'name': supplier.name or '',
+            'address': ', '.join(value for value in (supplier.street, supplier.street2) if value),
+            'city': supplier.city or '',
+            'zip': supplier.zip or '',
+            'phone': supplier.phone or supplier.mobile or '',
+        }
+
+    def get_print_company_data(self):
+        self.ensure_one()
+        company = self.env.company
+        partner = company.partner_id
+        return {
+            'name': company.name or partner.name or '',
+            'address': ', '.join(value for value in (partner.street, partner.street2) if value),
+            'location': ', '.join(value for value in (partner.city, partner.state_id.name if partner.state_id else '') if value),
+            'phone': partner.phone or partner.mobile or company.phone or '',
+            'email': partner.email or company.email or '',
+            'website': partner.website or company.website or '',
+            'tax_id': company.vat or partner.vat or '',
+        }
+
+    def _validate_printable_content(self):
+        self.ensure_one()
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:

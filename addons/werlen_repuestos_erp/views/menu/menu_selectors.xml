@@ -119,6 +119,14 @@
         <field name="view_id" ref="werlen_repuestos_erp.wizard_bulk_delete_vouchers_form_view"/>
     </record>
 
+    <record id="action_wizard_report" model="ir.actions.act_window">
+        <field name="name">Reports</field>
+        <field name="res_model">wizard_report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="werlen_repuestos_erp.wizard_report_form_view"/>
+    </record>
+
     <record id="action_open_account_payment_in_aggregate" model="ir.actions.act_window">
         <field name="name">Account Current Income</field>
         <field name="res_model">account_payment_in_aggregate</field>
@@ -439,6 +447,8 @@
         groups="werlen_repuestos_erp.group_management"/>
     <menuitem id="menu_admin_dashboard" name="Dashboard" parent="menu_user_management_root"
         action="action_admin_dashboard" groups="werlen_repuestos_erp.group_management" sequence="1"/>
+    <menuitem id="menu_wizard_report" name="Reports" parent="menu_user_management_root"
+        action="action_wizard_report" groups="werlen_repuestos_erp.group_management" sequence="99"/>
     <menuitem id="menu_user_management" name="Usuarios y accesos"
         parent="menu_user_management_root" groups="werlen_repuestos_erp.group_management" sequence="1"/>
     <menuitem id="menu_user_management_list" name="Usuarios"
