@@ -1,0 +1,22 @@
+<odoo>
+    <record id="wizard_confirm_supplier_payment_use_form_view" model="ir.ui.view">
+        <field name="name">wizard.confirm.supplier.payment.use.form</field>
+        <field name="model">wizard_confirm_supplier_payment_use</field>
+        <field name="arch" type="xml">
+            <form string="Confirmar uso del pago">
+                <sheet>
+                    <field name="supplier_payment_id" invisible="1"/>
+                    <group>
+                        <field name="use_date"/>
+                        <field name="related_payment_orders"/>
+                        <field name="observations"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirmar uso" class="btn btn-primary"/>
+                    <button string="Cancelar" class="btn btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

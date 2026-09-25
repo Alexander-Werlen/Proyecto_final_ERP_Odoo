@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="fulfillment_payment_line_list_view" model="ir.ui.view">
+        <field name="name">payment.line.list</field>
+        <field name="model">payment_line</field>
+        <field name="arch" type="xml">
+            <list 
+            string="Pagos" 
+            create="false"
+            decoration-danger="confirmed == False"
+            >
+                <field name="currency_id" column_invisible="True"/>
+                <field name="payer" string="Paga"/>
+                <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="payment_method" string="Método"/>
+                <field name="journal" string="Diario"/>
+                <field name="confirmed_text" string="Confirmado"/>
+                <button name="confirm_payment" type="object" 
+                string="Confirmar"  
+                width="70px"
+                class="btn btn-primary"
+                invisible="confirmed == True"
+                groups="werlen_repuestos_erp.group_accountant"
+                />
+                <button name="try_undo_last_step" type="object" 
+                width="70px"
+                class="btn btn-outline-danger"
+                string="Deshacer"
+                groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_sales"
+                confirm="¿Está seguro de que desea deshacer la confirmación o creación del pago?"
+                />
+
+                <field name="who_confirmed_payment" optional="hide"/>
+                <field name="time_of_payment_confirmation" optional="hide"/>
+                <field name="who_proposed_payment" optional="hide"/>
+                <field name="time_of_payment_proposal" optional="hide"/>
+
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+</odoo>

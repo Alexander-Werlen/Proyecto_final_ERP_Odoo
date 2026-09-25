@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="wizard_bulk_delete_vouchers_result_view" model="ir.ui.view">
+        <field name="name">wizard.clean.vouchers.result.view</field>
+        <field name="model">wizard.clean_vouchers</field>
+        <field name="arch" type="xml">
+            <form string="Resultado / Previsualización">
+                <sheet>
+                    <field name="result_log" readonly="1" nolabel="1"
+                           style="white-space: pre-wrap; font-family: monospace; font-size: 12px;"
+                           widget="text"/>
+                </sheet>
+                <footer>
+                    <button string="Cerrar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

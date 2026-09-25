@@ -158,3 +158,4 @@ access_supplier_payment_management,access.supplier.payment.management,model_supp
 access_supplier_payment_system,access.supplier.payment.system,model_supplier_payment,werlen_repuestos_erp.group_system,1,1,1,1
 access_wizard_add_checks_to_supplier_payment_user,access.wizard.add.checks.to.supplier.payment.user,model_wizard_add_checks_to_supplier_payment,base.group_user,1,1,1,1
 access_wizard_confirm_supplier_payment_use_user,access.wizard.confirm.supplier.payment.use.user,model_wizard_confirm_supplier_payment_use,base.group_user,1,1,1,1
+access_wizard_bulk_delete_vouchers_system,access.wizard.clean.vouchers.system,model_wizard_clean_vouchers,werlen_repuestos_erp.group_system,1,1,1,1

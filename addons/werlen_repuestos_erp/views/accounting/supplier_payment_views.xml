@@ -1,0 +1,129 @@
+<odoo>
+    <record id="supplier_payment_list_view" model="ir.ui.view">
+        <field name="name">supplier.payment.list</field>
+        <field name="model">supplier_payment</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="supplier_id" class="fw-bold text-dark" context="{'default_is_supplier': True}"/>
+                <field name="payment_method_id" optional="hide"/>
+                <field name="payment_destination_id" optional="hide"/>
+                <field name="payment_method_amount"/>
+                <field name="check_total_amount"/>
+                <field name="total_amount" class="fw-bold text-dark"/>
+                <field name="currency_id" optional="hide"/>
+                <field name="payment_date"/>
+                <field name="state" widget="badge" decoration-info="state == 'pending'" decoration-success="state == 'used'"/>
+                <field name="use_date" optional="hide"/>
+                <field name="related_payment_orders" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="supplier_payment_form_view" model="ir.ui.view">
+        <field name="name">supplier.payment.form</field>
+        <field name="model">supplier_payment</field>
+        <field name="arch" type="xml">
+            <form string="Pago a proveedor">
+                <header>
+                    <button name="action_open_confirm_use_wizard" type="object"
+                        string="Confirmar uso"
+                        class="btn btn-primary"
+                        invisible="state != 'pending'"
+                        groups="werlen_repuestos_erp.group_administration"
+                    />
+                    <button name="action_undo_use" type="object"
+                        string="Deshacer uso"
+                        class="btn btn-warning"
+                        invisible="state != 'used'"
+                        groups="werlen_repuestos_erp.group_administration"
+                    />
+                    <button name="action_open_add_checks_wizard" type="object"
+                        string="Asociar Cheques"
+                        class="btn btn-secondary"
+                        groups="werlen_repuestos_erp.group_administration"
+                    />
+                    <field name="state" widget="statusbar" statusbar_visible="pending,used"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Pendiente"
+                    bg_color="bg-info" invisible="state != 'pending' or not id"
+                    />
+                    <widget name="web_ribbon" title="Usado"
+                    bg_color="bg-success" invisible="state != 'used' or not id"
+                    />
+                    <h1>Pago a Proveedor</h1>
+                    <group>
+                        <group string="Información general"> 
+                            <field name="name" readonly="1"/>
+                            <field name="supplier_id" 
+                                context="{'default_is_supplier': True, 'default_is_company': True, 'default_company_type': 'company'}"
+                                options="{'no_quick_create': True}"/>
+                            <field name="payment_destination_id"
+                                   domain="[('partner_id', '=', supplier_id)]"
+                                   context="{'default_partner_id': supplier_id}"/>
+                            <field name="payment_method_id"/>
+                            <field name="payment_method_amount"/>
+                            <field name="payment_date"/>
+                        </group>
+                        <group string="Desglose del importe">
+                            <field name="payment_method_amount" readonly="1"/>
+                            <field name="check_total_amount" readonly="1"/>
+                            <field name="total_amount" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Datos de uso">
+                        <group>
+                            <field name="related_payment_orders"/>
+                        </group>
+                        <group>
+                            <field name="use_date"/>
+                        </group>
+                    </group>
+
+                    <separator string="Cheques utilizados"/>
+                    <field name="check_ids" readonly="1">
+                        <list create="false" edit="false" delete="false">
+                            <button name="action_undo_supplier_payment_usage" type="object" string="Disociar" class="btn btn-outline-danger btn-sm" confirm="¿Desea deshacer el uso de este cheque? Volverá a su diario original." groups="werlen_repuestos_erp.group_administration"/>
+                            <field name="display_name"/>
+                            <field name="amount"/>
+                            <field name="currency_id" optional="hide"/>
+                            <field name="bank"/>
+                            <field name="check_number"/>
+                            <field name="issuer"/>
+                        </list>
+                    </field>
+
+                    <separator string="Observaciones"/>
+                    <field name="observations"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="supplier_payment_search_view" model="ir.ui.view">
+        <field name="name">supplier.payment.search</field>
+        <field name="model">supplier_payment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="supplier_id" context="{'default_is_supplier': True}"/>
+                <field name="payment_method_id"/>
+                <field name="payment_destination_id"/>
+                <field name="payment_method_amount"/>
+                <field name="total_amount"/>
+                <field name="related_payment_orders"/>
+                <filter string="Pendiente" name="pending" domain="[('state', '=', 'pending')]"/>
+                <filter string="Usado" name="used" domain="[('state', '=', 'used')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Proveedor" name="group_by_supplier" context="{'group_by': 'supplier_id'}"/>
+                    <filter string="Método de pago" name="group_by_payment_method" context="{'group_by': 'payment_method_id'}"/>
+                    <filter string="Destino de pago" name="group_by_payment_destination" context="{'group_by': 'payment_destination_id'}"/>
+                    <filter string="Fecha de pago" name="group_by_payment_month" context="{'group_by': 'payment_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

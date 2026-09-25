@@ -42,6 +42,31 @@
         <field name="search_view_id" ref="werlen_repuestos_erp.default_account_payment_search_view"/>
     </record>
 
+    <record id="action_open_supplier_payments" model="ir.actions.act_window">
+        <field name="name">Supplier Payments</field>
+        <field name="res_model">supplier_payment</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('werlen_repuestos_erp.supplier_payment_list_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('werlen_repuestos_erp.supplier_payment_form_view')})
+        ]"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.supplier_payment_search_view"/>
+    </record>
+
+    <record id="action_open_supplier_payments_pending" model="ir.actions.act_window">
+        <field name="name">Pending Supplier Payments</field>
+        <field name="res_model">supplier_payment</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('werlen_repuestos_erp.supplier_payment_list_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('werlen_repuestos_erp.supplier_payment_form_view')})
+        ]"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.supplier_payment_search_view"/>
+        <field name="context">{'search_default_pending': 1, 'search_default_group_by_supplier': 1}</field>
+    </record>
+
     <record id="action_open_payment_lines" model="ir.actions.act_window">
         <field name="name">Payment Lines</field>
         <field name="res_model">payment_line</field>
@@ -84,6 +109,14 @@
         <field name="res_model">cash_session</field>
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="werlen_repuestos_erp.default_cash_session_list_view"/>
+    </record>
+
+    <record id="action_wizard_bulk_delete_vouchers" model="ir.actions.act_window">
+        <field name="name">Clean Vouchers</field>
+        <field name="res_model">wizard.clean_vouchers</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="werlen_repuestos_erp.wizard_bulk_delete_vouchers_form_view"/>
     </record>
 
     <record id="action_open_account_payment_in_aggregate" model="ir.actions.act_window">
@@ -448,6 +481,8 @@
     <menuitem id="menu_accounting_receipts" name="Account Current Receipts" parent="menu_accounting" sequence="3" groups="werlen_repuestos_erp.group_management,werlen_repuestos_erp.group_system"/>
     <menuitem id="menu_accounting_receipts_all" name="View All" parent="menu_accounting_receipts" action="action_open_account_payments" sequence="1"/>
     <menuitem id="menu_accounting_receipts_create" name="Create New" parent="menu_accounting_receipts" action="action_create_account_payment" sequence="2" groups="werlen_repuestos_erp.group_management,werlen_repuestos_erp.group_system"/>
+    <menuitem id="menu_accounting_supplier_payments" name="Supplier Payments" parent="menu_accounting" action="action_open_supplier_payments" sequence="8" groups="werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management,werlen_repuestos_erp.group_system"/>
+    <menuitem id="menu_accounting_clean_vouchers" name="Clean Vouchers" parent="menu_accounting" action="action_wizard_bulk_delete_vouchers" sequence="9" groups="werlen_repuestos_erp.group_system"/>
 
     <menuitem id="menu_accounting_payment_lines" name="Payments" parent="menu_accounting" sequence="4"/>
     <menuitem id="menu_accounting_payment_lines_all" name="View All" parent="menu_accounting_payment_lines" action="action_open_payment_lines" sequence="1"/>
