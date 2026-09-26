@@ -33,6 +33,7 @@
         'data/parameters/param_identifier_for_secondary_category.xml',
         'data/parameters/param_max_minutes_passed_to_allow_undo_payment_last_step.xml',
         'data/parameters/param_report_url.xml',
+        'data/parameters/param_max_files_per_iteration.xml',
         'views/general/res_partner_form_view.xml',
         'views/general/product_list_view.xml',
         'views/general/user_management_views.xml',
