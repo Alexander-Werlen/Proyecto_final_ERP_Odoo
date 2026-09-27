@@ -17,6 +17,8 @@ export class ClaimsReturnsDashboard extends Component {
             loading: true,
             isFirstLoad: false,
             hasAnyActivity: true,
+            selectedSupplierId: null,
+            supplierQuery: "",
         });
 
         this._hasLoaded = false;
@@ -37,12 +39,24 @@ export class ClaimsReturnsDashboard extends Component {
             []
         );
 
-        this.state.suppliers = (result.suppliers || []).map((supplier) => ({
+        const suppliers = (result.suppliers || []).map((supplier) => ({
             ...supplier,
             open_claims_total: supplier._open_claims_total,
             in_progress_claims_total: supplier._in_progress_claims_total,
             returns_total: supplier._returns_total,
+            returns_by_state: {
+                draft: supplier.open_returns.filter((returnNote) => returnNote.state === "draft"),
+                prepared: supplier.open_returns.filter((returnNote) => returnNote.state === "prepared"),
+                sent: supplier.open_returns.filter((returnNote) => returnNote.state === "sent"),
+            },
         }));
+        this.state.suppliers = suppliers;
+        if (
+            this.state.selectedSupplierId !== null
+            && !suppliers.some((supplier) => supplier.id === this.state.selectedSupplierId)
+        ) {
+            this.state.selectedSupplierId = null;
+        }
         this.state.hasAnyActivity = this.state.suppliers.length > 0;
         this.state.loading = false;
 
@@ -57,43 +71,90 @@ export class ClaimsReturnsDashboard extends Component {
         }
     }
 
-    onSupplierClick(supplier) {
+    get selectedSupplier() {
+        return this.state.suppliers.find(
+            (supplier) => supplier.id === this.state.selectedSupplierId
+        );
+    }
+
+    get filteredSuppliers() {
+        const query = this.state.supplierQuery
+            .trim()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+
+        if (!query) {
+            return this.state.suppliers;
+        }
+
+        return this.state.suppliers.filter((supplier) =>
+            (supplier.name || "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
+                .includes(query)
+        );
+    }
+
+    selectSupplier(supplier) {
+        this.state.selectedSupplierId = supplier.id;
+    }
+
+    onClaimsClick(supplier) {
         this.actionService.doAction({
             type: "ir.actions.act_window",
-            name: supplier.name,
-            res_model: "res.partner",
-            res_id: supplier.id,
-            view_mode: "form",
-            views: [[false, "form"]],
+            name: "Reclamos - " + supplier.name,
+            res_model: "supplier_claim",
+            view_mode: "list,form",
+            domain: [
+                ["supplier_id", "=", supplier.id],
+                ["state", "in", ["open", "in_progress"]],
+            ],
+            views: [[false, "list"], [false, "form"]],
+        });
+    }
+
+    onReturnsClick(supplier) {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Devoluciones - " + supplier.name,
+            res_model: "return_note",
+            view_mode: "list,form",
+            domain: [
+                ["supplier_id", "=", supplier.id],
+                ["state", "in", ["draft", "prepared", "sent"]],
+            ],
+            views: [[false, "list"], [false, "form"]],
+        });
+    }
+
+    onReturnStateClick(supplier, stateKey, stateLabel) {
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: stateLabel + " - " + supplier.name,
+            res_model: "return_note",
+            view_mode: "list,form",
+            domain: [
+                ["supplier_id", "=", supplier.id],
+                ["state", "=", stateKey],
+            ],
+            views: [[false, "list"], [false, "form"]],
         });
     }
 
     onSectionClick(supplier, stateKey) {
-        if (stateKey === "returns") {
-            this.actionService.doAction({
-                type: "ir.actions.act_window",
-                name: "Devoluciones - " + supplier.name,
-                res_model: "return_note",
-                view_mode: "list,form",
-                domain: [
-                    ["supplier_id", "=", supplier.id],
-                    ["state", "in", ["draft", "prepared", "sent"]],
-                ],
-                views: [[false, "list"], [false, "form"]],
-            });
-        } else {
-            this.actionService.doAction({
-                type: "ir.actions.act_window",
-                name: "Reclamos - " + supplier.name,
-                res_model: "supplier_claim",
-                view_mode: "list,form",
-                domain: [
-                    ["supplier_id", "=", supplier.id],
-                    ["state", "=", stateKey],
-                ],
-                views: [[false, "list"], [false, "form"]],
-            });
-        }
+        this.actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "Reclamos - " + supplier.name,
+            res_model: "supplier_claim",
+            view_mode: "list,form",
+            domain: [
+                ["supplier_id", "=", supplier.id],
+                ["state", "=", stateKey],
+            ],
+            views: [[false, "list"], [false, "form"]],
+        });
     }
 
     onClaimTypeClick(supplier, typeGroup, stateKey) {
@@ -146,4 +207,3 @@ registry.category("actions").add(
     "werlen_repuestos_erp.claims_returns_dashboard",
     ClaimsReturnsDashboard
 );
-

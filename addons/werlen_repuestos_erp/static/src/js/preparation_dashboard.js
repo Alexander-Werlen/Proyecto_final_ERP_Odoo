@@ -26,26 +26,6 @@ export class PreparationTeamDashboard extends Component {
         onWillUnmount(() => clearInterval(this.interval));
     }
 
-    animateValue(obj, key, start, end, duration = 600) {
-        if (start === end) {
-            obj[key] = end;
-            return;
-        }
-        const range = end - start;
-        const startTime = performance.now();
-        const step = (now) => {
-            const progress = Math.min((now - startTime) / duration, 1);
-            const ease = 1 - Math.pow(1 - progress, 3);
-            obj[key] = Math.round(start + range * ease);
-            if (progress < 1) {
-                requestAnimationFrame(step);
-            } else {
-                obj[key] = end;
-            }
-        };
-        requestAnimationFrame(step);
-    }
-
     async loadData() {
         if (!this._hasLoaded) {
             this.state.loading = true;
@@ -79,10 +59,6 @@ export class PreparationTeamDashboard extends Component {
 
         if (isFirst) {
             this.state.isFirstLoad = true;
-            this.state.columns.forEach((col) => {
-                col.displayTotal = 0;
-                this.animateValue(col, "displayTotal", 0, col.count, 1200);
-            });
             setTimeout(() => {
                 this.state.isFirstLoad = false;
             }, 1200);

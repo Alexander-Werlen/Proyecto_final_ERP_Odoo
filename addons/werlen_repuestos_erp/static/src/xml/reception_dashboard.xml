@@ -24,11 +24,13 @@
                         </span>
                     </h2>
                     <div class="dashboard-actions">
-                        <button type="button"
-                                class="btn btn-primary"
-                                t-on-click="onCreateReceptionClick">
-                            Crear Ingreso
-                        </button>
+                        <t t-if="state.canCreateReception">
+                            <button type="button"
+                                    class="btn btn-primary"
+                                    t-on-click="onCreateReceptionClick">
+                                Crear Ingreso
+                            </button>
+                        </t>
                         <button type="button"
                                 class="btn btn-outline-secondary"
                                 t-on-click="onOpenAllClick">
@@ -36,6 +38,27 @@
                         </button>
                     </div>
                 </div>
+
+                <t t-if="state.preparedReturnNotesCount > 0">
+                    <button type="button"
+                            class="reception-return-alert"
+                            t-on-click="onPreparedReturnsClick">
+                        <span class="reception-return-alert-icon" aria-hidden="true">
+                            <i class="fa fa-truck"/>
+                        </span>
+                        <span class="reception-return-alert-text">
+                            <strong>
+                                <t t-esc="state.preparedReturnNotesCount"/>
+                                <t t-if="state.preparedReturnNotesCount === 1"> devolución lista para entregar</t>
+                                <t t-else=""> devoluciones listas para entregar</t>
+                            </strong>
+                        </span>
+                        <span class="reception-return-alert-action">
+                            Ver devoluciones
+                            <i class="fa fa-chevron-right" aria-hidden="true"/>
+                        </span>
+                    </button>
+                </t>
 
                 <div class="dashboard-card">
                     <div class="dashboard-columns" t-att-class="{ 'is-first-load': state.isFirstLoad }">
@@ -78,4 +101,3 @@
         </div>
     </t>
 </templates>
-

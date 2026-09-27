@@ -183,9 +183,15 @@ class Reception(models.Model):
 
     @api.model
     def get_reception_dashboard_data(self):
+        max_boxes = 12
         today_start = fields.Datetime.start_of(fields.Datetime.now(), 'day')
+        prepared_return_notes_count = 0
+        if self.env.user.has_group('werlen_repuestos_erp.group_reception'):
+            prepared_return_notes_count = self.env['return_note'].search_count([
+                ('state', '=', 'prepared'),
+            ])
         return {
-            'max_boxes': 12,
+            'max_boxes': max_boxes,
             'columns': [
                 {'key': 'pending_review', 'label': 'Pendientes',
                  'count': self.search_count([('state', '=', 'pending_review')])},
@@ -195,8 +201,12 @@ class Reception(models.Model):
                  'count': self.search_count([
                      ('state', '=', 'reviewed'),
                      ('controlled_datetime_end', '>=', today_start),
-                 ])},
+                ])},
             ],
+            'prepared_return_notes_count': prepared_return_notes_count,
+            'can_create_reception': self.env.user.has_group(
+                'werlen_repuestos_erp.group_reception'
+            ),
         }
 
     def get_print_received_by(self):

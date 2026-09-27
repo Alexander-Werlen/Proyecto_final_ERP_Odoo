@@ -92,7 +92,6 @@
         'web.assets_backend': [
             'werlen_repuestos_erp/static/src/css/list_view_wrap_headers.css',
             'werlen_repuestos_erp/static/src/css/dashboard.scss',
-            'werlen_repuestos_erp/static/src/css/claims_returns_dashboard.scss',
             'werlen_repuestos_erp/static/src/css/report_client_claim.css',
             'werlen_repuestos_erp/static/src/css/report_reception.css',
             'werlen_repuestos_erp/static/src/css/report_return_note.css',

@@ -1,7 +1,7 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 from markupsafe import Markup
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 import pytz
 from collections import defaultdict
 
@@ -697,20 +697,139 @@ class SaleFulfillmentOrder(models.Model):
 
         logistics = [
             ("draft", "Borrador"),
+            ("awaiting_payment", "A pagar"),
             ("awaiting_preparation", "A preparar"),
             ("in_preparation", "En preparación"),
             ("prepared", "Preparado"),
             ("sent", "Entregado (hoy)"),
         ]
 
-        base_domain = [
-            ("seller_user_id", "=", user.id),
+        payment_states = [
+            ("paid", "Pagado", "paid"),
+            ("partially_paid", "Parcial", "partial"),
+            ("not_paid", "No pagado", "unpaid"),
+            ("account", "Cuenta-Corriente", "account"),
         ]
 
+        # -------------------------
+        # 1) read_group principal
+        # -------------------------
+
         grouped = self.read_group(
-            domain=base_domain,
-            fields=["logistical_status"],
-            groupby=["logistical_status"],
+            domain=[
+                ("seller_user_id", "=", user.id),
+            ],
+            fields=["logistical_status", "payment_status"],
+            groupby=["logistical_status", "payment_status"],
+            lazy=False
+        )
+
+        counter = defaultdict(int)
+
+        for g in grouped:
+            log = g["logistical_status"]
+            pay = g["payment_status"]
+            count = g["__count"]
+
+            if log == "avoid_tracking":
+                log = "sent"
+
+            # Excluir sent + paid (se recalcula abajo)
+            if log == "sent" and pay in ["paid", "account"]:
+                continue
+
+            counter[(log, pay)] += count
+
+        # -------------------------
+        # 2) Caso especial: sent + paid|account (solo hoy), and avoid tracking
+        # -------------------------
+        today_domain = self._get_today_handing_over_domain(user)
+
+        sent_paid_today = self.search_count([
+            ("seller_user_id", "=", user.id),
+            ("logistical_status", "in", ["sent", "avoid_tracking"]),
+            ("payment_status", "=", "paid"),
+            ("time_of_handing_over", "!=", False),
+        ] + today_domain)
+
+        counter[("sent", "paid")] = sent_paid_today
+
+        sent_account_today = self.search_count([
+            ("seller_user_id", "=", user.id),
+            ("logistical_status", "in", ["sent", "avoid_tracking"]),
+            ("payment_status", "=", "account"),
+            ("time_of_handing_over", "!=", False),
+        ] + today_domain)
+
+        counter[("sent", "account")] = sent_account_today
+
+        # -------------------------
+        # 3) Construcción del resultado
+        # -------------------------
+        columns = []
+
+        for log_key, log_label in logistics:
+            segments = []
+            total = 0
+
+            for pay_key, pay_label, pay_css in payment_states:
+                count = counter[(log_key, pay_key)]
+                total += count
+
+                segments.append({
+                    "key": pay_key,
+                    "label": pay_label,
+                    "count": count,
+                    "css": f"segment-{pay_css}",
+                })
+
+            columns.append({
+                "key": log_key,
+                "label": log_label,
+                "total": total,
+                "segments": segments,
+            })
+
+        return {
+            "columns": columns,
+        }
+
+
+    @api.model
+    def get_accountant_dashboard_data(self):
+        self = self.sudo()
+        user = self.env.user
+
+        """ Credit_note_out Data """
+        unreconciliated_cn_count = self.env["credit_note_out"].search_count([
+            ("payment_status", "in", ["not_paid", "partially_paid"])
+        ])
+
+        """ Invoice_out Data """
+        logistics = [
+            ("draft", "Borrador"),
+            ("awaiting_payment", "A pagar"),
+            ("awaiting_preparation", "A preparar"),
+            ("in_preparation", "En preparación"),
+            ("prepared", "Preparado"),
+            ("sent", "Entregado (hoy)"),
+        ]
+
+        payment_states = [
+            ("paid", "Pagado", "paid"),
+            ("partially_paid", "Parcial", "partial"),
+            ("not_paid", "No pagado", "unpaid"),
+            ("account", "Cuenta-Corriente", "account"),
+        ]
+
+        # -------------------------
+        # 1) read_group principal (GLOBAL)
+        # -------------------------
+
+        grouped = self.read_group(
+            domain=[],
+            fields=["logistical_status", "payment_status"],
+            groupby=["logistical_status", "payment_status"],
             lazy=False,
         )
 
@@ -718,40 +837,71 @@ class SaleFulfillmentOrder(models.Model):
 
         for g in grouped:
             log = g["logistical_status"]
+            pay = g["payment_status"]
+            count = g["__count"]
 
             if log == "avoid_tracking":
                 log = "sent"
 
-            if log == "sent":
-                # Los entregados se cuentan aparte (solo los de hoy)
+            # Excluir sent + paid (se recalcula abajo)
+            if log == "sent" and pay in ["paid", "account"]:
                 continue
 
-            counter[log] += g["__count"]
+            counter[(log, pay)] += count
+
+        # -------------------------
+        # 2) Caso especial: sent + paid|account (solo hoy), and avoid tracking
+        # -------------------------
 
         today_domain = self._get_today_handing_over_domain(user)
 
-        sent_today = self.search_count(
-            base_domain
-            + [
-                ("logistical_status", "in", ["sent", "avoid_tracking"]),
-                ("time_of_handing_over", "!=", False),
-            ]
-            + today_domain
-        )
+        sent_paid_today = self.search_count([
+            ("logistical_status", "in", ["sent", "avoid_tracking"]),
+            ("payment_status", "=", "paid"),
+            ("time_of_handing_over", "!=", False),
+        ] + today_domain)
 
-        counter["sent"] = sent_today
+        counter[("sent", "paid")] = sent_paid_today
 
-        columns = [
-            {
-                "key": key,
-                "label": label,
-                "count": counter[key],
-            }
-            for key, label in logistics
-        ]
+        sent_account_today = self.search_count([
+            ("logistical_status", "in", ["sent", "avoid_tracking"]),
+            ("payment_status", "=", "account"),
+            ("time_of_handing_over", "!=", False),
+        ] + today_domain)
+
+        counter[("sent", "account")] = sent_account_today
+
+        # -------------------------
+        # 3) Construcción del resultado
+        # -------------------------
+
+        columns = []
+
+        for log_key, log_label in logistics:
+            segments = []
+            total = 0
+
+            for pay_key, pay_label, pay_css in payment_states:
+                count = counter[(log_key, pay_key)]
+                total += count
+
+                segments.append({
+                    "key": pay_key,
+                    "label": pay_label,
+                    "count": count,
+                    "css": f"segment-{pay_css}",
+                })
+
+            columns.append({
+                "key": log_key,
+                "label": log_label,
+                "total": total,
+                "segments": segments,
+            })
 
         return {
             "columns": columns,
+            "unreconciled_credit_notes_count": unreconciliated_cn_count,
         }
 
     @api.model
@@ -820,93 +970,379 @@ class SaleFulfillmentOrder(models.Model):
         }
 
     @api.model
-    def get_accountant_dashboard_data(self):
-        """Return the payment-status columns used by the cashier dashboard."""
-        self = self.sudo()
-        logistics = [
-            ("draft", "Borrador"),
-            ("awaiting_payment", "A pagar"),
-            ("awaiting_preparation", "A preparar"),
-            ("in_preparation", "En preparación"),
-            ("prepared", "Preparado"),
-            ("sent", "Entregado hoy"),
-        ]
-        payment_states = [
-            ("paid", "Pagado", "segment-paid"),
-            ("partially_paid", "Parcial", "segment-partial"),
-            ("not_paid", "No pagado", "segment-unpaid"),
-            ("account", "Cuenta corriente", "segment-account"),
-        ]
-        grouped = self.read_group(
-            domain=[],
-            fields=["logistical_status", "payment_status"],
-            groupby=["logistical_status", "payment_status"],
-            lazy=False,
-        )
-        counter = defaultdict(int)
-        for row in grouped:
-            status = row["logistical_status"]
-            if status == "avoid_tracking":
-                status = "sent"
-            counter[(status, row["payment_status"])] += row["__count"]
-        columns = []
-        for status, label in logistics:
-            segments = []
-            total = 0
-            for payment, payment_label, css in payment_states:
-                count = counter[(status, payment)]
-                total += count
-                segments.append({"key": payment, "label": payment_label, "count": count, "css": css})
-            columns.append({"key": status, "label": label, "total": total, "segments": segments})
-        credit_notes = self.env["credit_note_out"].search_count(
-            [("payment_status", "in", ["not_paid", "partially_paid"])]
-        )
-        return {"columns": columns, "unreconciled_credit_notes_count": credit_notes}
-
-    @api.model
     def get_admin_dashboard_data(self):
-        """Return actionable health indicators for management."""
         self = self.sudo()
 
-        def issue(key, label, count, action):
-            return {
-                "key": key,
-                "label": label,
-                "count": count,
-                "risk_level": "critical" if count > 5 else ("warning" if count else "normal"),
-                "action": action,
-            }
+        limit_time = fields.Datetime.now() - timedelta(minutes=30)
 
-        def model(key, label, issues):
-            return {"key": key, "label": label, "issues": issues}
+        # =========================================================
+        # 1) VENTAS (sale_fulfillment_order)
+        # =========================================================
 
-        sales = self.env["sale_fulfillment_order"]
-        credit_notes = self.env["credit_note_out"]
-        supplier_claims = self.env["supplier_claim"]
-        client_claims = self.env["client_claim"]
-        return_notes = self.env["return_note"]
-        payments = self.env["account_payment"]
-        return {
-            "models": [
-                model("sale_fulfillment_order", "Ventas", [
-                    issue("draft", "En borrador", sales.search_count([("logistical_status", "=", "draft")]), "werlen_repuestos_erp.action_open_seller_sale_fulfillment_order"),
-                    issue("unpaid", "Pendientes de pago", sales.search_count([("payment_status", "in", ["not_paid", "partially_paid"])]), "werlen_repuestos_erp.action_open_relevant_accountant_sale_fulfillment_order_list_view"),
-                ]),
-                model("credit_note_out", "Notas de crédito", [
-                    issue("draft", "No verificadas", credit_notes.search_count([("state", "=", "draft")]), "werlen_repuestos_erp.action_open_credit_notes_out"),
-                ]),
-                model("supplier_claim", "Reclamos a proveedores", [
-                    issue("open", "Abiertos", supplier_claims.search_count([("state", "=", "open")]), "werlen_repuestos_erp.action_open_supplier_claims"),
-                    issue("returns", "Devoluciones pendientes", return_notes.search_count([("state", "in", ["draft", "prepared"])]), "werlen_repuestos_erp.action_open_return_notes"),
-                ]),
-                model("client_claim", "Reclamos de clientes", [
-                    issue("open", "Abiertos", client_claims.search_count([("state", "=", "open")]), "werlen_repuestos_erp.action_open_client_claims"),
-                ]),
-                model("account_payment", "Recibos", [
-                    issue("draft", "Sin verificar", payments.search_count([("status", "=", "draft")]), "werlen_repuestos_erp.action_open_account_payments"),
-                ]),
+        invoice_model = self.env["sale_fulfillment_order"]
+
+        draft_old = invoice_model.search_count([
+            ("logistical_status", "=", "draft"),
+            ("create_date", "<", limit_time),
+        ])
+        draft_old_risk_level = "normal"
+        if draft_old > 0:
+            draft_old_risk_level = "warning"
+        if draft_old > 5:
+            draft_old_risk_level = "critical"
+
+        not_reconciled_invoices = invoice_model.search_count([
+            ("payment_status", "in", ["not_paid", "partially_paid"]),
+            ("create_date", "<", limit_time),
+        ])
+        not_reconciled_invoices_risk_level = "normal"
+        if not_reconciled_invoices > 24:
+            not_reconciled_invoices_risk_level = "warning"
+        if not_reconciled_invoices > 35:
+            not_reconciled_invoices_risk_level = "critical"
+
+        not_associated_with_credit_note = invoice_model.search_count([
+            ('payment_status', 'in', ['not_paid', 'partially_paid'])
+        ])
+        not_associated_with_credit_note_risk_level = "normal"
+        if not_associated_with_credit_note > 0:
+            not_associated_with_credit_note_risk_level = "warning"
+        if not_associated_with_credit_note > 5:
+            not_associated_with_credit_note_risk_level = "critical"
+
+        sales_model = {
+            "key": "sale_fulfillment_order",
+            "label": "Ventas",
+            "issues": [
+                {
+                    "key": "draft_old",
+                    "label": "En Borrador > 30 min",
+                    "count": draft_old,
+                    "risk_level": draft_old_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_seller_sale_fulfillment_order",
+                },
+                {
+                    "key": "not_reconciled",
+                    "label": "No reconciliadas > 30 min",
+                    "count": not_reconciled_invoices,
+                    "risk_level": not_reconciled_invoices_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_relevant_accountant_sale_fulfillment_order_list_view",
+                },
+                {
+                    "key": "not_associated_with_credit_note",
+                    "label": "Sin Nota de Crédito asociada",
+                    "count": not_associated_with_credit_note,
+                    "risk_level": not_associated_with_credit_note_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_seller_sale_fulfillment_order",
+                },
             ]
         }
+
+        # =========================================================
+        # 2) NOTAS DE CRÉDITO (credit_note_out)
+        # =========================================================
+
+        credit_model = self.env["credit_note_out"]
+
+        credit_notes_not_verified = credit_model.search_count([
+            ("state", "=", "draft"),
+        ])
+        credit_notes_not_verified_risk_level = "normal"
+        if credit_notes_not_verified > 0:
+            credit_notes_not_verified_risk_level = "warning"
+        if credit_notes_not_verified > 5:
+            credit_notes_not_verified_risk_level = "critical"
+
+        credit_notes_not_reconciled = credit_model.search_count([
+            ("payment_status", "in", ["not_paid", "partially_paid"]),
+        ])
+        credit_notes_not_reconciled_risk_level = "normal"
+        if credit_notes_not_reconciled > 9:
+            credit_notes_not_reconciled_risk_level = "warning"
+        if credit_notes_not_reconciled > 15:
+            credit_notes_not_reconciled_risk_level = "critical"
+
+        credit_notes_model = {
+            "key": "credit_note_out",
+            "label": "Notas de Crédito",
+            "issues": [
+                {
+                    "key": "not_verified",
+                    "label": "No verificadas",
+                    "count": credit_notes_not_verified,
+                    "risk_level": credit_notes_not_verified_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_credit_notes_out",
+                },
+                {
+                    "key": "not_reconciled",
+                    "label": "No reconciliadas",
+                    "count": credit_notes_not_reconciled,
+                    "risk_level": credit_notes_not_reconciled_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_credit_notes_out",
+                },
+            ]
+        }
+
+        # =========================================================
+        # 3) RECLAMOS DE CLIENTE (client_claim)
+        # =========================================================
+
+        client_claim_model = self.env["client_claim"]
+
+        client_claims_in_draft = client_claim_model.search_count([
+            ("state", "=", "draft"),
+        ])
+        client_claims_in_draft_risk_level = "normal"
+        if client_claims_in_draft > 0:
+            client_claims_in_draft_risk_level = "warning"
+        if client_claims_in_draft > 5:
+            client_claims_in_draft_risk_level = "critical"
+
+        client_claims_unresolved = client_claim_model.search_count([
+            ("state", "=", "valid"),
+        ])
+        client_claims_unresolved_risk_level = "normal"
+        if client_claims_unresolved > 19:
+            client_claims_unresolved_risk_level = "warning"
+        if client_claims_unresolved > 35:
+            client_claims_unresolved_risk_level = "critical"
+
+        client_claims_without_supplier_claim = client_claim_model.search_count([
+            ("supplier_claim_pending", "=", True),
+        ])
+        client_claims_without_supplier_claim_risk_level = "normal"
+        if client_claims_without_supplier_claim > 0:
+            client_claims_without_supplier_claim_risk_level = "warning"
+        if client_claims_without_supplier_claim > 5:
+            client_claims_without_supplier_claim_risk_level = "critical"
+
+        client_claims_model = {
+            "key": "client_claim",
+            "label": "Reclamos de Clientes",
+            "issues": [
+                {
+                    "key": "draft",
+                    "label": "En borrador",
+                    "count": client_claims_in_draft,
+                    "risk_level": client_claims_in_draft_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_client_claims",
+                },
+                {
+                    "key": "unresolved",
+                    "label": "No resueltos",
+                    "count": client_claims_unresolved,
+                    "risk_level": client_claims_unresolved_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_client_claims",
+                },
+                {
+                    "key": "without_supplier_claim",
+                    "label": "Sin reclamar al proveedor",
+                    "count": client_claims_without_supplier_claim,
+                    "risk_level": client_claims_without_supplier_claim_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_client_claims",
+                },
+            ]
+        }
+
+        # =========================================================
+        # 4) RECLAMOS A PROVEEDORES (supplier_claim + return_note)
+        # =========================================================
+
+        supplier_claim_model = self.env["supplier_claim"]
+        open_supplier_claims = supplier_claim_model.search_count([
+            ("state", "=", "open"),
+        ])
+        open_supplier_claims_risk_level = "normal"
+        if open_supplier_claims > 9:
+            open_supplier_claims_risk_level = "warning"
+        if open_supplier_claims > 20:
+            open_supplier_claims_risk_level = "critical"
+
+        supplier_claims_in_progress = supplier_claim_model.search_count([
+            ("state", "=", "in_progress"),
+        ])
+        supplier_claims_in_progress_risk_level = "normal"
+        if supplier_claims_in_progress > 149:
+            supplier_claims_in_progress_risk_level = "warning"
+        if supplier_claims_in_progress > 250:
+            supplier_claims_in_progress_risk_level = "critical"
+
+        return_note_model = self.env["return_note"]
+        unsent_return_notes = return_note_model.search_count([
+            ("state", "in", ["draft", "prepared"]),
+        ])
+        unsent_return_notes_risk_level = "normal"
+        if unsent_return_notes > 2:
+            unsent_return_notes_risk_level = "warning"
+        if unsent_return_notes > 6:
+            unsent_return_notes_risk_level = "critical"
+
+        supplier_claims_model = {
+            "key": "supplier_claim",
+            "label": "Reclamos a Proveedores",
+            "issues": [
+                {
+                    "key": "open",
+                    "label": "Reclamos abiertos",
+                    "count": open_supplier_claims,
+                    "risk_level": open_supplier_claims_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_supplier_claims",
+                },
+                {
+                    "key": "in_progress",
+                    "label": "Reclamos en gestión",
+                    "count": supplier_claims_in_progress,
+                    "risk_level": supplier_claims_in_progress_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_supplier_claims",
+                },
+                {
+                    "key": "unsent_returns",
+                    "label": "Devoluciones no enviadas",
+                    "count": unsent_return_notes,
+                    "risk_level": unsent_return_notes_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_return_notes",
+                },
+            ]
+        }
+
+        # =========================================================
+        # 5) RECIBOS (account_payment)
+        # =========================================================
+
+        payment_model = self.env["account_payment"]
+
+        payments_not_verified = payment_model.search_count([
+            ("status", "=", "draft"),
+        ])
+        payments_not_verified_risk_level = "normal"
+        if payments_not_verified > 0:
+            payments_not_verified_risk_level = "warning"
+        if payments_not_verified > 3:
+            payments_not_verified_risk_level = "critical"
+
+        payments_not_reconciled = payment_model.search_count([
+            ("payment_status", "in", ["not_paid", "partially_paid"]),
+        ])
+        payments_not_reconciled_risk_level = "normal"
+        if payments_not_reconciled > 0:
+            payments_not_reconciled_risk_level = "warning"
+        if payments_not_reconciled > 3:
+            payments_not_reconciled_risk_level = "critical"
+
+        receipts_model = {
+            "key": "account_payment",
+            "label": "Recibos",
+            "issues": [
+                {
+                    "key": "not_verified",
+                    "label": "No verificados",
+                    "count": payments_not_verified,
+                    "risk_level": payments_not_verified_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_account_payments",
+                },
+                {
+                    "key": "not_reconciled",
+                    "label": "Sin movimientos asociados",
+                    "count": payments_not_reconciled,
+                    "risk_level": payments_not_reconciled_risk_level,
+                    "action": "werlen_repuestos_erp.action_open_account_payments",
+                },
+            ]
+        }
+
+        # =========================================================
+        # 6) MOVIMIENTOS (payment_line + check)
+        # =========================================================
+
+        payment_line_model = self.env["payment_line"]
+        check_model = self.env["check"]
+
+        # Agrupar payment_line
+        grouped_payment_lines = payment_line_model.read_group(
+            domain=[("payment_status", "in", ["not_paid", "partially_paid"])],
+            fields=["payment_origin_explanation"],
+            groupby=["payment_origin_explanation"],
+            lazy=False,
+        )
+
+        # Agrupar checks
+        grouped_checks = check_model.read_group(
+            domain=[("payment_status", "in", ["not_paid", "partially_paid"])],
+            fields=["payment_origin_explanation"],
+            groupby=["payment_origin_explanation"],
+            lazy=False,
+        )
+
+        explanation_labels = {
+            "account_in": "Ingreso a Cuenta Corriente",
+            "down_payment": "Seña",
+            "payment_for_invoice_out": "Pago de Factura",
+            "payment_for_credit_note_out": "Pago por Nota de Crédito",
+        }
+
+        counter = defaultdict(int)
+
+        # Sumar payment_lines
+        for g in grouped_payment_lines:
+            key = g["payment_origin_explanation"]
+            counter[key] += g["__count"]
+
+        # Sumar checks
+        for g in grouped_checks:
+            key = g["payment_origin_explanation"]
+            counter[key] += g["__count"]
+
+        movement_issues = []
+
+        for key, label in explanation_labels.items():
+            movement_issues.append({
+                "key": f"reason_{key}",
+                "label": label,
+                "count": counter[key],
+                "risk_level": "normal",
+            })
+
+            # Set action for each origin reason
+            if key == "account_in":
+                movement_issues[-1]["action"] = f"werlen_repuestos_erp.action_open_payment_lines"
+            if key == "down_payment":
+                movement_issues[-1]["action"] = f"werlen_repuestos_erp.action_open_payment_lines"
+            elif key == "payment_for_invoice_out":
+                movement_issues[-1]["action"] = f"werlen_repuestos_erp.action_open_payment_lines"
+            elif key == "payment_for_credit_note_out":
+                movement_issues[-1]["action"] = f"werlen_repuestos_erp.action_open_payment_lines"
+
+
+        for move in movement_issues:
+            if move["count"] > 3:
+                move["risk_level"] = "warning"
+            if move["count"] > 6:
+                move["risk_level"] = "critical"
+
+
+        movements_model = {
+            "key": "movements",
+            "label": "Movimientos No Asociados",
+            "issues": movement_issues,
+        }
+
+        # =========================================================
+        # RESULTADO FINAL
+        # =========================================================
+
+        models = [
+            sales_model,
+            credit_notes_model,
+            client_claims_model,
+            supplier_claims_model,
+            receipts_model,
+            movements_model,
+        ]
+
+        return {
+            "models": models
+        }
+
 
     """ Overrides """
 

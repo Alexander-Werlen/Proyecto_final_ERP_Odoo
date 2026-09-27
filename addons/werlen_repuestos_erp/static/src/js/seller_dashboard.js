@@ -25,26 +25,6 @@ export class SellerDashboard extends Component {
         onWillUnmount(() => clearInterval(this.interval));
     }
 
-    animateValue(obj, key, start, end, duration = 600) {
-        if (start === end) {
-            obj[key] = end;
-            return;
-        }
-        const range = end - start;
-        const startTime = performance.now();
-        const step = (now) => {
-            const progress = Math.min((now - startTime) / duration, 1);
-            const ease = 1 - Math.pow(1 - progress, 3);
-            obj[key] = Math.round(start + range * ease);
-            if (progress < 1) {
-                requestAnimationFrame(step);
-            } else {
-                obj[key] = end;
-            }
-        };
-        requestAnimationFrame(step);
-    }
-
     async loadData() {
         if (!this._hasLoaded) {
             this.state.loading = true;
@@ -56,10 +36,13 @@ export class SellerDashboard extends Component {
             []
         );
 
-        const max = Math.max(1, ...result.columns.map(col => col.count));
-
         result.columns.forEach(col => {
-            col.height = col.count ? Math.max(6, (col.count / max) * 100) : 0;
+            col.segments.forEach((seg, idx, arr) => {
+                seg.height = col.total
+                    ? (seg.count / col.total) * 100
+                    : 0;
+                seg.zIndex = arr.length - idx;
+            });
         });
 
         this.state.columns = result.columns;
@@ -71,10 +54,6 @@ export class SellerDashboard extends Component {
 
         if (isFirst) {
             this.state.isFirstLoad = true;
-            this.state.columns.forEach((col) => {
-                col.displayTotal = 0;
-                this.animateValue(col, "displayTotal", 0, col.count, 1200);
-            });
             setTimeout(() => {
                 this.state.isFirstLoad = false;
             }, 1200);
@@ -93,7 +72,8 @@ export class SellerDashboard extends Component {
         const context = {};
 
         if (col.key === "sent") {
-            context.search_default_today_sent = true;
+            context.search_default_sent = true;
+            context.search_default_avoid_tracking = true;
         } else {
             context[`search_default_${col.key}`] = true;
         }

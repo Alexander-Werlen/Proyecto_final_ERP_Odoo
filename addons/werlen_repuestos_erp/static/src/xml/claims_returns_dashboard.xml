@@ -2,7 +2,7 @@
 
     <t t-name="werlen_repuestos_erp.ClaimsReturnsDashboard">
 
-        <div class="dashboard-wrapper">
+        <div class="dashboard-wrapper claims-returns-dashboard">
 
             <t t-if="state.loading">
                 <div class="dashboard-skeleton">
@@ -22,6 +22,9 @@
                         Tablero de Reclamos y Devoluciones
                         <span class="dashboard-user">(<t t-esc="state.userName"/>)</span>
                     </h2>
+                    <p class="claims-returns-subtitle">
+                        Seleccione un proveedor para consultar el detalle de sus pendientes.
+                    </p>
                 </div>
 
                 <t t-if="!state.hasAnyActivity">
@@ -31,129 +34,254 @@
                 </t>
 
                 <t t-else="">
-                    <div class="claims-returns-grid" t-att-class="{ 'is-first-load': state.isFirstLoad }">
-
-                        <t t-foreach="state.suppliers" t-as="supplier" t-key="supplier.id">
-                            <div class="supplier-card" t-att-style="'--card-index: ' + supplier_index">
-
-                                <div class="supplier-header"
-                                     t-on-click="() => this.onSupplierClick(supplier)">
-                                    <t t-esc="supplier.name"/>
-                                </div>
-
-                                <div class="claims-section">
-                                    <div class="section-title"
-                                         t-on-click="() => this.onSectionClick(supplier, 'open')">
-                                        RECLAMOS ABIERTOS
-                                        <t t-if="supplier.open_claims_total"> (<t t-esc="supplier.open_claims_total"/>)</t>
-                                    </div>
-
-                                    <t t-if="!supplier.open_claims.length">
-                                        <div class="empty-section">Sin reclamos abiertos</div>
-                                    </t>
-
-                                    <div t-else="" class="section-content">
-                                        <t t-foreach="supplier.open_claims" t-as="typeGroup" t-key="typeGroup.claim_type">
-                                            <div class="claim-type-group"
-                                                 t-on-click="() => this.onClaimTypeClick(supplier, typeGroup, 'open')">
-                                                <span class="claim-type-label">
-                                                    <t t-esc="typeGroup.claim_type_label"/> (<t t-esc="typeGroup.count"/>)
-                                                </span>
-                                            </div>
-
-                                            <t t-foreach="typeGroup.products" t-as="product" t-key="product.id">
-                                                <div class="product-line"
-                                                     t-on-click="() => this.onProductClick(supplier, product, typeGroup.claim_type, 'open')">
-                                                    <span class="product-code"><t t-esc="product.code"/></span>
-                                                    <span class="product-sep">·</span>
-                                                    <span class="product-name"><t t-esc="product.name"/></span>
-                                                    <span class="product-count">(<t t-esc="product.count"/>)</span>
-                                                </div>
-
-                                                <t t-if="product.common_observation">
-                                                    <div class="product-observation common">
-                                                        <t t-esc="product.common_observation"/>
-                                                    </div>
-                                                </t>
-                                                <t t-elif="product.common_observation === false">
-                                                    <div class="product-observation different">
-                                                        * reclamos con observaciones diferentes
-                                                    </div>
-                                                </t>
-                                            </t>
+                    <div class="claims-returns-layout" t-att-class="{ 'is-first-load': state.isFirstLoad }">
+                        <aside class="supplier-list-panel">
+                            <div class="supplier-list-heading">
+                                <div class="supplier-list-heading-row">
+                                    <span>Proveedores</span>
+                                    <span class="supplier-list-count">
+                                        <t t-if="state.supplierQuery.trim()">
+                                            <t t-esc="this.filteredSuppliers.length"/> / <t t-esc="state.suppliers.length"/>
                                         </t>
-                                    </div>
-                                </div>
-
-                                <div class="claims-section">
-                                    <div class="section-title"
-                                         t-on-click="() => this.onSectionClick(supplier, 'in_progress')">
-                                        RECLAMOS EN GESTIÓN
-                                        <t t-if="supplier.in_progress_claims_total"> (<t t-esc="supplier.in_progress_claims_total"/>)</t>
-                                    </div>
-
-                                    <t t-if="!supplier.in_progress_claims.length">
-                                        <div class="empty-section">Sin reclamos en gestión</div>
-                                    </t>
-
-                                    <div t-else="" class="section-content">
-                                        <t t-foreach="supplier.in_progress_claims" t-as="typeGroup" t-key="typeGroup.claim_type">
-                                            <div class="claim-type-group"
-                                                 t-on-click="() => this.onClaimTypeClick(supplier, typeGroup, 'in_progress')">
-                                                <span class="claim-type-label">
-                                                    <t t-esc="typeGroup.claim_type_label"/> (<t t-esc="typeGroup.count"/>)
-                                                </span>
-                                            </div>
-
-                                            <t t-foreach="typeGroup.products" t-as="product" t-key="product.id">
-                                                <div class="product-line"
-                                                     t-on-click="() => this.onProductClick(supplier, product, typeGroup.claim_type, 'in_progress')">
-                                                    <span class="product-code"><t t-esc="product.code"/></span>
-                                                    <span class="product-sep">·</span>
-                                                    <span class="product-name"><t t-esc="product.name"/></span>
-                                                    <span class="product-count">(<t t-esc="product.count"/>)</span>
-                                                </div>
-
-                                                <t t-if="product.common_observation">
-                                                    <div class="product-observation common">
-                                                        <t t-esc="product.common_observation"/>
-                                                    </div>
-                                                </t>
-                                                <t t-elif="product.common_observation === false">
-                                                    <div class="product-observation different">
-                                                        * reclamos con observaciones diferentes
-                                                    </div>
-                                                </t>
-                                            </t>
+                                        <t t-else="">
+                                            <t t-esc="state.suppliers.length"/>
                                         </t>
-                                    </div>
+                                    </span>
                                 </div>
-
-                                <div class="returns-section">
-                                    <div class="section-title"
-                                         t-on-click="() => this.onSectionClick(supplier, 'returns')">
-                                        DEVOLUCIONES PENDIENTES
-                                        <t t-if="supplier.returns_total"> (<t t-esc="supplier.returns_total"/>)</t>
-                                    </div>
-
-                                    <t t-if="!supplier.open_returns.length">
-                                        <div class="empty-section">Sin devoluciones pendientes</div>
-                                    </t>
-
-                                    <div t-else="" class="section-content returns-grid">
-                                        <t t-foreach="supplier.open_returns" t-as="returnNote" t-key="returnNote.id">
-                                            <div class="return-line"
-                                                 t-on-click="() => this.onReturnClick(returnNote)">
-                                                <span class="return-name"><t t-esc="returnNote.name"/></span>
-                                                <span class="return-state"><t t-esc="returnNote.state_label"/></span>
-                                            </div>
-                                        </t>
-                                    </div>
-                                </div>
-
+                                <label class="supplier-search">
+                                    <i class="fa fa-search supplier-search-icon" aria-hidden="true"/>
+                                    <span class="visually-hidden">Buscar proveedor</span>
+                                    <input type="search"
+                                           class="supplier-search-input"
+                                           t-model="state.supplierQuery"
+                                           placeholder="Buscar proveedor..."
+                                           aria-label="Buscar proveedor"/>
+                                </label>
                             </div>
-                        </t>
 
+                            <div class="supplier-list">
+                                <t t-if="!this.filteredSuppliers.length">
+                                    <div class="supplier-list-empty">No hay proveedores que coincidan</div>
+                                </t>
+                                <t t-else="">
+                                    <t t-foreach="this.filteredSuppliers" t-as="supplier" t-key="supplier.id">
+                                        <button type="button"
+                                                class="supplier-summary"
+                                                t-att-class="{ 'is-selected': state.selectedSupplierId === supplier.id }"
+                                                t-att-style="'--card-index: ' + supplier_index"
+                                                t-att-aria-pressed="state.selectedSupplierId === supplier.id"
+                                                t-on-click="() => this.selectSupplier(supplier)">
+                                            <span class="supplier-summary-main">
+                                                <span class="supplier-summary-name"><t t-esc="supplier.name"/></span>
+                                            </span>
+                                            <span class="supplier-summary-breakdown">
+                                                <span class="supplier-metric" t-att-class="{ 'is-zero': !supplier.open_claims_total }">
+                                                    <span>Reclamos abiertos</span>
+                                                    <strong><t t-esc="supplier.open_claims_total"/></strong>
+                                                </span>
+                                                <span class="supplier-metric" t-att-class="{ 'is-zero': !supplier.in_progress_claims_total }">
+                                                    <span>Reclamos en gestión</span>
+                                                    <strong><t t-esc="supplier.in_progress_claims_total"/></strong>
+                                                </span>
+                                                <span class="supplier-metric" t-att-class="{ 'is-zero': !supplier.returns_total }">
+                                                    <span>Devoluciones</span>
+                                                    <strong><t t-esc="supplier.returns_total"/></strong>
+                                                </span>
+                                            </span>
+                                        </button>
+                                    </t>
+                                </t>
+                            </div>
+                        </aside>
+
+                        <section class="supplier-detail-panel">
+                            <t t-if="!this.selectedSupplier">
+                                <div class="supplier-detail-placeholder">
+                                    <span class="supplier-detail-placeholder-icon">
+                                        <i class="fa fa-hand-pointer-o" aria-hidden="true"/>
+                                    </span>
+                                    <strong>Seleccione un proveedor</strong>
+                                    <span>El detalle de sus reclamos y devoluciones aparecerá aquí.</span>
+                                </div>
+                            </t>
+
+                            <t t-else="">
+                                <t t-set="supplier" t-value="this.selectedSupplier"/>
+                                <div class="supplier-detail-header">
+                                    <div>
+                                        <span class="supplier-detail-eyebrow">Proveedor seleccionado</span>
+                                        <h3><t t-esc="supplier.name"/></h3>
+                                    </div>
+                                </div>
+
+                                <div class="supplier-detail-scroll">
+                                <div class="supplier-detail-group">
+                                    <button type="button" class="supplier-detail-group-title"
+                                            t-on-click="() => this.onClaimsClick(supplier)">
+                                        <span>Reclamos</span>
+                                    </button>
+
+                                    <div class="claims-state-grid">
+                                        <div class="claims-detail-section">
+                                            <button type="button" class="claims-detail-section-title"
+                                                    t-on-click="() => this.onSectionClick(supplier, 'open')">
+                                                <span>Abiertos</span>
+                                                <strong>(<t t-esc="supplier.open_claims_total"/>)</strong>
+                                                <span class="claims-detail-section-rule"/>
+                                            </button>
+
+                                            <t t-if="!supplier.open_claims.length">
+                                                <div class="claims-detail-empty">Sin reclamos abiertos</div>
+                                            </t>
+
+                                            <div t-else="" class="claims-detail-content">
+                                                <t t-foreach="supplier.open_claims" t-as="typeGroup" t-key="typeGroup.claim_type">
+                                                    <div class="claim-type-group"
+                                                         t-on-click="() => this.onClaimTypeClick(supplier, typeGroup, 'open')">
+                                                        <span class="claim-type-label">
+                                                            <t t-esc="typeGroup.claim_type_label"/> (<t t-esc="typeGroup.count"/>)
+                                                        </span>
+                                                    </div>
+
+                                                    <t t-foreach="typeGroup.products" t-as="product" t-key="product.id">
+                                                        <div class="product-line"
+                                                             t-on-click="() => this.onProductClick(supplier, product, typeGroup.claim_type, 'open')">
+                                                            <span class="product-code"><t t-esc="product.code"/></span>
+                                                            <span class="product-sep">·</span>
+                                                            <span class="product-name"><t t-esc="product.name"/></span>
+                                                            <span class="product-count">(<t t-esc="product.count"/>)</span>
+                                                        </div>
+
+                                                        <t t-if="product.common_observation">
+                                                            <div class="product-observation common">
+                                                                <t t-esc="product.common_observation"/>
+                                                            </div>
+                                                        </t>
+                                                        <t t-elif="product.common_observation === false">
+                                                            <div class="product-observation different">
+                                                                * reclamos con observaciones diferentes
+                                                            </div>
+                                                        </t>
+                                                    </t>
+                                                </t>
+                                            </div>
+                                        </div>
+
+                                        <div class="claims-detail-section">
+                                            <button type="button" class="claims-detail-section-title"
+                                                    t-on-click="() => this.onSectionClick(supplier, 'in_progress')">
+                                                <span>En gestión</span>
+                                                <strong>(<t t-esc="supplier.in_progress_claims_total"/>)</strong>
+                                                <span class="claims-detail-section-rule"/>
+                                            </button>
+
+                                            <t t-if="!supplier.in_progress_claims.length">
+                                                <div class="claims-detail-empty">Sin reclamos en gestión</div>
+                                            </t>
+
+                                            <div t-else="" class="claims-detail-content">
+                                                <t t-foreach="supplier.in_progress_claims" t-as="typeGroup" t-key="typeGroup.claim_type">
+                                                    <div class="claim-type-group"
+                                                         t-on-click="() => this.onClaimTypeClick(supplier, typeGroup, 'in_progress')">
+                                                        <span class="claim-type-label">
+                                                            <t t-esc="typeGroup.claim_type_label"/> (<t t-esc="typeGroup.count"/>)
+                                                        </span>
+                                                    </div>
+
+                                                    <t t-foreach="typeGroup.products" t-as="product" t-key="product.id">
+                                                        <div class="product-line"
+                                                             t-on-click="() => this.onProductClick(supplier, product, typeGroup.claim_type, 'in_progress')">
+                                                            <span class="product-code"><t t-esc="product.code"/></span>
+                                                            <span class="product-sep">·</span>
+                                                            <span class="product-name"><t t-esc="product.name"/></span>
+                                                            <span class="product-count">(<t t-esc="product.count"/>)</span>
+                                                        </div>
+
+                                                        <t t-if="product.common_observation">
+                                                            <div class="product-observation common">
+                                                                <t t-esc="product.common_observation"/>
+                                                            </div>
+                                                        </t>
+                                                        <t t-elif="product.common_observation === false">
+                                                            <div class="product-observation different">
+                                                                * reclamos con observaciones diferentes
+                                                            </div>
+                                                        </t>
+                                                    </t>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="supplier-detail-group">
+                                    <button type="button" class="supplier-detail-group-title"
+                                            t-on-click="() => this.onReturnsClick(supplier)">
+                                        <span>Devoluciones</span>
+                                    </button>
+
+                                    <div class="returns-state-grid">
+                                        <div class="return-state-column">
+                                            <button type="button" class="claims-detail-section-title"
+                                                    t-on-click="() => this.onReturnStateClick(supplier, 'draft', 'Borradores')">
+                                                <span>Borradores</span>
+                                                <strong>(<t t-esc="supplier.returns_by_state.draft.length"/>)</strong>
+                                                <span class="claims-detail-section-rule"/>
+                                            </button>
+                                            <t t-if="!supplier.returns_by_state.draft.length">
+                                                <div class="claims-detail-empty">Sin devoluciones en borrador</div>
+                                            </t>
+                                            <div t-else="" class="returns-state-list">
+                                                <t t-foreach="supplier.returns_by_state.draft" t-as="returnNote" t-key="returnNote.id">
+                                                    <div class="return-line" t-on-click="() => this.onReturnClick(returnNote)">
+                                                        <span class="return-name"><t t-esc="returnNote.name"/></span>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </div>
+
+                                        <div class="return-state-column">
+                                            <button type="button" class="claims-detail-section-title"
+                                                    t-on-click="() => this.onReturnStateClick(supplier, 'prepared', 'Preparadas')">
+                                                <span>Preparadas</span>
+                                                <strong>(<t t-esc="supplier.returns_by_state.prepared.length"/>)</strong>
+                                                <span class="claims-detail-section-rule"/>
+                                            </button>
+                                            <t t-if="!supplier.returns_by_state.prepared.length">
+                                                <div class="claims-detail-empty">Sin devoluciones preparadas</div>
+                                            </t>
+                                            <div t-else="" class="returns-state-list">
+                                                <t t-foreach="supplier.returns_by_state.prepared" t-as="returnNote" t-key="returnNote.id">
+                                                    <div class="return-line" t-on-click="() => this.onReturnClick(returnNote)">
+                                                        <span class="return-name"><t t-esc="returnNote.name"/></span>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </div>
+
+                                        <div class="return-state-column">
+                                            <button type="button" class="claims-detail-section-title"
+                                                    t-on-click="() => this.onReturnStateClick(supplier, 'sent', 'Enviadas')">
+                                                <span>Enviadas</span>
+                                                <strong>(<t t-esc="supplier.returns_by_state.sent.length"/>)</strong>
+                                                <span class="claims-detail-section-rule"/>
+                                            </button>
+                                            <t t-if="!supplier.returns_by_state.sent.length">
+                                                <div class="claims-detail-empty">Sin devoluciones enviadas</div>
+                                            </t>
+                                            <div t-else="" class="returns-state-list">
+                                                <t t-foreach="supplier.returns_by_state.sent" t-as="returnNote" t-key="returnNote.id">
+                                                    <div class="return-line" t-on-click="() => this.onReturnClick(returnNote)">
+                                                        <span class="return-name"><t t-esc="returnNote.name"/></span>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                            </t>
+                        </section>
                     </div>
                 </t>
             </t>
@@ -163,4 +291,3 @@
     </t>
 
 </templates>
-

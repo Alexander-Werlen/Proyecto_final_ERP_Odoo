@@ -17,6 +17,8 @@ export class ReceptionDashboard extends Component {
             userName: session.partner_display_name || "",
             loading: true,
             isFirstLoad: false,
+            preparedReturnNotesCount: 0,
+            canCreateReception: false,
         });
 
         this._hasLoaded = false;
@@ -24,26 +26,6 @@ export class ReceptionDashboard extends Component {
         this.loadData();
         this.interval = setInterval(() => this.loadData(), 10000);
         onWillUnmount(() => clearInterval(this.interval));
-    }
-
-    animateValue(obj, key, start, end, duration = 600) {
-        if (start === end) {
-            obj[key] = end;
-            return;
-        }
-        const range = end - start;
-        const startTime = performance.now();
-        const step = (now) => {
-            const progress = Math.min((now - startTime) / duration, 1);
-            const ease = 1 - Math.pow(1 - progress, 3);
-            obj[key] = Math.round(start + range * ease);
-            if (progress < 1) {
-                requestAnimationFrame(step);
-            } else {
-                obj[key] = end;
-            }
-        };
-        requestAnimationFrame(step);
     }
 
     async loadData() {
@@ -58,6 +40,10 @@ export class ReceptionDashboard extends Component {
         );
 
         this.state.maxBoxes = result.max_boxes;
+        this.state.preparedReturnNotesCount =
+            result.prepared_return_notes_count || 0;
+        this.state.canCreateReception =
+            result.can_create_reception || false;
 
         this.state.columns = result.columns.map(col => {
             const boxes = Math.min(col.count, this.state.maxBoxes);
@@ -79,10 +65,6 @@ export class ReceptionDashboard extends Component {
 
         if (isFirst) {
             this.state.isFirstLoad = true;
-            this.state.columns.forEach((col) => {
-                col.displayTotal = 0;
-                this.animateValue(col, "displayTotal", 0, col.count, 1200);
-            });
             setTimeout(() => {
                 this.state.isFirstLoad = false;
             }, 1200);
@@ -95,6 +77,18 @@ export class ReceptionDashboard extends Component {
 
     onOpenAllClick = () => {
         this.actionService.doAction("werlen_repuestos_erp.action_open_receptions");
+    };
+
+    onPreparedReturnsClick = () => {
+        this.actionService.doAction(
+            "werlen_repuestos_erp.action_open_return_notes",
+            {
+                additionalContext: {
+                    search_default_prepared: 1,
+                    search_default_group_supplier: 1,
+                },
+            }
+        );
     };
 
     onColumnClick = (col) => {

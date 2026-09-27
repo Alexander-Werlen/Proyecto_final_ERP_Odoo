@@ -360,6 +360,60 @@ class PaymentLine(models.Model):
                 })
         return records
 
+    """ Dashboard methods """
+
+    @api.model
+    def get_available_journals(self):
+        journals = self.env['journal'].search([])
+        user = self.env.user
+        return {
+            'journals': [
+                {'id': journal.id, 'name': journal.name}
+                for journal in journals
+            ],
+            'default_journal_id': user.default_journal_id.id if user.default_journal_id else False,
+        }
+
+    @api.model
+    def get_cashier_today_payments(self, journal_id=None):
+        now = fields.Datetime.now()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+        domain = [
+            ('confirmed', '=', True),
+            ('time_of_payment_confirmation', '>=', today_start),
+            ('time_of_payment_confirmation', '<=', today_end),
+        ]
+        try:
+            journal_id = int(journal_id) if journal_id else False
+        except (TypeError, ValueError):
+            journal_id = False
+        if journal_id:
+            domain.append(('journal', '=', journal_id))
+
+        payments = self.search(domain, order='time_of_payment_confirmation desc', limit=7)
+        current_user = self.env.user
+        origin_labels = dict(self._fields['payment_origin_explanation'].selection)
+        result = []
+        for payment in payments:
+            user_time = fields.Datetime.context_timestamp(
+                self, payment.time_of_payment_confirmation
+            )
+            result.append({
+                'id': payment.id,
+                'amount': payment.amount,
+                'is_outgoing': payment.is_outgoing,
+                'method': payment.payment_method.name if payment.payment_method else '',
+                'origin': origin_labels.get(payment.payment_origin_explanation, ''),
+                'description': (payment.observations or '')[:50],
+                'confirmed_by': payment.who_confirmed_payment.name if payment.who_confirmed_payment else '',
+                'confirmed_by_id': payment.who_confirmed_payment.id if payment.who_confirmed_payment else False,
+                'proposed_by': payment.who_proposed_payment.name if payment.who_proposed_payment else '',
+                'time': user_time.strftime('%H:%M') if user_time else '',
+                'is_other_user': payment.who_confirmed_payment != current_user,
+            })
+        return result
+
     def unlink(self):
         for record in self:
             if record.confirmed:

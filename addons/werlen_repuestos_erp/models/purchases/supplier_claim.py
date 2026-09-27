@@ -110,79 +110,144 @@ class SupplierClaim(models.Model):
 
     @api.model
     def get_claims_returns_dashboard_data(self):
-        active_claims = self.sudo().search([('state', 'in', ('open', 'in_progress'))])
-        active_returns = self.env['return_note'].sudo().search([
+        self = self.sudo()
+
+        active_claims = self.search([
+            ('state', 'in', ('open', 'in_progress')),
+        ])
+        active_returns = self.env['return_note'].search([
             ('state', 'in', ('draft', 'prepared', 'sent')),
         ])
-        claim_type_label = {
-            'missing': 'Faltante', 'excess': 'Sobrante', 'defective': 'Defectuoso',
-        }
+
+        return_state_selection = dict(
+            self.env['return_note']._fields['state'].selection
+        )
+
         supplier_map = {}
 
-        def supplier_data(supplier):
-            return supplier_map.setdefault(supplier.id, {
-                'id': supplier.id, 'name': supplier.name,
-                'open_claims_raw': [], 'in_progress_claims_raw': [], 'open_returns': [],
-            })
-
         for claim in active_claims:
+            sid = claim.supplier_id.id
+            if sid not in supplier_map:
+                supplier_map[sid] = {
+                    'id': sid,
+                    'name': claim.supplier_id.name,
+                    'open_claims_raw': [],
+                    'in_progress_claims_raw': [],
+                    'open_returns': [],
+                }
             key = 'open_claims_raw' if claim.state == 'open' else 'in_progress_claims_raw'
-            supplier_data(claim.supplier_id)[key].append(claim)
+            supplier_map[sid][key].append(claim)
 
-        return_states = dict(self.env['return_note']._fields['state'].selection)
-        for note in active_returns:
-            supplier_data(note.supplier_id)['open_returns'].append({
-                'id': note.id, 'name': note.name, 'state': note.state,
-                'state_label': return_states.get(note.state, note.state),
+        for ret in active_returns:
+            sid = ret.supplier_id.id
+            if sid not in supplier_map:
+                supplier_map[sid] = {
+                    'id': sid,
+                    'name': ret.supplier_id.name,
+                    'open_claims_raw': [],
+                    'in_progress_claims_raw': [],
+                    'open_returns': [],
+                }
+            supplier_map[sid]['open_returns'].append({
+                'id': ret.id,
+                'name': ret.name,
+                'state': ret.state,
+                'state_label': return_state_selection.get(ret.state, ret.state),
             })
 
-        def build_section(claims):
-            grouped = {}
-            for claim in claims:
-                by_product = grouped.setdefault(claim.claim_type, {})
-                product = by_product.setdefault(claim.product_id.id, {
-                    'id': claim.product_id.id,
-                    'code': claim.product_id.name,
-                    'name': claim.product_id.description or '',
-                    'observations': [],
-                })
-                product['observations'].append((claim.observations or '').strip())
+        claim_type_label = {
+            'missing': 'Faltante',
+            'excess': 'Sobrante',
+            'defective': 'Defectuoso',
+            'return_claim': 'Devolución',
+            'warranty': 'Garantía',
+        }
+
+        def _truncate_obs(raw):
+            if not raw:
+                return ''
+            text = raw.strip()
+            sep_idx = text.find('-----')
+            if sep_idx != -1:
+                text = text[:sep_idx].strip()
+            if len(text) > 200:
+                text = text[:200] + '...'
+            return text
+
+        def _build_claims_section(raw_claims):
+            product_type_map = {}
+            for claim in raw_claims:
+                ct = claim.claim_type
+                pid = claim.product_id.id
+                pcode = claim.product_id.name
+                pname = claim.product_id.description or ''
+                obs = _truncate_obs(claim.observations)
+
+                if ct not in product_type_map:
+                    product_type_map[ct] = {}
+                if pid not in product_type_map[ct]:
+                    product_type_map[ct][pid] = {
+                        'id': pid,
+                        'code': pcode,
+                        'name': pname,
+                        'observations': [],
+                    }
+                product_type_map[ct][pid]['observations'].append(obs)
+
             result = []
-            for claim_type in ('missing', 'excess', 'defective'):
+            for ct in ['missing', 'excess', 'defective', 'return_claim', 'warranty']:
+                if ct not in product_type_map:
+                    continue
                 products = []
-                for product in grouped.get(claim_type, {}).values():
-                    observations = set(product['observations'])
-                    common = next(iter(observations), '') if len(observations) == 1 else False
+                for pid, pdata in product_type_map[ct].items():
+                    obs_list = pdata['observations']
+                    unique = set(obs_list)
+                    if len(unique) == 1:
+                        common_obs = obs_list[0] or None
+                    else:
+                        common_obs = False
+
                     products.append({
-                        'id': product['id'], 'code': product['code'], 'name': product['name'],
-                        'count': len(product['observations']),
-                        'common_observation': common or False,
+                        'id': pdata['id'],
+                        'code': pdata['code'],
+                        'name': pdata['name'],
+                        'count': len(pdata['observations']),
+                        'common_observation': common_obs,
                     })
-                if products:
-                    result.append({
-                        'claim_type': claim_type,
-                        'claim_type_label': claim_type_label.get(claim_type, claim_type),
-                        'count': sum(product['count'] for product in products),
-                        'products': products,
-                    })
+
+                products.sort(key=lambda p: (-p['count'], p['code']))
+
+                result.append({
+                    'claim_type': ct,
+                    'claim_type_label': claim_type_label.get(ct, ct),
+                    'count': sum(p['count'] for p in products),
+                    'products': products,
+                })
+
             return result
 
         suppliers = []
-        for data in supplier_map.values():
-            open_claims = build_section(data['open_claims_raw'])
-            in_progress_claims = build_section(data['in_progress_claims_raw'])
-            open_total = sum(group['count'] for group in open_claims)
-            in_progress_total = sum(group['count'] for group in in_progress_claims)
-            returns_total = len(data['open_returns'])
+        for sid, sdata in supplier_map.items():
+            open_claims = _build_claims_section(sdata['open_claims_raw'])
+            in_progress_claims = _build_claims_section(sdata['in_progress_claims_raw'])
+            open_total = sum(g['count'] for g in open_claims)
+            in_progress_total = sum(g['count'] for g in in_progress_claims)
+            returns_total = len(sdata['open_returns'])
+
+            total_activity = open_total + in_progress_total + returns_total
+
             suppliers.append({
-                'id': data['id'], 'name': data['name'],
+                'id': sdata['id'],
+                'name': sdata['name'],
                 'open_claims': open_claims,
                 'in_progress_claims': in_progress_claims,
-                'open_returns': data['open_returns'],
+                'open_returns': sdata['open_returns'],
+                '_total_activity': total_activity,
                 '_open_claims_total': open_total,
                 '_in_progress_claims_total': in_progress_total,
                 '_returns_total': returns_total,
-                '_total_activity': open_total + in_progress_total + returns_total,
             })
-        suppliers.sort(key=lambda item: (-item['_total_activity'], item['name']))
+
+        suppliers.sort(key=lambda s: ((s['name'] or '').casefold(), s['id']))
+
         return {'suppliers': suppliers}
