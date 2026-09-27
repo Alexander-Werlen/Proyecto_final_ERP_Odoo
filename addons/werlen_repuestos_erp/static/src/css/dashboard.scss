@@ -338,3 +338,51 @@
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Panel de gerencia: conserva la jerarquía visual de tarjetas e indicadores. */
+.admin-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.admin-dashboard-group {
+    min-width: 0;
+    display: flex;
+}
+
+.admin-dashboard-card {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+}
+
+.admin-dashboard-card .card-title {
+    margin-bottom: 12px;
+    color: #343a40;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.issue-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-top: 1px solid #edf0f2;
+    color: #495057;
+    cursor: pointer;
+}
+
+.issue-row:hover { background: #f8f9fa; }
+.issue-count { min-width: 28px; font-weight: 700; text-align: right; }
+.issue-row.risk-warning .issue-count { color: #b7791f; }
+.issue-row.risk-critical .issue-count { color: #c0392b; }
+.issue-empty { color: #198754; cursor: default; }
+
+@media (max-width: 780px) {
+    .admin-dashboard-grid { grid-template-columns: 1fr; }
+}
