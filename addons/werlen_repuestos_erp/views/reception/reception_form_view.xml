@@ -1,65 +1,100 @@
 <odoo>
-    <record id="reception_form_view" model="ir.ui.view">
-        <field name="name">reception.form</field>
-        <field name="model">reception</field>
-        <field name="arch" type="xml">
-            <form string="Ingreso de mercadería" create="false" delete="false">
-                <header>
-                    <field name="state" widget="statusbar"
-                        statusbar_visible="pending_review,in_review,reviewed"/>
-                    <button name="action_start_review" type="object"
-                        string="Iniciar revisión" class="oe_highlight"
-                        invisible="state != 'pending_review'"
-                        groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
-                    <button name="action_finish_review" type="object"
-                        string="Finalizar revisión" class="oe_highlight"
-                        invisible="state != 'in_review'"
-                        groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
-                    <button name="action_cancel_review" type="object"
-                        string="Cancelar revisión" class="btn btn-outline-danger"
-                        invisible="state != 'in_review'"
-                        groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
-                    <button name="action_reopen_review" type="object"
-                        string="Reabrir revisión" class="btn btn-outline-danger"
-                        invisible="state != 'reviewed'"
-                        groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
-                </header>
-                <sheet>
-                    <widget name="web_ribbon" title="Pendiente"
-                        bg_color="bg-danger" invisible="state != 'pending_review'"/>
-                    <widget name="web_ribbon" title="En revisión"
-                        bg_color="bg-info" invisible="state != 'in_review'"/>
-                    <widget name="web_ribbon" title="Revisado"
-                        bg_color="bg-success" invisible="state != 'reviewed'"/>
-                    <h1>INGRESO DE MERCADERÍA
-                        <field name="name" class="ms-2 text-muted fw-normal" readonly="1" nolabel="1"/>
-                    </h1>
-                    <group string="Datos del ingreso">
-                        <group>
-                            <field name="supplier_id" readonly="1"
-                                options="{'no_create': True, 'no_create_edit': True}"/>
-                            <field name="packages_description"/>
-                            <field name="carrier_id" readonly="1"
-                                options="{'no_create': True, 'no_create_edit': True}"/>
+    <data>
+        <record id="reception_form_view" model="ir.ui.view">
+            <field name="name">reception.form</field>
+            <field name="model">reception</field>
+            <field name="arch" type="xml">
+                <form string="Ingreso de Mercadería" create="false" edit="true" delete="true">
+                    <header>
+                        <field name="state" widget="statusbar"
+                            statusbar_visible="pending_review,in_review,reviewed"/>
+                        <button name="action_start_review" type="object"
+                            string="Comenzar control" class="oe_highlight"
+                            invisible="state != 'pending_review'"
+                            groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
+                        <button name="action_finish_review" type="object"
+                            string="Terminar control" class="oe_highlight"
+                            invisible="state != 'in_review'"
+                            groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
+                        <button name="action_cancel_review" type="object"
+                            string="Cancelar control" class="btn btn-outline-danger"
+                            invisible="state != 'in_review'"
+                            confirm="¿Está seguro que desea cancelar el control del ingreso? El ingreso volverá a estado 'Revisión Pendiente'."
+                            groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
+                        <button name="action_reopen_review" type="object"
+                            string="Reabrir control" class="btn btn-outline-danger"
+                            invisible="state != 'reviewed'"
+                            confirm="¿Está seguro que desea reabrir el control del ingreso? Volverá a estado 'En Revisión'."
+                            groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration"/>
+                    </header>
+                    <sheet>
+                        <widget name="web_ribbon" title="Pendiente" bg_color="bg-danger"
+                            invisible="state != 'pending_review'"/>
+                        <widget name="web_ribbon" title="En revisión" bg_color="bg-warning"
+                            invisible="state != 'in_review'"/>
+                        <widget name="web_ribbon" title="Revisado" bg_color="bg-success"
+                            invisible="state != 'reviewed'"/>
+
+                        <h1>
+                            INGRESO DE MERCADERÍA
+                            <field name="name" class="ms-2 text-muted fw-normal" readonly="1" nolabel="1"/>
+                        </h1>
+
+                        <group string="Facturas asociadas" invisible="state == 'pending_review'"
+                            groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration">
+                            <field name="purchase_invoice_ids" nolabel="1" widget="many2many"
+                                mode="list" readonly="state != 'in_review'">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="state" string="Estado" widget="badge"
+                                        decoration-danger="state == 'pending_review'"
+                                        decoration-warning="state in ('in_review', 'pending_delivery')"
+                                        decoration-success="state == 'reviewed'"/>
+                                    <field name="name" string="Número"/>
+                                    <field name="supplier_id" string="Proveedor" optional="hide"/>
+                                    <field name="controlled_datetime_start" string="Inicio de control" optional="hide"/>
+                                    <field name="controlled_datetime_end" string="Fin de control" optional="hide"/>
+                                    <field name="who_controlled_ids" string="Controlado por"
+                                        widget="many2many_tags" optional="show"/>
+                                </list>
+                            </field>
                         </group>
-                        <group>
-                            <field name="remito_number"/>
-                            <field name="who_received_ids" widget="many2many_tags" readonly="1"
-                                options="{'no_create': True, 'no_open': True}"/>
-                            <field name="reception_datetime" readonly="1"/>
+
+                        <group string="Datos del ingreso">
+                            <group>
+                                <field name="supplier_id" readonly="state != 'pending_review'"
+                                    options="{'no_open': True}"
+                                    context="{'default_is_supplier': True, 'default_is_company': True, 'default_company_type': 'company'}"/>
+                                <field name="packages_description" readonly="state != 'pending_review'"/>
+                                <field name="carrier_id" readonly="state != 'pending_review'"
+                                    options="{'no_open': True}"
+                                    context="{'default_is_carrier': True, 'default_is_company': True, 'default_company_type': 'company'}"/>
+                            </group>
+                            <group>
+                                <field name="remito_number" readonly="state != 'pending_review'"/>
+                                <field name="who_received_ids" widget="many2many_tags"
+                                    readonly="state != 'pending_review'"
+                                    options="{'no_create': True, 'no_open': True}"/>
+                                <field name="reception_datetime" readonly="state != 'pending_review'"/>
+                            </group>
                         </group>
-                    </group>
-                    <separator string="Facturas de compra"/>
-                    <field name="purchase_invoice_ids" widget="many2many_tags" readonly="1"/>
-                    <separator string="Observaciones"/>
-                    <field name="observations" nolabel="1"/>
-                    <group string="Control" invisible="state == 'pending_review'">
-                        <field name="controlled_datetime_start" readonly="1"/>
-                        <field name="controlled_datetime_end" readonly="1"/>
-                    </group>
-                </sheet>
-                <chatter/>
-            </form>
-        </field>
-    </record>
+
+                        <notebook>
+                            <page string="Observaciones" name="observations">
+                                <field name="observations" placeholder="Notas adicionales sobre el ingreso"
+                                    nolabel="1"/>
+                            </page>
+                            <page string="Información de control" name="control_info"
+                                groups="werlen_repuestos_erp.group_reception_control,werlen_repuestos_erp.group_administration">
+                                <group>
+                                    <group><field name="controlled_datetime_start" readonly="1"/></group>
+                                    <group><field name="controlled_datetime_end" readonly="1"/></group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+    </data>
 </odoo>

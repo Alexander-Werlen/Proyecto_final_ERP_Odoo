@@ -1,46 +1,51 @@
 <odoo>
-    <record id="reception_list_view" model="ir.ui.view">
-        <field name="name">reception.list</field>
-        <field name="model">reception</field>
-        <field name="arch" type="xml">
-            <list string="Ingresos" create="false" delete="false"
-                default_order="reception_datetime desc, id desc">
-                <field name="name"/>
-                <field name="reception_datetime"/>
-                <field name="supplier_id"/>
-                <field name="packages_description"/>
-                <field name="carrier_id"/>
-                <field name="state" widget="badge"
-                    decoration-danger="state == 'pending_review'"
-                    decoration-info="state == 'in_review'"
-                    decoration-success="state == 'reviewed'"/>
-                <field name="remito_number" optional="hide"/>
-                <field name="observations" optional="hide"/>
-            </list>
-        </field>
-    </record>
+    <data>
+        <record id="reception_list_view" model="ir.ui.view">
+            <field name="name">reception.list</field>
+            <field name="model">reception</field>
+            <field name="arch" type="xml">
+                <list string="Ingresos" create="false" delete="false"
+                    default_order="reception_datetime desc, id desc">
+                    <field name="state" widget="badge" string="Estado" width="140px"
+                        decoration-danger="state == 'pending_review'"
+                        decoration-warning="state == 'in_review'"
+                        decoration-success="state == 'reviewed'"/>
+                    <field name="name" optional="hide"/>
+                    <field name="reception_datetime"/>
+                    <field name="controlled_datetime_start" string="Inicio de control" optional="hide"/>
+                    <field name="controlled_datetime_end" string="Fin de control" optional="hide"/>
+                    <field name="supplier_id" optional="show"/>
+                    <field name="packages_description" optional="show"/>
+                    <field name="carrier_id" optional="show"/>
+                    <field name="remito_number" optional="hide"/>
+                    <field name="who_received_ids" widget="many2many_tags" optional="hide"/>
+                    <field name="observations" optional="show"/>
+                </list>
+            </field>
+        </record>
 
-    <record id="reception_search_view" model="ir.ui.view">
-        <field name="name">reception.search</field>
-        <field name="model">reception</field>
-        <field name="arch" type="xml">
-            <search string="Ingreso de mercadería">
-                <field name="name"/>
-                <field name="supplier_id"/>
-                <field name="carrier_id"/>
-                <field name="remito_number"/>
-                <filter name="pending_review" string="Pendientes"
-                    domain="[('state', '=', 'pending_review')]"/>
-                <filter name="in_review" string="En revisión"
-                    domain="[('state', '=', 'in_review')]"/>
-                <filter name="reviewed" string="Revisados"
-                    domain="[('state', '=', 'reviewed')]"/>
-                <group expand="0" string="Agrupar por">
-                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
-                    <filter name="group_supplier" string="Proveedor" context="{'group_by': 'supplier_id'}"/>
-                    <filter name="group_carrier" string="Transportista" context="{'group_by': 'carrier_id'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
+        <record id="reception_search_view" model="ir.ui.view">
+            <field name="name">reception.search</field>
+            <field name="model">reception</field>
+            <field name="arch" type="xml">
+                <search string="Ingreso de Mercadería">
+                    <field name="name"/>
+                    <field name="supplier_id"/>
+                    <field name="carrier_id"/>
+                    <field name="remito_number"/>
+                    <filter name="pending_review" string="Pendientes"
+                        domain="[('state', '=', 'pending_review')]"/>
+                    <filter name="in_review" string="En revisión"
+                        domain="[('state', '=', 'in_review')]"/>
+                    <filter name="reviewed" string="Revisados"
+                        domain="[('state', '=', 'reviewed')]"/>
+                    <group expand="0" string="Agrupar por">
+                        <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                        <filter name="group_supplier" string="Proveedor" context="{'group_by': 'supplier_id'}"/>
+                        <filter name="group_carrier" string="Transportista" context="{'group_by': 'carrier_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+    </data>
 </odoo>

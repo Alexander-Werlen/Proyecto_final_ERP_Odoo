@@ -1,41 +1,46 @@
 <odoo>
-    <record id="purchase_invoice_list_view" model="ir.ui.view">
-        <field name="name">purchase.invoice.list</field>
-        <field name="model">purchase_invoice</field>
-        <field name="arch" type="xml">
-            <list string="Facturas de compra" create="false" delete="false">
-                <field name="name" string="Número"/>
-                <field name="supplier_id" string="Proveedor"/>
-                <field name="state" widget="badge"
-                    decoration-warning="state == 'pending_delivery'"
-                    decoration-danger="state == 'pending_review'"
-                    decoration-info="state == 'in_review'"
-                    decoration-success="state == 'reviewed'"/>
-                <field name="controlled_datetime_start" optional="hide"/>
-                <field name="controlled_datetime_end" optional="hide"/>
-                <field name="who_controlled_ids" widget="many2many_tags" optional="hide"/>
-                <field name="observations" optional="hide"/>
-            </list>
-        </field>
-    </record>
+    <data>
+        <record id="purchase_invoice_list_view" model="ir.ui.view">
+            <field name="name">purchase.invoice.list</field>
+            <field name="model">purchase_invoice</field>
+            <field name="arch" type="xml">
+                <list string="Facturas de Compra" create="false" delete="false">
+                    <field name="state" widget="badge" string="Estado" width="160px"
+                        decoration-warning="state in ('pending_delivery', 'in_review')"
+                        decoration-danger="state == 'pending_review'"
+                        decoration-success="state == 'reviewed'"/>
+                    <field name="name" string="Número"/>
+                    <field name="supplier_id" string="Proveedor"/>
+                    <field name="controlled_datetime_start" string="Inicio de control" optional="hide"/>
+                    <field name="controlled_datetime_end" string="Fin de control" optional="hide"/>
+                    <field name="who_controlled_ids" widget="many2many_tags" string="Controlado por" optional="hide"/>
+                    <field name="observations" string="Observaciones" optional="show"/>
+                </list>
+            </field>
+        </record>
 
-    <record id="purchase_invoice_search_view" model="ir.ui.view">
-        <field name="name">purchase.invoice.search</field>
-        <field name="model">purchase_invoice</field>
-        <field name="arch" type="xml">
-            <search string="Factura de compra">
-                <field name="name"/>
-                <field name="supplier_id"/>
-                <field name="observations"/>
-                <filter name="pending_delivery" string="Entrega pendiente" domain="[('state', '=', 'pending_delivery')]"/>
-                <filter name="pending_review" string="Revisión pendiente" domain="[('state', '=', 'pending_review')]"/>
-                <filter name="in_review" string="En revisión" domain="[('state', '=', 'in_review')]"/>
-                <filter name="reviewed" string="Revisadas" domain="[('state', '=', 'reviewed')]"/>
-                <group expand="0" string="Agrupar por">
-                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
-                    <filter name="group_supplier" string="Proveedor" context="{'group_by': 'supplier_id'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
+        <record id="purchase_invoice_search_view" model="ir.ui.view">
+            <field name="name">purchase.invoice.search</field>
+            <field name="model">purchase_invoice</field>
+            <field name="arch" type="xml">
+                <search string="Factura de Compra">
+                    <field name="name"/>
+                    <field name="supplier_id"/>
+                    <field name="observations"/>
+                    <filter name="pending_delivery" string="Entrega Pendiente"
+                        domain="[('state', '=', 'pending_delivery')]"/>
+                    <filter name="pending_review" string="Revisión Pendiente"
+                        domain="[('state', '=', 'pending_review')]"/>
+                    <filter name="in_review" string="En Revisión"
+                        domain="[('state', '=', 'in_review')]"/>
+                    <filter name="reviewed" string="Revisadas"
+                        domain="[('state', '=', 'reviewed')]"/>
+                    <group expand="0" string="Agrupar por">
+                        <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                        <filter name="group_supplier" string="Proveedor" context="{'group_by': 'supplier_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+    </data>
 </odoo>

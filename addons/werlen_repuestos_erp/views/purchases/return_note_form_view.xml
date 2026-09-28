@@ -1,49 +1,102 @@
 <odoo>
-    <record id="return_note_form_view" model="ir.ui.view">
-        <field name="name">return.note.form</field>
-        <field name="model">return_note</field>
-        <field name="arch" type="xml">
-            <form string="Nota de devolución" create="false" delete="false">
-                <header>
-                    <button name="action_open_associate_claim" type="object" string="Asociar reclamo"
-                        invisible="state != 'draft'" groups="werlen_repuestos_erp.group_administration"/>
-                    <button name="action_prepare" type="object" string="Preparar" class="oe_highlight"
-                        invisible="state != 'draft'" groups="werlen_repuestos_erp.group_administration"/>
-                    <button name="action_send" type="object" string="Enviar" class="oe_highlight"
-                        invisible="state != 'prepared'"
-                        groups="werlen_repuestos_erp.group_reception,werlen_repuestos_erp.group_administration"/>
-                    <button name="action_close" type="object" string="Cerrar" class="oe_highlight"
-                        invisible="state != 'sent'"
-                        groups="werlen_repuestos_erp.group_reception,werlen_repuestos_erp.group_administration"/>
-                    <button name="action_reopen" type="object" string="Reabrir"
-                        invisible="state != 'closed'" groups="werlen_repuestos_erp.group_administration"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,prepared,sent,closed"/>
-                </header>
-                <sheet>
-                    <h1>NOTA DE DEVOLUCIÓN A PROVEEDOR</h1>
-                    <group string="Datos de la nota">
-                        <group><field name="name" readonly="1"/><field name="date" readonly="1"/>
-                            <field name="supplier_id" readonly="1"/><field name="carrier_id" readonly="1"/></group>
-                        <group><field name="package_count" readonly="state != 'draft'"/>
-                            <field name="who_created_id" readonly="1"/><field name="creation_date" readonly="1"/>
-                            <field name="preparation_datetime" readonly="1"/><field name="sent_datetime" readonly="1"/></group>
-                    </group>
-                    <separator string="Líneas de devolución"/>
-                    <field name="line_ids" readonly="state != 'draft'">
-                        <list editable="bottom" create="false" delete="false">
-                            <field name="display_name" readonly="1"/>
-                            <field name="claim_id" readonly="1"/>
-                            <field name="product_code"/>
-                            <field name="product_description"/>
-                            <field name="reason"/>
-                            <field name="quantity"/>
-                            <field name="state" readonly="1"/>
-                        </list>
-                    </field>
-                    <separator string="Observaciones"/><field name="observations" nolabel="1"/>
-                </sheet>
-                <chatter/>
-            </form>
-        </field>
-    </record>
+    <data>
+        <record id="return_note_form_view" model="ir.ui.view">
+            <field name="name">return.note.form</field>
+            <field name="model">return_note</field>
+            <field name="arch" type="xml">
+                <form string="Nota de Devolución" create="false" edit="true" delete="true">
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,prepared,sent,closed"/>
+                        <button name="action_open_associate_claim" type="object" string="Asociar reclamo"
+                            invisible="state != 'draft'" groups="werlen_repuestos_erp.group_administration"/>
+                        <button name="action_prepare" type="object" string="Marcar como preparada"
+                            class="oe_highlight" invisible="state != 'draft'"
+                            groups="werlen_repuestos_erp.group_administration"/>
+                        <button name="action_send" type="object" string="Marcar como enviada"
+                            class="oe_highlight" invisible="state != 'prepared'"
+                            groups="werlen_repuestos_erp.group_reception,werlen_repuestos_erp.group_administration"/>
+                        <button name="action_reopen" type="object" string="Volver a borrador"
+                            class="btn btn-outline-danger" invisible="state != 'closed'"
+                            confirm="¿Está seguro que desea reabrir la nota de devolución?"
+                            groups="werlen_repuestos_erp.group_administration"/>
+                        <button name="action_close" type="object" string="Cerrar"
+                            class="oe_highlight" invisible="state != 'sent'"
+                            groups="werlen_repuestos_erp.group_reception,werlen_repuestos_erp.group_administration"/>
+                    </header>
+                    <sheet>
+                        <widget name="web_ribbon" title="Borrador" bg_color="bg-danger" invisible="state != 'draft'"/>
+                        <widget name="web_ribbon" title="Preparada" bg_color="bg-warning" invisible="state != 'prepared'"/>
+                        <widget name="web_ribbon" title="Enviada" bg_color="bg-info" invisible="state != 'sent'"/>
+                        <widget name="web_ribbon" title="Cerrada" bg_color="bg-success" invisible="state != 'closed'"/>
+
+                        <h1>
+                            NOTA DE DEVOLUCIÓN
+                            <field name="name" class="ms-2 text-muted fw-normal" readonly="1" nolabel="1"/>
+                        </h1>
+
+                        <group string="Datos de la devolución">
+                            <group>
+                                <field name="supplier_id" readonly="state != 'draft'"
+                                    options="{'no_create': True, 'no_create_edit': True, 'no_open': True}"/>
+                                <field name="date" readonly="state != 'draft'"
+                                    groups="werlen_repuestos_erp.group_administration"/>
+                                <field name="package_count" readonly="state in ('sent', 'closed')"
+                                    groups="werlen_repuestos_erp.group_administration"/>
+                                <field name="carrier_id" readonly="state in ('sent', 'closed')"
+                                    options="{'no_open': True}"/>
+                            </group>
+                            <group>
+                                <field name="who_created_id" readonly="1"/>
+                                <field name="creation_date" readonly="1"/>
+                                <field name="preparation_datetime" readonly="1"/>
+                                <field name="sent_datetime" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <separator string="Líneas de devolución"/>
+                        <field name="line_ids" readonly="1" nolabel="1">
+                            <list create="false" delete="false" edit="false">
+                                <field name="state" string="Estado" widget="badge"
+                                    decoration-warning="state == 'draft'"
+                                    decoration-info="state == 'sent'"
+                                    decoration-success="state == 'accepted'"
+                                    decoration-danger="state == 'rejected'"/>
+                                <field name="quantity"/>
+                                <field name="product_code"/>
+                                <field name="product_description"/>
+                                <field name="reason"/>
+                                <field name="observations" optional="hide"/>
+                                <field name="claim_id" optional="hide"/>
+                            </list>
+                        </field>
+
+                        <notebook>
+                            <page string="Observaciones" name="observations">
+                                <field name="observations" placeholder="Notas adicionales sobre la devolución" nolabel="1"/>
+                            </page>
+                            <page string="Preparación" name="audit_preparation">
+                                <group>
+                                    <group><field name="who_prepared_id" readonly="1"/></group>
+                                    <group><field name="preparation_datetime" readonly="1"/></group>
+                                </group>
+                            </page>
+                            <page string="Entrega" name="audit_delivery">
+                                <group>
+                                    <group><field name="who_sent_id" readonly="1"/></group>
+                                    <group><field name="sent_datetime" readonly="1"/></group>
+                                </group>
+                            </page>
+                            <page string="Cierre" name="audit_closure">
+                                <group>
+                                    <group><field name="who_closed_id" readonly="1"/></group>
+                                    <group><field name="closing_datetime" readonly="1"/></group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+    </data>
 </odoo>
