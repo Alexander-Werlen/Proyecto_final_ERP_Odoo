@@ -13,4 +13,3 @@ from . import wizard_payment_line_day_summary
 from . import wizard_close_cash_session
 from . import wizard_close_cash_session_line
 from . import account_payment_in_aggregate
-from . import wizard_clean_vouchers

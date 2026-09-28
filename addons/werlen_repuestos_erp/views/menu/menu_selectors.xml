@@ -111,14 +111,6 @@
         <field name="view_id" ref="werlen_repuestos_erp.default_cash_session_list_view"/>
     </record>
 
-    <record id="action_wizard_bulk_delete_vouchers" model="ir.actions.act_window">
-        <field name="name">Limpieza de Comprobantes</field>
-        <field name="res_model">wizard.clean_vouchers</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-        <field name="view_id" ref="werlen_repuestos_erp.wizard_bulk_delete_vouchers_form_view"/>
-    </record>
-
     <record id="action_wizard_report" model="ir.actions.act_window">
         <field name="name">Informes</field>
         <field name="res_model">wizard_report</field>
@@ -595,9 +587,6 @@
 
     <menuitem id="menu_accounting_settings_system" name="Sistema" parent="menu_user_management_root" sequence="3"
         groups="werlen_repuestos_erp.group_system"/>
-    <menuitem id="menu_accounting_clean_vouchers" name="Limpieza de Comprobantes"
-        parent="menu_accounting_settings_system" action="action_wizard_bulk_delete_vouchers" sequence="1"/>
-
     <menuitem id="menu_wizard_report" name="Informes" parent="menu_user_management_root"
         action="action_wizard_report" groups="werlen_repuestos_erp.group_management" sequence="99"/>
 

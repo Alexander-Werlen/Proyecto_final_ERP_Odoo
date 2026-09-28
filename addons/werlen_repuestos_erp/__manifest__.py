@@ -47,8 +47,6 @@
         'views/accounting/wizards/financial_wizards_views.xml',
         'views/accounting/wizards/wizard_add_checks_to_supplier_payment.xml',
         'views/accounting/wizards/wizard_confirm_supplier_payment_use.xml',
-        'views/accounting/wizards/wizard_clean_vouchers_form_view.xml',
-        'views/accounting/wizards/wizard_clean_vouchers_result_view.xml',
         'views/accounting/default_invoice_out_list_view.xml',
         'views/accounting/wizards/invoice_out_create_wizard_view.xml',
         'views/sync_legacy/legacy_invoice_import_list_view.xml',
