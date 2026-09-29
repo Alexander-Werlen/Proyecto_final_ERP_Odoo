@@ -1,38 +1,61 @@
 <odoo>
-    <record id="supplier_claim_list_view" model="ir.ui.view">
-        <field name="name">supplier.claim.list</field>
-        <field name="model">supplier_claim</field>
-        <field name="arch" type="xml">
-            <list string="Reclamos a proveedor" create="false" delete="false">
-                <field name="name" string="Identificador"/>
-                <field name="claim_type" string="Tipo"/>
-                <field name="supplier_id" string="Proveedor"/>
-                <field name="product_id" string="Producto"/>
-                <field name="client_claim_id" string="Reclamo de cliente" optional="show"/>
-                <field name="state" widget="badge"
-                    decoration-info="state == 'open'"
-                    decoration-warning="state == 'in_progress'"
-                    decoration-success="state == 'resolved'"
-                    decoration-danger="state == 'rejected'"/>
-                <field name="creation_date" string="Fecha" optional="hide"/>
-            </list>
-        </field>
-    </record>
-    <record id="supplier_claim_search_view" model="ir.ui.view">
-        <field name="name">supplier.claim.search</field>
-        <field name="model">supplier_claim</field>
-        <field name="arch" type="xml">
-            <search string="Reclamos a proveedor">
-                <field name="name"/><field name="supplier_id"/><field name="product_id"/>
-                <filter name="open" string="Abiertos" domain="[('state', '=', 'open')]"/>
-                <filter name="in_progress" string="En gestión" domain="[('state', '=', 'in_progress')]"/>
-                <filter name="resolved" string="Resueltos" domain="[('state', '=', 'resolved')]"/>
-                <filter name="rejected" string="Rechazados" domain="[('state', '=', 'rejected')]"/>
-                <group expand="0" string="Agrupar por">
-                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
-                    <filter name="group_supplier" string="Proveedor" context="{'group_by': 'supplier_id'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
+    <data>
+        <record id="supplier_claim_list_view" model="ir.ui.view">
+            <field name="name">supplier.claim.list</field>
+            <field name="model">supplier_claim</field>
+            <field name="arch" type="xml">
+                <list string="Reclamos a Proveedor" create="false" delete="false"
+                    default_order="creation_date desc, id desc">
+                    <field name="state" widget="badge" string="Estado" width="120px"
+                        decoration-danger="state == 'open'"
+                        decoration-warning="state == 'in_progress'"
+                        decoration-success="state == 'resolved'"
+                        decoration-muted="state == 'rejected'"/>
+                    <field name="name" string="Identificador" optional="hide"/>
+                    <field name="claim_type" string="Tipo"/>
+                    <field name="product_id" string="Producto"/>
+                    <field name="supplier_id" string="Proveedor"/>
+                    <field name="client_claim_id" string="Reclamo de cliente" optional="show"/>
+                    <field name="purchase_invoice_id" string="Factura de compra" optional="hide"/>
+                    <field name="reception_id" string="Ingreso" optional="hide"/>
+                    <field name="list_price" string="Precio de lista" optional="hide"/>
+                    <field name="who_created_id" string="Creado por" widget="many2one_avatar_user" optional="show"/>
+                    <field name="creation_date" string="Fecha de creación" optional="show"/>
+                    <field name="observations" string="Observaciones" optional="hide"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="supplier_claim_search_view" model="ir.ui.view">
+            <field name="name">supplier.claim.search</field>
+            <field name="model">supplier_claim</field>
+            <field name="arch" type="xml">
+                <search string="Reclamo a Proveedor">
+                    <field name="name"/>
+                    <field name="supplier_id"/>
+                    <field name="product_id"/>
+                    <field name="purchase_invoice_id"/>
+                    <field name="reception_id"/>
+                    <field name="client_claim_id"/>
+                    <field name="observations"/>
+                    <filter name="open" string="Abierto" domain="[('state', '=', 'open')]"/>
+                    <filter name="in_progress" string="En Gestión" domain="[('state', '=', 'in_progress')]"/>
+                    <filter name="resolved" string="Resuelto" domain="[('state', '=', 'resolved')]"/>
+                    <filter name="rejected" string="Rechazado" domain="[('state', '=', 'rejected')]"/>
+                    <separator/>
+                    <filter name="warranty" string="Garantía" domain="[('claim_type', '=', 'warranty')]"/>
+                    <filter name="defective" string="Defectuoso" domain="[('claim_type', '=', 'defective')]"/>
+                    <filter name="return_claim" string="Devolución" domain="[('claim_type', '=', 'return_claim')]"/>
+                    <filter name="missing" string="Faltante" domain="[('claim_type', '=', 'missing')]"/>
+                    <filter name="excess" string="Sobrante" domain="[('claim_type', '=', 'excess')]"/>
+                    <group expand="0" string="Agrupar por">
+                        <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                        <filter name="group_supplier" string="Proveedor" context="{'group_by': 'supplier_id'}"/>
+                        <filter name="group_product" string="Producto" context="{'group_by': 'product_id'}"/>
+                        <filter name="group_claim_type" string="Tipo" context="{'group_by': 'claim_type'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+    </data>
 </odoo>
