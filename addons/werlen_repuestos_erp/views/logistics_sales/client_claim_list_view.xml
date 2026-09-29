@@ -1,30 +1,79 @@
 <odoo>
-    <record id="client_claim_list_view" model="ir.ui.view">
-        <field name="name">client.claim.list</field><field name="model">client_claim</field>
-        <field name="arch" type="xml"><list string="Reclamos de cliente" create="false" delete="false">
-            <field name="name" string="Número"/><field name="claim_date" string="Fecha"/>
-            <field name="client_name" string="Cliente"/><field name="product_id" string="Producto"/>
-            <field name="state" widget="badge"
-                decoration-info="state == 'draft'"
-                decoration-warning="state == 'valid'"
-                decoration-success="state == 'resolved'"
-                decoration-danger="state == 'canceled'"/>
-            <field name="supplier_claim_id" string="Reclamo a proveedor" optional="show"/>
-            <field name="supplier_claim_state" string="Estado del reclamo a proveedor" widget="badge" optional="show"
-                decoration-success="supplier_claim_state == 'resolved'"
-                decoration-danger="supplier_claim_state == 'rejected'"
-                decoration-warning="supplier_claim_state in ('open', 'in_progress')"/>
-            <field name="reason" optional="hide"/>
-        </list></field>
-    </record>
-    <record id="client_claim_search_view" model="ir.ui.view">
-        <field name="name">client.claim.search</field><field name="model">client_claim</field>
-        <field name="arch" type="xml"><search string="Reclamos de cliente">
-            <field name="name"/><field name="client_name"/><field name="product_id"/>
-            <filter name="draft" string="Borradores" domain="[('state', '=', 'draft')]"/>
-            <filter name="valid" string="Válidos" domain="[('state', '=', 'valid')]"/>
-            <filter name="resolved" string="Resueltos" domain="[('state', '=', 'resolved')]"/>
-            <filter name="canceled" string="Cancelados" domain="[('state', '=', 'canceled')]"/>
-        </search></field>
-    </record>
+    <data>
+        <record id="client_claim_list_view" model="ir.ui.view">
+            <field name="name">client.claim.list</field>
+            <field name="model">client_claim</field>
+            <field name="arch" type="xml">
+                <list string="Reclamos de Cliente" create="false" edit="false" delete="false"
+                    default_order="claim_date desc, id desc" expand="1">
+                    <field name="state" widget="badge" string="Estado"
+                        decoration-muted="state == 'draft'"
+                        decoration-warning="state == 'valid'"
+                        decoration-success="state == 'resolved'"
+                        decoration-danger="state == 'canceled'"/>
+                    <field name="name" string="Número" optional="show"/>
+                    <field name="claim_date" string="Fecha de reclamo"/>
+                    <field name="client_name" string="Cliente"/>
+                    <field name="client_dni" string="DNI" optional="hide"/>
+                    <field name="product_brand" string="Marca" optional="show"/>
+                    <field name="product_id" string="Producto" optional="show"/>
+                    <field name="vehicle_description" string="Vehículo" optional="hide"/>
+                    <field name="sale_fulfillment_order_id" string="Factura de venta" optional="show"/>
+                    <field name="sale_invoice_date" string="Fecha de factura" optional="hide"/>
+                    <field name="resolution_date" string="Fecha de resolución" optional="hide"/>
+                    <field name="supplier_claim_pending" string="Pendiente de RP" widget="boolean_toggle"
+                        readonly="1" optional="hide"/>
+                    <field name="supplier_claim_id" string="Reclamo a proveedor" optional="show"/>
+                    <field name="who_created_id" string="Registrado por" widget="many2one_avatar_user" optional="show"/>
+                    <field name="supplier_claim_state" string="Estado del reclamo a proveedor" widget="badge" optional="show"
+                        decoration-success="supplier_claim_state == 'resolved'"
+                        decoration-danger="supplier_claim_state == 'rejected'"
+                        decoration-muted="supplier_claim_state not in ('resolved', 'rejected')"/>
+                    <field name="reason" string="Motivo" optional="hide"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="client_claim_search_view" model="ir.ui.view">
+            <field name="name">client.claim.search</field>
+            <field name="model">client_claim</field>
+            <field name="arch" type="xml">
+                <search string="Reclamo de Cliente">
+                    <field name="name"/>
+                    <field name="client_name"/>
+                    <field name="client_dni"/>
+                    <field name="client_phone"/>
+                    <field name="product_id"/>
+                    <field name="product_brand"/>
+                    <field name="vehicle_description"/>
+                    <field name="sale_fulfillment_order_id"/>
+                    <field name="supplier_claim_id"/>
+                    <field name="reason"/>
+                    <field name="resolution_observations"/>
+                    <filter name="draft" string="Borrador" domain="[('state', '=', 'draft')]"/>
+                    <filter name="valid" string="Válido" domain="[('state', '=', 'valid')]"/>
+                    <filter name="resolved" string="Resuelto" domain="[('state', '=', 'resolved')]"/>
+                    <filter name="canceled" string="Rechazado" domain="[('state', '=', 'canceled')]"/>
+                    <separator/>
+                    <filter name="with_supplier_claim" string="Con reclamo a proveedor"
+                        domain="[('supplier_claim_id', '!=', False)]"/>
+                    <filter name="without_supplier_claim" string="Sin reclamo a proveedor"
+                        domain="[('supplier_claim_id', '=', False)]"/>
+                    <filter name="supplier_claim_pending" string="Pendientes de reclamo a proveedor"
+                        domain="[('supplier_claim_pending', '=', True)]"/>
+                    <filter name="supplier_claim_not_required" string="No reclamar a proveedor"
+                        domain="[('supplier_claim_not_required', '=', True)]"/>
+                    <group expand="0" string="Agrupar por">
+                        <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                        <filter name="group_claim_date" string="Fecha de reclamo" context="{'group_by': 'claim_date'}"/>
+                        <filter name="group_client" string="Cliente" context="{'group_by': 'client_name'}"/>
+                        <filter name="group_product" string="Producto" context="{'group_by': 'product_id'}"/>
+                        <filter name="group_brand" string="Marca" context="{'group_by': 'product_brand'}"/>
+                        <filter name="group_invoice" string="Factura" context="{'group_by': 'sale_fulfillment_order_id'}"/>
+                        <filter name="group_created_by" string="Registrado por" context="{'group_by': 'who_created_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+    </data>
 </odoo>

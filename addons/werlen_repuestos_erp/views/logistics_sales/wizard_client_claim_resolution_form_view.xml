@@ -1,7 +1,27 @@
-<odoo><record id="wizard_client_claim_resolution_form_view" model="ir.ui.view">
-    <field name="name">wizard.client.claim.resolution.form</field><field name="model">wizard_client_claim_resolution</field>
-    <field name="arch" type="xml"><form string="Resolver reclamo de cliente">
-        <group><field name="claim_id"/><field name="target_state"/><field name="observations"/></group>
-        <footer><button name="action_apply" type="object" string="Aplicar" class="oe_highlight"/><button string="Cancelar" special="cancel"/></footer>
-    </form></field>
-</record></odoo>
+<odoo>
+    <data>
+        <record id="wizard_client_claim_resolution_form_view" model="ir.ui.view">
+            <field name="name">wizard.client.claim.resolution.form</field>
+            <field name="model">wizard_client_claim_resolution</field>
+            <field name="arch" type="xml">
+                <form string="Resolver o rechazar reclamo" create="false" delete="false">
+                    <field name="claim_id" invisible="1"/>
+                    <field name="target_state" invisible="1"/>
+                    <div class="alert alert-success" role="alert" invisible="target_state != 'resolved'">
+                        El reclamo será marcado como <b>Resuelto</b>.
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="target_state != 'canceled'">
+                        El reclamo será marcado como <b>Rechazado</b>.
+                    </div>
+                    <separator string="Observaciones"/>
+                    <field name="observations" placeholder="Describa cómo se resolvió o por qué se rechazó"
+                        required="1" nolabel="1"/>
+                    <footer>
+                        <button name="action_apply" type="object" string="Confirmar" class="oe_highlight"/>
+                        <button string="Cancelar" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>
