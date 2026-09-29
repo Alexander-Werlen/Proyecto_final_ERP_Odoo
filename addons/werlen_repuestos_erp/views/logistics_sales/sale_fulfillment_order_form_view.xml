@@ -5,252 +5,180 @@
             <field name="model">sale_fulfillment_order</field>
             <field name="arch" type="xml">
                 <form string="Orden de Venta" create="0" edit="1" delete="0">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <field name="logistical_status" widget="statusbar"
+                            statusbar_visible="draft,awaiting_payment,awaiting_preparation,in_preparation,prepared,sent"
+                            invisible="logistical_status == 'avoid_tracking'"/>
+                        <field name="logistical_status" widget="statusbar"
+                            statusbar_visible="draft,avoid_tracking"
+                            invisible="logistical_status != 'avoid_tracking'"/>
+                        <field name="payment_status" widget="statusbar"
+                            statusbar_visible="not_paid,partially_paid,paid"
+                            invisible="payment_status == 'account'"/>
+                        <field name="payment_status" widget="statusbar"
+                            statusbar_visible="account"
+                            invisible="payment_status != 'account'"/>
+                    </div>
+                    <header>
+                        <button name="start_verification" type="object" string="Verificar"
+                            invisible="logistical_status != 'draft'" class="oe_highlight"
+                            groups="werlen_repuestos_erp.group_sales"/>
+                        <button name="hand_out" type="object" string="Entregar"
+                            invisible="logistical_status != 'prepared'" class="oe_highlight" icon="fa-send"
+                            groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation,werlen_repuestos_erp.group_accountant"/>
+                        <button name="undo_hand_out" type="object" string="Deshacer entrega"
+                            invisible="logistical_status != 'sent'" class="btn btn-outline-danger"
+                            confirm="¿Está seguro de que desea deshacer la entrega?" icon="fa-undo"
+                            groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation,werlen_repuestos_erp.group_accountant"/>
+                        <button name="action_restart_logistical_flow" type="object" string="Reiniciar flujo"
+                            invisible="logistical_status != 'avoid_tracking'" class="btn btn-outline-danger"
+                            confirm="¿Está seguro de que desea reiniciar el flujo logístico de esta orden? Se borrarán los registros de preparación y entrega."
+                            icon="fa-refresh" groups="werlen_repuestos_erp.group_management"/>
+                        <button name="start_preparation" type="object" string="Preparar"
+                            class="oe_highlight" invisible="logistical_status != 'awaiting_preparation'" icon="fa-archive"
+                            groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation"/>
+                        <button name="action_open_wizard_preparation" type="object" string="Finalizar preparación"
+                            class="oe_highlight" invisible="logistical_status != 'in_preparation'" icon="fa-thumbs-up"
+                            groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation"/>
+                        <button name="undo_start_preparation" type="object" string="Cancelar preparación"
+                            invisible="logistical_status != 'in_preparation'" class="btn btn-outline-danger"
+                            confirm="¿Está seguro que desea cancelar la preparación?" icon="fa-ban"
+                            groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation"/>
+                        <button name="undo_finish_preparation" type="object" string="Deshacer preparación"
+                            invisible="logistical_status != 'prepared'" class="btn btn-outline-danger"
+                            confirm="¿Está seguro que desea deshacer la preparación?" icon="fa-undo"
+                            groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation"/>
+                        <button name="create_new_payment" type="object" string="Pagar"
+                            class="oe_highlight"
+                            invisible="payment_status in ['paid', 'account'] or logistical_status == 'draft'"
+                            icon="fa-usd" groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_accountant"/>
+                        <button name="open_manual_reconciliation_line_form" type="object" string="Reconciliar"
+                            class="oe_highlight"
+                            invisible="payment_status in ['paid', 'account'] or logistical_status == 'draft'"
+                            icon="fa-random" groups="werlen_repuestos_erp.group_accountant"/>
+                        <button name="show_payment_lines" type="object" string="Ver pagos" icon="fa-eye"
+                            invisible="logistical_status == 'draft' or payment_status == 'account'"/>
+                        <button name="show_reconciliation_lines" type="object" string="Ver reconciliaciones" icon="fa-list"
+                            invisible="logistical_status == 'draft' or payment_status == 'account'"/>
+                    </header>
+                    <div class="alert alert-danger" role="alert"
+                        invisible="amount_not_paid_unconfirmed == 0 or logistical_status == 'draft'">
+                        <strong>Atención:</strong> Falta reconciliar
+                        <field name="amount_not_paid_unconfirmed" readonly="1" nolabel="1"/>
+                        de la orden.
+                    </div>
+                    <sheet>
+                        <widget name="web_ribbon" title="Verificar" bg_color="bg-danger" invisible="logistical_status != 'draft'"/>
+                        <widget name="web_ribbon" title="A pagar" bg_color="bg-warning" invisible="logistical_status != 'awaiting_payment'"/>
+                        <widget name="web_ribbon" title="A preparar" bg_color="bg-primary" invisible="logistical_status != 'awaiting_preparation'"/>
+                        <widget name="web_ribbon" title="En preparación" bg_color="bg-info" invisible="logistical_status != 'in_preparation'"/>
+                        <widget name="web_ribbon" title="Preparado" bg_color="bg-success" invisible="logistical_status != 'prepared'"/>
+                        <widget name="web_ribbon" title="Entregado" bg_color="bg-info" invisible="logistical_status != 'sent'"/>
+                        <widget name="web_ribbon" title="Sin seguimiento" bg_color="bg-info" invisible="logistical_status != 'avoid_tracking'"/>
 
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <!-- Rama normal -->
-                    <field name="logistical_status"
-                        widget="statusbar"
-                        statusbar_visible="draft,awaiting_payment,awaiting_preparation,in_preparation,prepared,sent"
-                        invisible="logistical_status == 'avoid_tracking'"/>
-
-                    <!-- Rama sin seguimiento -->
-                    <field name="logistical_status"
-                        widget="statusbar"
-                        statusbar_visible="draft,avoid_tracking"
-                        invisible="logistical_status != 'avoid_tracking'"/>
-                </div>
-
-                <header>
-                    <button name="start_verification" type="object"
-                    string="Verificar"
-                    invisible="logistical_status != 'draft'"
-                    class="oe_highlight"
-                    groups="werlen_repuestos_erp.group_sales"
-                    />
-                    <button name="hand_out" type="object"
-                    string="Entregar"
-                    invisible="logistical_status != 'prepared'"
-                    class="oe_highlight"
-                    icon="fa-send"
-                    groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation,werlen_repuestos_erp.group_accountant"
-                    />
-                    <button name="create_new_payment" type="object"
-                    string="Registrar pago"
-                    invisible="logistical_status not in ['awaiting_payment', 'awaiting_preparation'] or payment_status in ['paid', 'account']"
-                    class="oe_highlight"
-                    icon="fa-usd"
-                    groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_accountant"
-                    />
-                    <button name="undo_hand_out" type="object"
-                    string="Deshacer Entrega"
-                    invisible="logistical_status != 'sent'"
-                    class="btn btn-outline-danger"
-                    confirm="¿Está seguro de que desea deshacer la entrega?"
-                    icon="fa-undo"
-                    groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation,werlen_repuestos_erp.group_accountant"
-                    />
-                    <button name="action_restart_logistical_flow" type="object"
-                    string="Reiniciar Flujo"
-                    invisible="logistical_status != 'avoid_tracking'"
-                    class="btn btn-outline-danger"
-                    confirm="¿Está seguro de que desea reiniciar el flujo logístico de esta orden? Se borrarán los registros de preparación y entrega."
-                    icon="fa-refresh"
-                    groups="werlen_repuestos_erp.group_management"
-                    />
-
-                    <button name="start_preparation" type="object"
-                    string="Preparar"
-                    class="oe_highlight"
-                    invisible="logistical_status != 'awaiting_preparation'"
-                    icon="fa-archive"
-                    groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation"
-                    />
-                    <button name="action_open_wizard_preparation" type="object"
-                    string="Finalizar Preparación"
-                    class="oe_highlight"
-                    invisible="logistical_status != 'in_preparation'"
-                    icon="fa-thumbs-up"
-                    groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation"
-                    />
-                    <button name="undo_start_preparation" type="object"
-                    string="Cancelar Preparación"
-                    invisible="logistical_status != 'in_preparation'"
-                    class="btn btn-outline-danger"
-                    confirm="¿Está seguro que desea cancelar la preparación?"
-                    icon="fa-ban"
-                    groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation"
-                    />
-                    <button name="undo_finish_preparation" type="object"
-                    string="Deshacer Preparación"
-                    invisible="logistical_status != 'prepared'"
-                    class="btn btn-outline-danger"
-                    confirm="¿Está seguro que desea deshacer la preparación?"
-                    icon="fa-undo"
-                    groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_preparation"
-                    />
-                </header>
-
-                <sheet>
-
-                    <widget name="web_ribbon" title="Verificar"
-                    bg_color="bg-danger" invisible="logistical_status != 'draft'"
-                    />
-                    <widget name="web_ribbon" title="A Preparar"
-                    bg_color="bg-primary" invisible="logistical_status != 'awaiting_preparation'"
-                    />
-                    <widget name="web_ribbon" title="A Pagar"
-                    bg_color="bg-warning" invisible="logistical_status != 'awaiting_payment'"
-                    />
-                    <widget name="web_ribbon" title="En Preparación"
-                    bg_color="bg-info" invisible="logistical_status != 'in_preparation'"
-                    />
-                    <widget name="web_ribbon" title="Preparado"
-                    bg_color="bg-success" invisible="logistical_status != 'prepared'"
-                    />
-                    <widget name="web_ribbon" title="Entregado"
-                    bg_color="bg-info" invisible="logistical_status != 'sent'"
-                    />
-                    <widget name="web_ribbon" title="Sin Seguimiento"
-                    bg_color="bg-info" invisible="logistical_status != 'avoid_tracking'"
-                    />
-
-                    <h1>
-                    ORDEN DE VENTA
-                    </h1>
-
-                    <field name="currency_id" readonly="1" invisible="1"/>
-                    <div>
-                        <group>
+                        <h1>ORDEN DE VENTA</h1>
+                        <field name="currency_id" readonly="1" invisible="1"/>
+                        <group string="Datos de la venta">
                             <group>
                                 <field name="invoice_id" readonly="1"/>
                                 <field name="client" readonly="1"/>
                                 <field name="full_name" readonly="1" invisible="client_identifier != 'C00000'"/>
                                 <field name="total_cost" readonly="1"/>
-                                <field name="payment_status" readonly="1"/>
-                                <field name="amount_not_paid_unconfirmed" readonly="1"/>
                             </group>
                             <group>
-                                <field name="is_asigned_to_preparation_team"
-                                widget="boolean_toggle"
-                                readonly="logistical_status not in
-                                    [
-                                    'awaiting_preparation',
-                                    'in_preparation',
-                                    'prepared'
-                                    ]"
-                                />
+                                <field name="is_asigned_to_preparation_team" widget="boolean_toggle"
+                                    readonly="logistical_status not in ['awaiting_payment', 'awaiting_preparation', 'in_preparation', 'prepared']"/>
+                                <field name="allow_deferred_payment" widget="boolean_toggle"
+                                    readonly="logistical_status not in ['awaiting_payment', 'awaiting_preparation']"/>
                             </group>
                         </group>
+
+                        <separator string="Pagos asociados" invisible="payment_status == 'account'"/>
+                        <field name="related_payment_lines" invisible="payment_status == 'account'" nolabel="1">
+                            <list create="false" delete="false" edit="false" decoration-danger="confirmed == False">
+                                <field name="currency_id" column_invisible="True"/>
+                                <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="payment_method" string="Método"/>
+                                <field name="journal" string="Diario"/>
+                                <field name="confirmed_text" string="Confirmado"/>
+                                <button name="confirm_payment" type="object" string="Confirmar" width="70px"
+                                    class="btn btn-primary" invisible="confirmed == True"
+                                    groups="werlen_repuestos_erp.group_accountant"/>
+                                <button name="try_undo_last_step" type="object" string="Deshacer" width="70px"
+                                    class="btn btn-outline-danger"
+                                    groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_sales"
+                                    confirm="¿Está seguro de que desea deshacer la confirmación o creación del pago?"/>
+                                <field name="who_confirmed_payment" optional="hide"/>
+                                <field name="time_of_payment_confirmation" optional="hide"/>
+                                <field name="who_proposed_payment" optional="hide"/>
+                                <field name="time_of_payment_proposal" optional="hide"/>
+                                <field name="name" optional="hide"/>
+                            </list>
+                        </field>
 
                         <separator string="Punto de venta"/>
                         <group>
                             <group>
                                 <field name="point_of_sale"
-                                readonly="logistical_status not in
-                                    [
-                                    'awaiting_preparation',
-                                    'in_preparation',
-                                    'prepared'
-                                    ]"
-                                />
+                                    readonly="logistical_status not in ['awaiting_payment', 'awaiting_preparation', 'in_preparation', 'prepared']"/>
                             </group>
                             <group>
                                 <field name="cellphone"
-                                readonly="logistical_status not in
-                                    [
-                                    'awaiting_preparation',
-                                    'in_preparation',
-                                    'prepared'
-                                    ]"
-                                />
+                                    readonly="logistical_status not in ['awaiting_payment', 'awaiting_preparation', 'in_preparation', 'prepared']"/>
                             </group>
                         </group>
 
-                        <separator string="Datos de envio"/>
+                        <separator string="Datos de envío"/>
                         <group>
                             <group>
-                                <field name="has_delivery"
-                                widget="boolean_toggle"
-                                readonly="logistical_status not in
-                                    [
-                                    'awaiting_preparation',
-                                    'in_preparation',
-                                    'prepared'
-                                    ]"
-                                />
+                                <field name="has_delivery" widget="boolean_toggle"
+                                    readonly="logistical_status not in ['awaiting_payment', 'awaiting_preparation', 'in_preparation', 'prepared']"/>
+                                <field name="allow_repayment" widget="boolean_toggle"
+                                    readonly="logistical_status not in ['awaiting_payment', 'awaiting_preparation', 'in_preparation', 'prepared']"/>
                             </group>
                             <group>
                                 <field name="who_withdraws"
-                                readonly="logistical_status not in
-                                    [
-                                    'awaiting_preparation',
-                                    'in_preparation',
-                                    'prepared'
-                                    ]"
-                                />
+                                    readonly="logistical_status not in ['awaiting_payment', 'awaiting_preparation', 'in_preparation', 'prepared']"/>
                                 <field name="destination"
-                                readonly="logistical_status not in
-                                    [
-                                    'awaiting_preparation',
-                                    'in_preparation',
-                                    'prepared'
-                                    ]"
-                                />
+                                    readonly="logistical_status not in ['awaiting_payment', 'awaiting_preparation', 'in_preparation', 'prepared']"/>
                                 <field name="city"
-                                readonly="logistical_status not in
-                                    [
-                                    'awaiting_preparation',
-                                    'in_preparation',
-                                    'prepared'
-                                    ]"
-                                />
+                                    readonly="logistical_status not in ['awaiting_payment', 'awaiting_preparation', 'in_preparation', 'prepared']"/>
+                                <field name="state"
+                                    readonly="logistical_status not in ['awaiting_payment', 'awaiting_preparation', 'in_preparation', 'prepared']"/>
                             </group>
                         </group>
-                    </div>
 
-                    <notebook>
-                        <page string="Observaciones">
-                            <field name="observations" readonly="logistical_status == 'draft'"/>
-                        </page>
-                        <page string="Info creación">
-                            <group>
-                                <field name="seller" readonly="1"/>
-                                <field name="date" readonly="1"/>
-                            </group>
-                        </page>
-                        <page string="Info preparación">
-                            <group>
+                        <notebook>
+                            <page string="Observaciones">
+                                <field name="observations" readonly="logistical_status == 'draft'" nolabel="1"/>
+                            </page>
+                            <page string="Información de creación">
                                 <group>
-                                    <field name="who_prepared" readonly="1"/>
-                                    <field name="packages_count" readonly="1"/>
+                                    <field name="seller" readonly="1"/>
+                                    <field name="date" readonly="1"/>
                                 </group>
+                            </page>
+                            <page string="Información de preparación">
                                 <group>
-                                    <field name="time_of_preparation_start" readonly="1"/>
-                                    <field name="time_of_preparation_end" readonly="1"/>
+                                    <group>
+                                        <field name="who_prepared" readonly="1"/>
+                                        <field name="packages_count" readonly="1"/>
+                                    </group>
+                                    <group>
+                                        <field name="time_of_preparation_start" readonly="1"/>
+                                        <field name="time_of_preparation_end" readonly="1"/>
+                                    </group>
                                 </group>
-                            </group>
-                        </page>
-                        <page string="Info entrega">
-                            <group>
-                                <field name="who_handed_over" readonly="1"/>
-                                <field name="time_of_handing_over" readonly="1"/>
-                            </group>
-                        </page>
-                        <page string="Pagos">
-                            <field name="related_payment_lines" readonly="1">
-                                <list create="0" edit="0" delete="0">
-                                    <field name="name"/>
-                                    <field name="amount"/>
-                                    <field name="payment_method"/>
-                                    <field name="journal"/>
-                                    <field name="confirmed"/>
-                                    <field name="payment_status"/>
-                                </list>
-                            </field>
-                        </page>
-                    </notebook>
-                </sheet>
-                <chatter/>
+                            </page>
+                            <page string="Información de entrega">
+                                <group>
+                                    <field name="who_handed_over" readonly="1"/>
+                                    <field name="time_of_handing_over" readonly="1"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
                 </form>
             </field>
         </record>

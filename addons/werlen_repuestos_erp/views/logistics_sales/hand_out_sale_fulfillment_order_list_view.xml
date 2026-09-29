@@ -43,6 +43,17 @@
                     <field name="who_prepared"
                     optional="hide"
                     />
+                    <field name="allow_repayment"
+                    widget="boolean_toggle"
+                    string="Contra-reembolso"
+                    width="70px"
+                    />
+                    <field name="is_account_move"
+                    widget="boolean_toggle"
+                    string="Cuenta corriente"
+                    width="70px"
+                    optional="hide"
+                    />
                     <field name="packages_count"
                     class="fw-bold text-dark"
                     />
@@ -50,6 +61,15 @@
                     class="fw-bold text-dark"
                     />
                     <field name="currency_id" column_invisible="True"/>
+                    <field name="payment_status"
+                    widget="badge"
+                    decoration-success="payment_status == 'paid'"
+                    decoration-warning="payment_status == 'partially_paid'"
+                    decoration-danger="payment_status == 'not_paid'"
+                    decoration-info="payment_status == 'account'"
+                    width="100px"
+                    string="Pago"
+                    />
                 </list>
             </field>
         </record>
@@ -66,6 +86,7 @@
                     <field name="full_name"/>
                     <field name="seller"/>
                     <field name="who_withdraws"/>
+                    <field name="total_cost" string="Importe total"/>
 
                     <!-- Filtros -->
 

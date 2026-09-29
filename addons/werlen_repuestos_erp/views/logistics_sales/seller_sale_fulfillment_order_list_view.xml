@@ -8,8 +8,8 @@
                     <field name="logistical_status"
                     widget="badge"
                     decoration-danger="logistical_status == 'draft'"
-                    decoration-warning="logistical_status in ['awaiting_payment', 'awaiting_preparation']"
-                    decoration-primary="logistical_status in ['prepared', 'in_preparation']"
+                    decoration-warning="logistical_status == 'awaiting_payment'"
+                    decoration-primary="logistical_status in ['prepared', 'awaiting_preparation', 'in_preparation']"
                     decoration-success="logistical_status in ['avoid_tracking', 'sent']"
                     width="120px"
                     string="Estado"
@@ -28,8 +28,28 @@
                     widget="boolean_toggle"
                     width="60px"
                     />
+                    <field name="allow_repayment"
+                    widget="boolean_toggle"
+                    string="Contra-reembolso"
+                    width="70px"
+                    />
+                    <field name="is_account_move"
+                    widget="boolean_toggle"
+                    string="Cuenta corriente"
+                    width="70px"
+                    optional="hide"
+                    />
                     <field name="total_cost" class="fw-bold text-dark"/>
                     <field name="currency_id" column_invisible="True"/>
+                    <field name="payment_status"
+                    widget="badge"
+                    decoration-danger="payment_status == 'not_paid'"
+                    decoration-warning="payment_status == 'partially_paid'"
+                    decoration-success="payment_status == 'paid'"
+                    decoration-info="payment_status == 'account'"
+                    width="100px"
+                    string="Pago"
+                    />
                 </list>
             </field>
         </record>
@@ -48,6 +68,7 @@
                     <field name="who_withdraws"/>
                     <field name="destination"/>
                     <field name="city"/>
+                    <field name="total_cost" string="Importe total"/>
 
                     <!-- Filtros -->
 
@@ -93,6 +114,9 @@
                         <filter string="Estado Logistico"
                         name="group_logistical_status"
                         context="{'group_by':'logistical_status'}"/>
+                        <filter string="Estado del Pago"
+                        name="group_payment_status"
+                        context="{'group_by':'payment_status'}"/>
                     </group>
 
                 </search>
