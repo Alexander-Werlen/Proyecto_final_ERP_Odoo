@@ -1,31 +1,90 @@
 <odoo>
-    <record id="view_partner_form_financial_inherit" model="ir.ui.view">
-        <field name="name">res.partner.form.financial.inherit</field>
-        <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base.view_partner_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//sheet" position="before">
-                <header>
-                    <button name="action_open_wizard_current_account_income" type="object" string="Ingreso a CC" class="oe_highlight" groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_accountant"/>
-                    <button name="action_open_new_check_for_current_account" type="object" string="Cheque a CC" groups="werlen_repuestos_erp.group_manage_account_payments"/>
-                    <button name="action_open_pending_account_payments" type="object" string="Recibos pendientes" groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration"/>
-                </header>
-            </xpath>
-            <xpath expr="//field[@name='vat']" position="after">
-                <field name="unique_identifier"/>
-                <field name="city_relational_id"/>
-            </xpath>
-        </field>
-    </record>
+    <data>
+        <record id="view_partner_form_inherit" model="ir.ui.view">
+            <field name="name">Partner Form View Inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="replace">
+                    <form>
+                        <header>
+                            <button name="action_open_wizard_current_account_income" type="object"
+                                class="oe_highlight" icon="fa-money" string="Pago a cuenta corriente"
+                                groups="werlen_repuestos_erp.group_manage_account_payments"/>
+                            <button name="action_open_new_check_for_current_account" type="object"
+                                class="oe_highlight" icon="fa-list-alt" string="Cheque a cuenta corriente"
+                                groups="werlen_repuestos_erp.group_manage_account_payments"/>
+                            <button name="action_open_pending_account_payments" type="object"
+                                string="Ver recibos pendientes"
+                                groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration"/>
+                        </header>
+                        <sheet>
+                            <field name="image_1920" widget="image" class="oe_avatar"
+                                options="{'preview_image': 'avatar_128'}"/>
+                            <div class="oe_title mb24">
+                                <field name="company_type" widget="radio" options="{'horizontal': true}"/>
+                                <h1>
+                                    <field id="company" options="{'line_breaks': False}" widget="text"
+                                        class="text-break" name="name" default_focus="1"
+                                        placeholder="Por ejemplo, Werlen Repuestos"
+                                        invisible="not is_company" required="type == 'contact'"/>
+                                    <field id="individual" options="{'line_breaks': False}" widget="text"
+                                        class="text-break" name="name" default_focus="1"
+                                        placeholder="Por ejemplo, Cesar Werlen"
+                                        invisible="is_company" required="type == 'contact'"/>
+                                </h1>
+                            </div>
+                            <group>
+                                <group>
+                                    <span class="o_form_label o_td_label o_address_type" name="address_name">
+                                        <span>Dirección</span>
+                                    </span>
+                                    <div class="o_address_format">
+                                        <field name="city_relational_id" placeholder="Ciudad..." class="o_address_street"/>
+                                        <field name="street" placeholder="Calle..." class="o_address_street"/>
+                                    </div>
+                                    <field name="phone" placeholder="Por ejemplo, +54 3424777888"/>
+                                </group>
+                                <group>
+                                    <field name="unique_identifier" placeholder="Por ejemplo, C9999"/>
+                                    <field name="email" widget="email" context="{'gravatar_image': True}" required="user_ids"/>
+                                    <field name="vat" placeholder="Por ejemplo, 20-44306557-2"/>
+                                </group>
+                            </group>
+                            <group string="Roles especiales">
+                                <field name="is_supplier" widget="boolean_toggle"/>
+                                <field name="is_carrier" widget="boolean_toggle"/>
+                            </group>
+                            <group string="Destinos de pago"
+                                groups="werlen_repuestos_erp.group_administration"
+                                invisible="not is_supplier">
+                                <field name="supplier_payment_destination_ids" nolabel="1"
+                                    context="{'default_partner_id': id}">
+                                    <list editable="bottom">
+                                        <field name="bank_name"/>
+                                        <field name="bank_number"/>
+                                        <field name="cvu"/>
+                                        <field name="account_number"/>
+                                        <field name="name" readonly="1" optional="show"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </sheet>
+                        <chatter/>
+                    </form>
+                </xpath>
+            </field>
+        </record>
 
-    <record id="view_users_form_default_journal_inherit" model="ir.ui.view">
-        <field name="name">res.users.form.default.journal.inherit</field>
-        <field name="model">res.users</field>
-        <field name="inherit_id" ref="base.view_users_form_simple_modif"/>
-        <field name="arch" type="xml">
-            <xpath expr="//group[@name='preferences']" position="inside">
-                <field name="default_journal_id"/>
-            </xpath>
-        </field>
-    </record>
+        <record id="view_users_form_simple_modif_inherit" model="ir.ui.view">
+            <field name="name">res.users.preferences.form.inherit</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form_simple_modif"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@name='preferences']" position="inside">
+                    <group><field name="default_journal_id"/></group>
+                </xpath>
+            </field>
+        </record>
+    </data>
 </odoo>

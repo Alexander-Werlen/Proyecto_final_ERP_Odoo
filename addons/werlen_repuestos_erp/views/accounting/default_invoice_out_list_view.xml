@@ -33,6 +33,16 @@
 
                 <field name="currency_id" column_invisible="True"/>
 
+                <field name="payment_status"
+                    widget="badge"
+                    decoration-danger="payment_status == 'not_paid'"
+                    decoration-warning="payment_status == 'partially_paid'"
+                    decoration-success="payment_status == 'paid'"
+                    decoration-info="payment_status == 'account'"
+                    width="100px"
+                    string="Pago"
+                />
+
             </list>
         </field>
     </record>
@@ -48,6 +58,12 @@
                 <field name="client"/>
                 <field name="full_name"/>
                 <field name="total_cost"/>
+
+                <group expand="0" string="Agrupar por">
+                    <filter string="Estado del pago"
+                        name="group_payment_status"
+                        context="{'group_by':'payment_status'}"/>
+                </group>
 
             </search>
         </field>
