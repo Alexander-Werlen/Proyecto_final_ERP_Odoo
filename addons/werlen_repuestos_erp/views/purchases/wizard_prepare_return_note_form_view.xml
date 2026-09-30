@@ -1,13 +1,19 @@
 <odoo>
-    <record id="wizard_prepare_return_note_form_view" model="ir.ui.view">
-        <field name="name">wizard.prepare.return.note.form</field>
-        <field name="model">wizard_prepare_return_note</field>
-        <field name="arch" type="xml">
-            <form string="Preparar nota de devolución">
-                <group><field name="return_note_id"/><field name="observations"/></group>
-                <footer><button name="action_prepare" type="object" string="Preparar" class="oe_highlight"/>
-                    <button string="Cancelar" special="cancel"/></footer>
-            </form>
-        </field>
-    </record>
+    <data>
+        <record id="wizard_prepare_return_note_form_view" model="ir.ui.view">
+            <field name="name">wizard.prepare.return.note.form</field>
+            <field name="model">wizard_prepare_return_note</field>
+            <field name="arch" type="xml">
+                <form string="Preparar nota de devolución" create="false" delete="false">
+                    <field name="return_note_id" invisible="1"/>
+                    <separator string="Observaciones"/>
+                    <field name="observations" placeholder="Notas adicionales para la preparación" nolabel="1"/>
+                    <footer>
+                        <button name="action_prepare" type="object" string="Preparar" class="oe_highlight"/>
+                        <button string="Cancelar" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
 </odoo>

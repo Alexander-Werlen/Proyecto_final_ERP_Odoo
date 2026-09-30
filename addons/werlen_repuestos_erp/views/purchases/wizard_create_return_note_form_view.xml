@@ -1,14 +1,27 @@
 <odoo>
-    <record id="wizard_create_return_note_form_view" model="ir.ui.view">
-        <field name="name">wizard.create.return.note.form</field>
-        <field name="model">wizard_create_return_note</field>
-        <field name="arch" type="xml">
-            <form string="Crear nota de devolución">
-                <group><field name="supplier_id"/><field name="carrier_id"/>
-                    <field name="package_count"/><field name="observations"/></group>
-                <footer><button name="action_create" type="object" string="Crear" class="oe_highlight"/>
-                    <button string="Cancelar" special="cancel"/></footer>
-            </form>
-        </field>
-    </record>
+    <data>
+        <record id="wizard_create_return_note_form_view" model="ir.ui.view">
+            <field name="name">wizard.create.return.note.form</field>
+            <field name="model">wizard_create_return_note</field>
+            <field name="arch" type="xml">
+                <form string="Crear Nota de Devolución" create="false" delete="false">
+                    <group>
+                        <group>
+                            <field name="supplier_id" context="{'default_is_supplier': True, 'default_is_company': True, 'default_company_type': 'company'}"
+                                options="{'no_open': True}"/>
+                            <field name="carrier_id" context="{'default_is_carrier': True, 'default_is_company': True, 'default_company_type': 'company'}"/>
+                            <field name="package_count"/>
+                        </group>
+                        <group/>
+                    </group>
+                    <separator string="Observaciones"/>
+                    <field name="observations" placeholder="Notas adicionales sobre la devolución" nolabel="1"/>
+                    <footer>
+                        <button name="action_create" type="object" string="Crear" class="oe_highlight"/>
+                        <button string="Cancelar" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
 </odoo>

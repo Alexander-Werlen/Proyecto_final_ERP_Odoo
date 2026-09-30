@@ -1,15 +1,33 @@
 <odoo>
-    <record id="wizard_create_supplier_claim_form_view" model="ir.ui.view">
-        <field name="name">wizard.create.supplier.claim.form</field>
-        <field name="model">wizard_create_supplier_claim</field>
-        <field name="arch" type="xml">
-            <form string="Crear reclamo a proveedor">
-                <group><field name="claim_type" readonly="client_claim_id"/><field name="supplier_id"/><field name="product_id"/>
-                    <field name="list_price"/><field name="quantity"/><field name="purchase_invoice_id"/>
-                    <field name="reception_id"/><field name="client_claim_id" invisible="1"/><field name="observations"/></group>
-                <footer><button name="action_create" type="object" string="Crear" class="oe_highlight"/>
-                    <button string="Cancelar" special="cancel"/></footer>
-            </form>
-        </field>
-    </record>
+    <data>
+        <record id="wizard_create_supplier_claim_form_view" model="ir.ui.view">
+            <field name="name">wizard.create.supplier.claim.form</field>
+            <field name="model">wizard_create_supplier_claim</field>
+            <field name="arch" type="xml">
+                <form string="Crear Reclamo a Proveedor" create="false" delete="false">
+                    <field name="client_claim_id" invisible="1"/>
+                    <group string="Datos principales">
+                        <group>
+                            <field name="claim_type" readonly="client_claim_id"/>
+                            <field name="supplier_id" context="{'default_is_supplier': True, 'default_is_company': True, 'default_company_type': 'company'}"
+                                options="{'no_open': True}"/>
+                            <field name="product_id" options="{'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="purchase_invoice_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="reception_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="quantity"/>
+                            <field name="list_price"/>
+                        </group>
+                    </group>
+                    <separator string="Observaciones"/>
+                    <field name="observations" placeholder="Notas adicionales sobre el reclamo" nolabel="1"/>
+                    <footer>
+                        <button name="action_create" type="object" string="Crear reclamo" class="oe_highlight"/>
+                        <button string="Cancelar" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
 </odoo>

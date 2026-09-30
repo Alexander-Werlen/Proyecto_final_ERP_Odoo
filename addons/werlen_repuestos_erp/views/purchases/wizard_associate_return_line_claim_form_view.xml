@@ -1,15 +1,31 @@
 <odoo>
-    <record id="wizard_associate_return_line_claim_form_view" model="ir.ui.view">
-        <field name="name">wizard.associate.return.line.claim.form</field>
-        <field name="model">wizard_associate_return_line_claim</field>
-        <field name="arch" type="xml">
-            <form string="Asociar reclamo a devolución">
-                <group><field name="return_note_id"/><field name="claim_id"/>
-                    <field name="product_code"/><field name="product_description"/>
-                    <field name="reason"/><field name="quantity"/></group>
-                <footer><button name="action_associate" type="object" string="Asociar" class="oe_highlight"/>
-                    <button string="Cancelar" special="cancel"/></footer>
-            </form>
-        </field>
-    </record>
+    <data>
+        <record id="wizard_associate_return_line_claim_form_view" model="ir.ui.view">
+            <field name="name">wizard.associate.return.line.claim.form</field>
+            <field name="model">wizard_associate_return_line_claim</field>
+            <field name="arch" type="xml">
+                <form string="Asociar reclamo a devolución" create="false" delete="false">
+                    <group>
+                        <group>
+                            <field name="return_note_id" readonly="1"/>
+                            <field name="claim_id" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="product_code" readonly="1"/>
+                            <field name="quantity"/>
+                        </group>
+                    </group>
+                    <separator string="Datos de la devolución"/>
+                    <group>
+                        <field name="product_description" readonly="1"/>
+                        <field name="reason"/>
+                    </group>
+                    <footer>
+                        <button name="action_associate" type="object" string="Asociar" class="oe_highlight"/>
+                        <button string="Cancelar" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
 </odoo>
