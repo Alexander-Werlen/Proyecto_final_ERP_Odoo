@@ -20,6 +20,32 @@
         <field name="search_view_id" ref="werlen_repuestos_erp.default_invoice_out_search_view"/>
     </record>
 
+    <record id="action_open_draft_credit_notes_out" model="ir.actions.act_window">
+        <field name="name">NC Emitidas (A Verificar)</field>
+        <field name="res_model">credit_note_out</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('werlen_repuestos_erp.default_credit_note_out_list_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('werlen_repuestos_erp.credit_note_out_form_view')})
+        ]"/>
+        <field name="domain">[('state', '=', 'draft')]</field>
+        <field name="search_view_id" ref="werlen_repuestos_erp.default_credit_note_out_search_view"/>
+    </record>
+
+    <record id="action_open_pending_reconciliation_credit_notes_out" model="ir.actions.act_window">
+        <field name="name">NC Emitidas (A Reconciliar)</field>
+        <field name="res_model">credit_note_out</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('werlen_repuestos_erp.default_credit_note_out_list_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('werlen_repuestos_erp.credit_note_out_form_view')})
+        ]"/>
+        <field name="domain">[('payment_status', 'in', ['not_paid', 'partially_paid'])]</field>
+        <field name="search_view_id" ref="werlen_repuestos_erp.default_credit_note_out_search_view"/>
+    </record>
+
     <record id="action_open_legacy_invoice_imports" model="ir.actions.act_window">
         <field name="name">Sincronización de Facturas</field>
         <field name="res_model">legacy_invoice_import</field>
@@ -36,6 +62,23 @@
 
     <record id="action_open_account_payments" model="ir.actions.act_window">
         <field name="name">Recibos</field>
+        <field name="res_model">account_payment</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.default_account_payment_list_view"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.default_account_payment_search_view"/>
+    </record>
+
+    <record id="action_open_relevant_account_payment_list_view" model="ir.actions.act_window">
+        <field name="name">Recibos (Relevantes)</field>
+        <field name="res_model">account_payment</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="werlen_repuestos_erp.default_account_payment_list_view"/>
+        <field name="domain">['|', ('payment_status', 'in', ['not_paid', 'partially_paid']), ('status', '=', 'draft')]</field>
+        <field name="search_view_id" ref="werlen_repuestos_erp.default_account_payment_search_view"/>
+    </record>
+
+    <record id="action_open_account_payment_list_view" model="ir.actions.act_window">
+        <field name="name">Recibos (Todos)</field>
         <field name="res_model">account_payment</field>
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="werlen_repuestos_erp.default_account_payment_list_view"/>
@@ -457,7 +500,7 @@
     <menuitem id="menu_fulfillment_accountant_credit_notes" name="Notas de crédito"
         parent="menu_fulfillment_accountant" sequence="3"/>
     <menuitem id="menu_fulfillment_accountant_credit_notes_not_reconciliated" name="No Reconciliadas"
-        parent="menu_fulfillment_accountant_credit_notes" action="action_open_credit_notes_out" sequence="1"/>
+        parent="menu_fulfillment_accountant_credit_notes" action="action_open_pending_reconciliation_credit_notes_out" sequence="1"/>
     <menuitem id="menu_fulfillment_accountant_credit_notes_all" name="Todas"
         parent="menu_fulfillment_accountant_credit_notes" action="action_open_credit_notes_out" sequence="2"/>
     <menuitem id="menu_fulfillment_accountant_journals" name="Diarios"
@@ -489,18 +532,18 @@
     <menuitem id="menu_fulfillment_credit_notes" name="Notas de crédito" parent="menu_fulfillment" sequence="5"
         groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"/>
     <menuitem id="menu_fulfillment_credit_notes_draft" name="A Verificar"
-        parent="menu_fulfillment_credit_notes" action="action_open_credit_notes_out" sequence="1"/>
+        parent="menu_fulfillment_credit_notes" action="action_open_draft_credit_notes_out" sequence="1"/>
     <menuitem id="menu_fulfillment_credit_notes_not_reconciliated" name="No Reconciliadas"
-        parent="menu_fulfillment_credit_notes" action="action_open_credit_notes_out" sequence="2"/>
+        parent="menu_fulfillment_credit_notes" action="action_open_pending_reconciliation_credit_notes_out" sequence="2"/>
     <menuitem id="menu_fulfillment_credit_notes_all" name="Todas"
         parent="menu_fulfillment_credit_notes" action="action_open_credit_notes_out" sequence="3"/>
 
     <menuitem id="menu_fulfillment_account_payment" name="Recibos" parent="menu_fulfillment" sequence="7"
         groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"/>
     <menuitem id="menu_fulfillment_account_payment_relevant" name="Relevantes"
-        parent="menu_fulfillment_account_payment" action="action_open_account_payments" sequence="1"/>
+        parent="menu_fulfillment_account_payment" action="action_open_relevant_account_payment_list_view" sequence="1"/>
     <menuitem id="menu_fulfillment_account_payment_all" name="Todos"
-        parent="menu_fulfillment_account_payment" action="action_open_account_payments" sequence="2"/>
+        parent="menu_fulfillment_account_payment" action="action_open_account_payment_list_view" sequence="2"/>
 
     <menuitem id="menu_fulfillment_moves" name="Ingresos CC" parent="menu_fulfillment" sequence="9"
         groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"/>
@@ -512,7 +555,7 @@
         parent="menu_fulfillment_moves" action="action_open_payment_lines" sequence="3"/>
 
     <!-- Operations: client claims -->
-    <menuitem id="menu_fulfillment_sales_claims" name="Reclamos Cliente" parent="menu_fulfillment" sequence="99"
+    <menuitem id="menu_fulfillment_sales_claims" name="Reclamos de clientes" parent="menu_fulfillment" sequence="6"
         groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_administration,werlen_repuestos_erp.group_management"/>
     <menuitem id="menu_fulfillment_client_claim_views" name="Ver Reclamos"
         parent="menu_fulfillment_sales_claims" sequence="1"/>
