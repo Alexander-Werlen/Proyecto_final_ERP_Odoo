@@ -3,7 +3,7 @@
         <field name="name">purchase.product.list</field>
         <field name="model">purchase.product</field>
         <field name="arch" type="xml">
-            <list string="Productos" create="true" edit="false" delete="false">
+            <list string="Productos" create="true" edit="false" delete="false" import="true">
                 <field name="name" string="Código del producto"/>
                 <field name="description" string="Descripción"/>
             </list>

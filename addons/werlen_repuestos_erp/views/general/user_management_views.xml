@@ -54,7 +54,7 @@
                             </group>
                         </group>
                         <separator string="Roles"/>
-                        <field name="role_ids" widget="many2many_tags" options="{'no_create': True, 'no_open': True}" domain="[('active', '=', True)]" nolabel="1"/>
+                        <field name="role_ids" widget="many2many_tags" options="{'no_create': True, 'no_open': True}" domain="[('active', '=', True)]" placeholder="Seleccione uno o más roles" nolabel="1"/>
                     </sheet>
                 </form>
             </field>
@@ -72,12 +72,12 @@
                             <field name="default_journal_id" placeholder="Ej.: Caja 1"/>
                         </group>
                         <group>
-                            <field name="password" password="True" autocomplete="new-password"/>
-                            <field name="password_confirmation" password="True" autocomplete="new-password"/>
+                            <field name="password" password="True" autocomplete="new-password" placeholder="Ingrese la contraseña inicial"/>
+                            <field name="password_confirmation" password="True" autocomplete="new-password" placeholder="Repita la contraseña"/>
                         </group>
                     </group>
                     <separator string="Roles"/>
-                    <field name="role_ids" widget="many2many_tags" options="{'no_create': True, 'no_open': True}" domain="[('active', '=', True)]" nolabel="1"/>
+                    <field name="role_ids" widget="many2many_tags" options="{'no_create': True, 'no_open': True}" domain="[('active', '=', True)]" placeholder="Seleccione uno o más roles" nolabel="1"/>
                     <footer>
                         <button name="action_create_user" type="object" string="Crear usuario" class="btn-primary"/>
                         <button string="Cancelar" special="cancel" class="btn-secondary"/>
@@ -93,8 +93,8 @@
                 <form string="Cambiar contraseña" create="false" delete="false" autocomplete="off">
                     <group>
                         <field name="user_id"/>
-                        <field name="password" password="True" autocomplete="new-password"/>
-                        <field name="password_confirmation" password="True" autocomplete="new-password"/>
+                        <field name="password" password="True" autocomplete="new-password" placeholder="Ingrese la nueva contraseña"/>
+                        <field name="password_confirmation" password="True" autocomplete="new-password" placeholder="Repita la contraseña"/>
                     </group>
                     <footer>
                         <button name="action_change_password" type="object" string="Guardar contraseña" class="btn-primary"/>
