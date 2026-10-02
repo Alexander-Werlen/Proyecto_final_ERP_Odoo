@@ -7,19 +7,25 @@
                 <form string="Registrar ingreso de mercadería" create="false" delete="false">
                     <sheet>
                         <h2>Datos del ingreso</h2>
-                        <group>
-                            <group>
-                                <field name="supplier_id" context="{'default_is_supplier': True}"/>
-                                <field name="packages_description" placeholder="Ej.: 3 bultos + 1 pallet"/>
-                                <field name="carrier_id" context="{'default_is_carrier': True}"/>
-                            </group>
-                            <group>
-                                <field name="remito_number"/>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label for="supplier_id"/>
+                                <field name="supplier_id" context="{'default_is_supplier': True}" class="w-100"/>
+                                <label for="packages_description"/>
+                                <field name="packages_description" placeholder="Ej.: 3 bultos + 1 pallet" class="w-100"/>
+                                <label for="carrier_id"/>
+                                <field name="carrier_id" context="{'default_is_carrier': True}" class="w-100"/>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="remito_number"/>
+                                <field name="remito_number" class="w-100"/>
+                                <label for="who_received_ids"/>
                                 <field name="who_received_ids" widget="many2many_tags"
-                                    options="{'no_create': True}"/>
-                                <field name="reception_datetime"/>
-                            </group>
-                        </group>
+                                    options="{'no_create': True}" class="w-100"/>
+                                <label for="reception_datetime"/>
+                                <field name="reception_datetime" class="w-100"/>
+                            </div>
+                        </div>
                         <separator string="Observaciones"/>
                         <field name="observations" nolabel="1" placeholder="Notas adicionales sobre el ingreso"/>
                     </sheet>
