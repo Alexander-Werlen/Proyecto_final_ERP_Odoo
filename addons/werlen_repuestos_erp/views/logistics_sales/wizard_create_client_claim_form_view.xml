@@ -6,21 +6,32 @@
             <field name="arch" type="xml">
                 <form string="Crear Reclamo de Cliente" create="false" delete="false">
                     <sheet>
-                        <group>
-                            <group string="Datos del reclamo">
-                                <field name="product_brand"/>
-                                <field name="product_id"/>
-                                <field name="sale_fulfillment_order_id" options="{'no_create': True}"/>
-                                <field name="reason" placeholder="Describa el motivo del reclamo"/>
-                            </group>
-                            <group string="Datos del cliente">
-                                <field name="client_name"/>
-                                <field name="client_phone"/>
-                                <field name="client_address"/>
-                                <field name="vehicle_description"/>
-                                <field name="claim_date"/>
-                            </group>
-                        </group>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h4>Datos del reclamo</h4>
+                                <label for="product_brand"/>
+                                <field name="product_brand" class="w-100"/>
+                                <label for="product_id"/>
+                                <field name="product_id" class="w-100"/>
+                                <label for="sale_fulfillment_order_id"/>
+                                <field name="sale_fulfillment_order_id" options="{'no_create': True}" class="w-100"/>
+                                <label for="reason"/>
+                                <field name="reason" placeholder="Describa el motivo del reclamo" class="w-100"/>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>Datos del cliente</h4>
+                                <label for="client_name"/>
+                                <field name="client_name" class="w-100"/>
+                                <label for="client_phone"/>
+                                <field name="client_phone" class="w-100"/>
+                                <label for="client_address"/>
+                                <field name="client_address" class="w-100"/>
+                                <label for="vehicle_description"/>
+                                <field name="vehicle_description" class="w-100"/>
+                                <label for="claim_date"/>
+                                <field name="claim_date" class="w-100"/>
+                            </div>
+                        </div>
                     </sheet>
                     <footer>
                         <button name="action_create_client_claim" type="object" string="Crear reclamo"
