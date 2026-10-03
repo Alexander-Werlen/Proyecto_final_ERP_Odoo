@@ -112,20 +112,44 @@
         <field name="model">wizard_verification_credit_note_out</field>
         <field name="arch" type="xml">
             <form string="Verificar nota de crédito">
-                <group>
-                    <field name="credit_note_id" readonly="1"/>
-                    <field name="client" readonly="1"/>
-                    <field name="full_name" readonly="1"/>
-                    <field name="total_amount" readonly="1"/>
-                    <field name="date" readonly="1"/>
-                    <field name="seller_of_related_invoice" readonly="1"/>
-                    <field name="related_invoice" invisible="skip_related_invoice"/>
-                    <field name="skip_related_invoice"/>
-                    <field name="who_created"/>
-                    <field name="who_approved"/>
-                    <field name="observations"/>
-                    <field name="currency_id" invisible="1"/>
-                </group>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="credit_note_id"/>
+                        <field name="credit_note_id" readonly="1" class="w-100"/>
+                        <label for="client"/>
+                        <field name="client" readonly="1" class="w-100"/>
+                        <label for="full_name"/>
+                        <field name="full_name" readonly="1" class="w-100"/>
+                        <label for="total_amount"/>
+                        <field name="total_amount" readonly="1" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <field name="currency_id" invisible="1"/>
+                        <label for="seller_of_related_invoice"/>
+                        <field name="seller_of_related_invoice" readonly="1" class="w-100"/>
+                        <label for="date"/>
+                        <field name="date" readonly="1" class="w-100"/>
+                    </div>
+                </div>
+
+                <separator string="Datos a Completar"/>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="who_created"/>
+                        <field name="who_created" class="w-100"/>
+                        <label for="who_approved"/>
+                        <field name="who_approved" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="skip_related_invoice"/>
+                        <field name="skip_related_invoice" widget="boolean_toggle" class="w-100"/>
+                        <label for="related_invoice"/>
+                        <field name="related_invoice" invisible="skip_related_invoice" class="w-100"/>
+                    </div>
+                </div>
+
+                <label for="observations"/>
+                <field name="observations" placeholder="Observaciones..." class="w-100"/>
                 <footer>
                     <button name="action_confirm_verification" type="object" string="Verificar" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
