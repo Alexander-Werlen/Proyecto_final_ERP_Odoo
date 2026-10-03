@@ -9,21 +9,25 @@
             <field name="model">wizard_fulfillment_order_verification</field>
             <field name="arch" type="xml">
                 <form>
-                    <group>
-                        <group>
-                            <field name="invoice_id" readonly="1"/>
-                            <field name="full_name" readonly="1"/>
-                        </group>
-                        <group>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="invoice_id"/>
+                            <field name="invoice_id" readonly="1" class="w-100"/>
+                            <label for="full_name"/>
+                            <field name="full_name" readonly="1" class="w-100"/>
+                        </div>
+                        <div class="col-md-6">
                             <field name="currency_id" invisible="1"/>
-                            <field name="total_cost" readonly="1"/>
-                            <field name="is_account_move" widget="boolean_toggle" string="Cuenta Corriente"/>
-                        </group>
-                    </group>
+                            <label for="total_cost"/>
+                            <field name="total_cost" readonly="1" class="w-100"/>
+                            <label for="is_account_move"/>
+                            <field name="is_account_move" widget="boolean_toggle" string="Cuenta Corriente" class="w-100"/>
+                        </div>
+                    </div>
 
-                    <group string="Definir Pagos" invisible="is_account_move">
-                        <group col="1">
-                            <div class="oe_title"><h3>Lista de Pagos</h3></div>
+                    <div class="row g-4" invisible="is_account_move">
+                        <div class="col-md-7">
+                            <h3>Lista de Pagos</h3>
                             <field name="payments" nolabel="1">
                                 <list editable="bottom">
                                     <field name="payment_method" domain="[('active_currently', '=', True)]" options="{'no_create': True, 'no_create_edit': True}"/>
@@ -32,15 +36,18 @@
                                     <field name="currency_id" column_invisible="True"/>
                                 </list>
                             </field>
-                        </group>
-                        <group>
-                            <div class="oe_title mb-2"><h3>Resumen</h3></div>
-                            <field name="wizard_amount_remaining" readonly="1" class="fw-bold text-danger"/>
-                            <field name="total_cost" readonly="1" string="Importe Factura"/>
+                        </div>
+                        <div class="col-md-5">
+                            <h3>Resumen</h3>
+                            <label for="wizard_amount_remaining"/>
+                            <field name="wizard_amount_remaining" readonly="1" class="fw-bold text-danger w-100"/>
+                            <label for="total_cost"/>
+                            <field name="total_cost" readonly="1" string="Importe Factura" class="w-100"/>
                             <field name="currency_id" invisible="1"/>
-                            <field name="wizard_payment_total" readonly="1" string="Total Pagos"/>
-                        </group>
-                    </group>
+                            <label for="wizard_payment_total"/>
+                            <field name="wizard_payment_total" readonly="1" string="Total Pagos" class="w-100"/>
+                        </div>
+                    </div>
 
                     <footer>
                         <button string="Siguiente"
@@ -76,22 +83,32 @@
                 <form>
                     <sheet>
 
-                        <group>
-                            <field name="has_delivery" widget="boolean_toggle"/>
-                            <field name="allow_repayment" invisible="not has_delivery" widget="boolean_toggle"/>
-                        </group>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label for="has_delivery"/>
+                                <field name="has_delivery" widget="boolean_toggle" class="w-100"/>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="allow_repayment"/>
+                                <field name="allow_repayment" invisible="not has_delivery" widget="boolean_toggle" class="w-100"/>
+                            </div>
+                        </div>
 
                         <separator string="Datos del Envio" invisible="not has_delivery"/>
-                        <group invisible="not has_delivery">
-                            <group>
-                                <field name="who_withdraws"/>
-                                <field name="destination"/>
-                            </group>
-                            <group>
-                                <field name="city"/>
-                                <field name="state"/>
-                            </group>
-                        </group>
+                        <div class="row g-4" invisible="not has_delivery">
+                            <div class="col-md-6">
+                                <label for="who_withdraws"/>
+                                <field name="who_withdraws" class="w-100"/>
+                                <label for="destination"/>
+                                <field name="destination" class="w-100"/>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="city"/>
+                                <field name="city" class="w-100"/>
+                                <label for="state"/>
+                                <field name="state" class="w-100"/>
+                            </div>
+                        </div>
 
                     </sheet>
 
@@ -120,25 +137,28 @@
             <field name="model">wizard_fulfillment_order_verification</field>
             <field name="arch" type="xml">
                 <form>
-                    <group>
-                        <group>
-                            <field name="is_asigned_to_preparation_team" widget="boolean_toggle"/>
-                        </group>
-                        <group>
-                            <field name="allow_deferred_payment" widget="boolean_toggle"/>
-                        </group>
-                    </group>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="is_asigned_to_preparation_team"/>
+                            <field name="is_asigned_to_preparation_team" widget="boolean_toggle" class="w-100"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="allow_deferred_payment"/>
+                            <field name="allow_deferred_payment" widget="boolean_toggle" class="w-100"/>
+                        </div>
+                    </div>
 
-                    <group>
-                        <group>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="point_of_sale"/>
                             <field name="point_of_sale" required="1"
-                            options="{'no_create': True, 'no_create_edit': True}"
-                            />
-                        </group>
-                        <group>
-                            <field name="cellphone" placeholder="Ej: 342-4751510"/>
-                        </group>
-                    </group>
+                                options="{'no_create': True, 'no_create_edit': True}" class="w-100"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="cellphone"/>
+                            <field name="cellphone" placeholder="Ej: 342-4751510" class="w-100"/>
+                        </div>
+                    </div>
 
                     <footer>
                         <button string="Siguiente"
@@ -171,27 +191,34 @@
                         <strong>Revisión final:</strong> verificá los datos antes de confirmar.
                         Si encontrás un error, podés volver atrás y corregirlo.
                     </div>
-                    <group>
-                        <group>
-                            <field name="invoice_id" readonly="1"/>
-                            <field name="seller" readonly="1"/>
-                        </group>
-                        <group>
-                            <field name="client" readonly="1"/>
-                            <field name="full_name" readonly="1"/>
-                        </group>
-                    </group>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="invoice_id"/>
+                            <field name="invoice_id" readonly="1" class="w-100"/>
+                            <label for="seller"/>
+                            <field name="seller" readonly="1" class="w-100"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="client"/>
+                            <field name="client" readonly="1" class="w-100"/>
+                            <label for="full_name"/>
+                            <field name="full_name" readonly="1" class="w-100"/>
+                        </div>
+                    </div>
 
                     <!-- ===================== -->
                     <!-- PAGOS -->
                     <!-- ===================== -->
                     <separator string="Pagos"/>
-                    <group invisible="not is_account_move">
-                        <field name="is_account_move" widget="boolean_toggle" readonly="1" string="Cuenta Corriente"/>
-                    </group>
-                    <group invisible="is_account_move">
-                        <group col="1">
-                            <div class="oe_title"><h4>Lista de Pagos</h4></div>
+                    <div class="row g-4" invisible="not is_account_move">
+                        <div class="col-md-6">
+                            <label for="is_account_move"/>
+                            <field name="is_account_move" widget="boolean_toggle" readonly="1" string="Cuenta Corriente" class="w-100"/>
+                        </div>
+                    </div>
+                    <div class="row g-4" invisible="is_account_move">
+                        <div class="col-md-7">
+                            <h4>Lista de Pagos</h4>
                             <field name="payments" nolabel="1" readonly="1">
                                 <list disable_open="1" create="0">
                                     <field name="payment_method"/>
@@ -200,55 +227,66 @@
                                     <field name="currency_id" column_invisible="True"/>
                                 </list>
                             </field>
-                        </group>
-                        <group col="1">
-                            <div class="oe_title mb-2"><h4>Resumen</h4></div>
-                            <field name="total_cost" readonly="1"/>
-                            <field name="wizard_payment_total" readonly="1"/>
-                            <field name="wizard_amount_remaining" readonly="1"/>
-                        </group>
-                    </group>
+                        </div>
+                        <div class="col-md-5">
+                            <h4>Resumen</h4>
+                            <label for="total_cost"/>
+                            <field name="total_cost" readonly="1" class="w-100"/>
+                            <label for="wizard_payment_total"/>
+                            <field name="wizard_payment_total" readonly="1" class="w-100"/>
+                            <label for="wizard_amount_remaining"/>
+                            <field name="wizard_amount_remaining" readonly="1" class="w-100"/>
+                        </div>
+                    </div>
 
                     <!-- ===================== -->
                     <!-- CONFIGURACIÓN OPERATIVA -->
                     <!-- ===================== -->
                     <separator string="Datos Operativos"/>
 
-                    <group>
-                        <group>
-                            <field name="is_asigned_to_preparation_team" readonly="1" widget="boolean_toggle"/>
-                            <field name="allow_deferred_payment" readonly="1" widget="boolean_toggle"/>
-                        </group>
-                        <group>
-                            <field name="point_of_sale" readonly="1"/>
-                            <field name="cellphone" readonly="1"/>
-                        </group>
-                    </group>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="is_asigned_to_preparation_team"/>
+                            <field name="is_asigned_to_preparation_team" readonly="1" widget="boolean_toggle" class="w-100"/>
+                            <label for="allow_deferred_payment"/>
+                            <field name="allow_deferred_payment" readonly="1" widget="boolean_toggle" class="w-100"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="point_of_sale"/>
+                            <field name="point_of_sale" readonly="1" class="w-100"/>
+                            <label for="cellphone"/>
+                            <field name="cellphone" readonly="1" class="w-100"/>
+                        </div>
+                    </div>
 
                     <!-- ===================== -->
                     <!-- ENVÍO / RETIRO -->
                     <!-- ===================== -->
                     <separator string="Envío / Retiro"/>
 
-                    <group>
-                        <group>
-                            <field name="has_delivery" readonly="1" widget="boolean_toggle"/>
-                            <field name="allow_repayment" readonly="1" widget="boolean_toggle"/>
-                        </group>
-                        <group>
-                        </group>
-                    </group>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="has_delivery"/>
+                            <field name="has_delivery" readonly="1" widget="boolean_toggle" class="w-100"/>
+                            <label for="allow_repayment"/>
+                            <field name="allow_repayment" readonly="1" widget="boolean_toggle" class="w-100"/>
+                        </div>
+                    </div>
 
-                    <group>
-                        <group>
-                            <field name="who_withdraws" readonly="1"/>
-                            <field name="destination" readonly="1"/>
-                        </group>
-                        <group>
-                            <field name="city" readonly="1"/>
-                            <field name="state" readonly="1"/>
-                        </group>
-                    </group>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="who_withdraws"/>
+                            <field name="who_withdraws" readonly="1" class="w-100"/>
+                            <label for="destination"/>
+                            <field name="destination" readonly="1" class="w-100"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="city"/>
+                            <field name="city" readonly="1" class="w-100"/>
+                            <label for="state"/>
+                            <field name="state" readonly="1" class="w-100"/>
+                        </div>
+                    </div>
 
                     <!-- ===================== -->
                     <!-- FOOTER -->
