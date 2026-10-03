@@ -242,9 +242,13 @@ class AccountPayment(models.Model):
         })
         return {
             'type': 'ir.actions.act_window',
+            'name': 'Verificar recibo',
             'res_model': 'wizard_verification_account_payment',
             'res_id': wizard.id,
             'view_mode': 'form',
+            'view_id': self.env.ref(
+                'werlen_repuestos_erp.wizard_verification_account_payment_form_view'
+            ).id,
             'target': 'new',
         }
 

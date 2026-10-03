@@ -4,15 +4,25 @@
         <field name="model">wizard_manual_payment_in_journal</field>
         <field name="arch" type="xml">
             <form string="Registrar ingreso">
-                <group>
-                    <field name="journal" readonly="1"/>
-                    <field name="payment_method" domain="[('allowed_journals', 'in', journal)]"/>
-                    <field name="amount"/>
-                    <field name="payer"/>
-                    <field name="payment_origin_explanation"/>
-                    <field name="observations"/>
-                    <field name="currency_id" invisible="1"/>
-                </group>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="payer"/>
+                        <field name="payer" class="w-100"/>
+                        <label for="amount"/>
+                        <field name="amount" class="w-100"/>
+                        <label for="payment_method"/>
+                        <field name="payment_method" domain="[('allowed_journals', 'in', journal)]" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <field name="currency_id" invisible="1"/>
+                        <label for="journal"/>
+                        <field name="journal" readonly="1" class="w-100"/>
+                        <label for="payment_origin_explanation"/>
+                        <field name="payment_origin_explanation" class="w-100"/>
+                        <label for="observations"/>
+                        <field name="observations" class="w-100"/>
+                    </div>
+                </div>
                 <footer>
                     <button name="action_confirm" type="object" string="Registrar" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
@@ -26,15 +36,25 @@
         <field name="model">wizard_manual_payment_out_journal</field>
         <field name="arch" type="xml">
             <form string="Registrar egreso">
-                <group>
-                    <field name="journal" readonly="1"/>
-                    <field name="payment_method" domain="[('allowed_journals', 'in', journal)]"/>
-                    <field name="amount"/>
-                    <field name="payee" invisible="hide_field_payee"/>
-                    <field name="payment_origin_explanation"/>
-                    <field name="observations"/>
-                    <field name="currency_id" invisible="1"/>
-                </group>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="payee"/>
+                        <field name="payee" invisible="hide_field_payee" class="w-100"/>
+                        <label for="amount"/>
+                        <field name="amount" class="w-100"/>
+                        <label for="payment_method"/>
+                        <field name="payment_method" domain="[('allowed_journals', 'in', journal)]" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <field name="currency_id" invisible="1"/>
+                        <label for="journal"/>
+                        <field name="journal" readonly="1" class="w-100"/>
+                        <label for="payment_origin_explanation"/>
+                        <field name="payment_origin_explanation" class="w-100"/>
+                        <label for="observations"/>
+                        <field name="observations" class="w-100"/>
+                    </div>
+                </div>
                 <footer>
                     <button name="action_confirm" type="object" string="Registrar" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
@@ -48,13 +68,21 @@
         <field name="model">wizard_change_payment_line_journal</field>
         <field name="arch" type="xml">
             <form string="Cambiar diario del pago">
-                <group>
-                    <field name="payment_line_id"/>
-                    <field name="payment_line_amount"/>
-                    <field name="current_journal_id"/>
-                    <field name="new_journal_id" domain="[('allowed_payment_methods', 'in', payment_line_id.payment_method)]"/>
-                    <field name="currency_id" invisible="1"/>
-                </group>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="payment_line_id"/>
+                        <field name="payment_line_id" class="w-100"/>
+                        <label for="payment_line_amount"/>
+                        <field name="payment_line_amount" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <field name="currency_id" invisible="1"/>
+                        <label for="current_journal_id"/>
+                        <field name="current_journal_id" class="w-100"/>
+                        <label for="new_journal_id"/>
+                        <field name="new_journal_id" domain="[('allowed_payment_methods', 'in', payment_line_id.payment_method)]" class="w-100"/>
+                    </div>
+                </div>
                 <footer>
                     <button name="action_confirm" type="object" string="Cambiar" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
@@ -68,13 +96,21 @@
         <field name="model">wizard_change_check_journal</field>
         <field name="arch" type="xml">
             <form string="Cambiar diario del cheque">
-                <group>
-                    <field name="check_id"/>
-                    <field name="check_amount"/>
-                    <field name="current_journal_id"/>
-                    <field name="new_journal_id"/>
-                    <field name="currency_id" invisible="1"/>
-                </group>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="check_id"/>
+                        <field name="check_id" class="w-100"/>
+                        <label for="check_amount"/>
+                        <field name="check_amount" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <field name="currency_id" invisible="1"/>
+                        <label for="current_journal_id"/>
+                        <field name="current_journal_id" class="w-100"/>
+                        <label for="new_journal_id"/>
+                        <field name="new_journal_id" class="w-100"/>
+                    </div>
+                </div>
                 <footer>
                     <button name="action_confirm" type="object" string="Cambiar" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
@@ -88,17 +124,29 @@
         <field name="model">wizard_payment_line_out_credit_note</field>
         <field name="arch" type="xml">
             <form string="Reembolsar nota de crédito">
-                <group>
-                    <field name="credit_note_out_id" readonly="1"/>
-                    <field name="credit_note_out_total_amount" readonly="1"/>
-                    <field name="credit_note_out_amount_reconciliated" readonly="1"/>
-                    <field name="credit_note_out_amount_not_reconciliated" readonly="1"/>
-                    <field name="amount"/>
-                    <field name="payee" readonly="1"/>
-                    <field name="payment_method"/>
-                    <field name="journal" domain="[('allowed_payment_methods', 'in', payment_method)]"/>
-                    <field name="currency_id" invisible="1"/>
-                </group>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <field name="currency_id" invisible="1"/>
+                        <label for="amount"/>
+                        <field name="amount" class="w-100"/>
+                        <label for="payee"/>
+                        <field name="payee" readonly="1" class="w-100"/>
+                        <label for="payment_method"/>
+                        <field name="payment_method" class="w-100"/>
+                        <label for="journal"/>
+                        <field name="journal" domain="[('allowed_payment_methods', 'in', payment_method)]" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="credit_note_out_amount_not_reconciliated"/>
+                        <field name="credit_note_out_amount_not_reconciliated" readonly="1" class="w-100"/>
+                        <label for="credit_note_out_amount_reconciliated"/>
+                        <field name="credit_note_out_amount_reconciliated" readonly="1" class="w-100"/>
+                        <label for="credit_note_out_total_amount"/>
+                        <field name="credit_note_out_total_amount" readonly="1" class="w-100"/>
+                        <label for="credit_note_out_id"/>
+                        <field name="credit_note_out_id" readonly="1" class="w-100"/>
+                    </div>
+                </div>
                 <footer>
                     <button name="action_confirm" type="object" string="Reembolsar" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
@@ -163,17 +211,29 @@
         <field name="model">wizard_create_credit_note_out</field>
         <field name="arch" type="xml">
             <form string="Crear nota de crédito">
-                <group>
-                    <field name="credit_note_id"/>
-                    <field name="invoice_type" domain="[('invoice_type_id', '=like', 'NC-%')]"/>
-                    <field name="client"/>
-                    <field name="full_name"/>
-                    <field name="total_amount"/>
-                    <field name="payment_method" domain="[('active_currently', '=', True)]"/>
-                    <field name="seller_of_related_invoice"/>
-                    <field name="date"/>
-                    <field name="currency_id" invisible="1"/>
-                </group>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="credit_note_id"/>
+                        <field name="credit_note_id" class="w-100"/>
+                        <label for="invoice_type"/>
+                        <field name="invoice_type" domain="[('invoice_type_id', '=like', 'NC-%')]" class="w-100"/>
+                        <label for="client"/>
+                        <field name="client" class="w-100"/>
+                        <label for="full_name"/>
+                        <field name="full_name" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <field name="currency_id" invisible="1"/>
+                        <label for="total_amount"/>
+                        <field name="total_amount" class="w-100"/>
+                        <label for="payment_method"/>
+                        <field name="payment_method" domain="[('active_currently', '=', True)]" class="w-100"/>
+                        <label for="seller_of_related_invoice"/>
+                        <field name="seller_of_related_invoice" class="w-100"/>
+                        <label for="date"/>
+                        <field name="date" class="w-100"/>
+                    </div>
+                </div>
                 <footer>
                     <button name="action_confirm_draft" type="object" string="Crear" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
@@ -187,14 +247,23 @@
         <field name="model">wizard_create_account_payment</field>
         <field name="arch" type="xml">
             <form string="Crear recibo">
-                <group>
-                    <field name="account_payment_id"/>
-                    <field name="client"/>
-                    <field name="amount"/>
-                    <field name="discount_amount"/>
-                    <field name="date"/>
-                    <field name="currency_id" invisible="1"/>
-                </group>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="account_payment_id"/>
+                        <field name="account_payment_id" class="w-100"/>
+                        <label for="client"/>
+                        <field name="client" class="w-100"/>
+                        <label for="date"/>
+                        <field name="date" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <field name="currency_id" invisible="1"/>
+                        <label for="amount"/>
+                        <field name="amount" class="w-100"/>
+                        <label for="discount_amount"/>
+                        <field name="discount_amount" class="w-100"/>
+                    </div>
+                </div>
                 <footer>
                     <button name="action_create_account_payment" type="object" string="Crear" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
@@ -208,14 +277,25 @@
         <field name="model">wizard_current_account_income</field>
         <field name="arch" type="xml">
             <form string="Ingreso a cuenta corriente">
-                <group>
-                    <field name="payer_id" readonly="1"/>
-                    <field name="amount"/>
-                    <field name="payment_method_id"/>
-                    <field name="journal_id" domain="[('allowed_payment_methods', 'in', payment_method_id)]"/>
-                    <field name="observations"/>
-                    <field name="currency_id" invisible="1"/>
-                </group>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="amount"/>
+                        <field name="amount" class="w-100"/>
+                        <label for="payment_method_id"/>
+                        <field name="payment_method_id" class="w-100"/>
+                        <label for="journal_id"/>
+                        <field name="journal_id" domain="[('allowed_payment_methods', 'in', payment_method_id)]" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <field name="currency_id" invisible="1"/>
+                        <label for="payer_id"/>
+                        <field name="payer_id" readonly="1" string="Cliente" class="w-100"/>
+                        <label for="payment_origin_explanation"/>
+                        <field name="payment_origin_explanation" invisible="not payment_origin_explanation" class="w-100"/>
+                    </div>
+                </div>
+                <separator string="Observaciones"/>
+                <field name="observations" nolabel="1" class="w-100"/>
                 <footer>
                     <button name="action_create_payment_line" type="object" string="Registrar" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
@@ -229,21 +309,43 @@
         <field name="model">wizard_verification_account_payment</field>
         <field name="arch" type="xml">
             <form string="Verificar recibo">
-                <group>
-                    <field name="account_payment" readonly="1"/>
-                    <field name="client" readonly="1"/>
-                    <field name="amount" readonly="1"/>
-                    <field name="discount_amount" readonly="1"/>
-                    <field name="date" readonly="1"/>
-                    <field name="who_created"/>
-                    <field name="currency_id" invisible="1"/>
-                </group>
-                <separator string="Pagos y cheques a asociar"/>
-                <field name="related_payments" widget="many2many_tags"/>
-                <field name="related_checks" widget="many2many_tags"/>
-                <field name="amount_reconciliated" readonly="1"/>
-                <field name="amount_not_reconciliated" readonly="1"/>
-                <field name="observations"/>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="account_payment"/>
+                        <field name="account_payment" readonly="1" class="w-100"/>
+                        <label for="date"/>
+                        <field name="date" readonly="1" class="w-100"/>
+                        <label for="client"/>
+                        <field name="client" readonly="1" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <field name="currency_id" invisible="1"/>
+                        <label for="amount"/>
+                        <field name="amount" readonly="1" class="w-100"/>
+                        <label for="discount_amount"/>
+                        <field name="discount_amount" readonly="1" class="w-100"/>
+                    </div>
+                </div>
+
+                <separator string="Datos a Completar"/>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="related_payments"/>
+                        <field name="related_payments" string="Pagos Relacionados" widget="many2many_tags" class="w-100"/>
+                        <label for="related_checks"/>
+                        <field name="related_checks" string="Cheques Relacionados" widget="many2many_tags" class="w-100"/>
+                        <label for="who_created"/>
+                        <field name="who_created" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="amount_reconciliated"/>
+                        <field name="amount_reconciliated" readonly="1" class="w-100"/>
+                        <label for="amount_not_reconciliated"/>
+                        <field name="amount_not_reconciliated" readonly="1" class="w-100"/>
+                    </div>
+                </div>
+                <label for="observations"/>
+                <field name="observations" placeholder="Observaciones..." class="w-100"/>
                 <footer>
                     <button name="action_confirm_verification" type="object" string="Verificar" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
@@ -299,16 +401,27 @@
         <field name="model">wizard_manual_payment_invoice_out</field>
         <field name="arch" type="xml">
             <form string="Registrar pago de factura">
-                <group>
-                    <field name="reconciliation_invoice_id" readonly="1"/>
-                    <field name="invoice_out_total_amount" readonly="1"/>
-                    <field name="invoice_out_amount_not_reconciliated" readonly="1"/>
-                    <field name="amount"/>
-                    <field name="payer" readonly="1"/>
-                    <field name="payment_method"/>
-                    <field name="journal" domain="[('allowed_payment_methods', 'in', payment_method)]"/>
-                    <field name="currency_id" invisible="1"/>
-                </group>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="reconciliation_invoice_id"/>
+                        <field name="reconciliation_invoice_id" readonly="1" class="w-100"/>
+                        <label for="invoice_out_total_amount"/>
+                        <field name="invoice_out_total_amount" readonly="1" class="w-100"/>
+                        <label for="invoice_out_amount_not_reconciliated"/>
+                        <field name="invoice_out_amount_not_reconciliated" readonly="1" class="w-100"/>
+                    </div>
+                    <div class="col-md-6">
+                        <field name="currency_id" invisible="1"/>
+                        <label for="amount"/>
+                        <field name="amount" class="w-100"/>
+                        <label for="payer"/>
+                        <field name="payer" readonly="1" class="w-100"/>
+                        <label for="payment_method"/>
+                        <field name="payment_method" class="w-100"/>
+                        <label for="journal"/>
+                        <field name="journal" domain="[('allowed_payment_methods', 'in', payment_method)]" class="w-100"/>
+                    </div>
+                </div>
                 <footer>
                     <button name="action_confirm" type="object" string="Registrar" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
