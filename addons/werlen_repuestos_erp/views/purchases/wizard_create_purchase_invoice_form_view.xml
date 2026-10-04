@@ -1,25 +1,22 @@
 <odoo>
-    <data>
-        <record id="wizard_create_purchase_invoice_form_view" model="ir.ui.view">
-            <field name="name">wizard.create.purchase.invoice.form</field>
-            <field name="model">wizard_create_purchase_invoice</field>
-            <field name="arch" type="xml">
-                <form string="Crear Factura de Compra" create="false" delete="false">
-                    <group string="Datos de la factura">
-                        <group>
-                            <field name="supplier_id" context="{'default_is_supplier': True, 'default_is_company': True, 'default_company_type': 'company'}"
-                                options="{'no_open': True}"/>
-                        </group>
-                        <group>
-                            <field name="name" placeholder="Ej.: 0001-12345"/>
-                        </group>
-                    </group>
-                    <footer>
-                        <button name="action_create_purchase_invoice" type="object" string="Crear" class="oe_highlight"/>
-                        <button string="Cancelar" special="cancel"/>
-                    </footer>
-                </form>
-            </field>
-        </record>
-    </data>
+    <record id="wizard_create_purchase_invoice_form_view" model="ir.ui.view">
+        <field name="name">wizard.create.purchase.invoice.form</field>
+        <field name="model">wizard_create_purchase_invoice</field>
+        <field name="arch" type="xml">
+            <form string="Crear Factura de Compra" create="false" delete="false">
+                <group>
+                    <field name="supplier_id"
+                        context="{'default_is_supplier': True, 'default_is_company': True, 'default_company_type': 'company'}"
+                    />
+                    <field name="name"
+                        placeholder="Por Ej: 0001-12345 (los ceros después del guion se eliminan automáticamente)"
+                    />
+                </group>
+                <footer>
+                    <button name="action_create_purchase_invoice" type="object" string="Crear" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
 </odoo>
