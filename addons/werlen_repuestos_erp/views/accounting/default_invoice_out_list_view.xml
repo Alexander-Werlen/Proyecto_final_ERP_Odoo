@@ -59,10 +59,11 @@
                 <field name="full_name"/>
                 <field name="total_cost"/>
 
+                <!-- Agrupaciones -->
                 <group expand="0" string="Agrupar por">
-                    <filter string="Estado del pago"
-                        name="group_payment_status"
-                        context="{'group_by':'payment_status'}"/>
+                    <filter string="Estado del Pago"
+                    name="group_payment_status"
+                    context="{'group_by':'payment_status'}"/>
                 </group>
 
             </search>

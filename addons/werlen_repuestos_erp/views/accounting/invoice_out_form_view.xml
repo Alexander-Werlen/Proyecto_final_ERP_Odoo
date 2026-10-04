@@ -6,25 +6,32 @@
             <field name="arch" type="xml">
                 <form string="Facturas Emitidas" create="false" delete="false">
                 <header>
-                    <button name="confirm_draft" type="object" string="Confirmar" class="oe_highlight" groups="werlen_repuestos_erp.group_sales" invisible="not is_draft"/>
-                    <button name="create_new_payment" type="object" string="Registrar pago" class="oe_highlight" groups="werlen_repuestos_erp.group_sales,werlen_repuestos_erp.group_accountant" invisible="is_draft or payment_status in ['paid', 'account']"/>
-                    <button name="open_manual_reconciliation_line_form" type="object" string="Reconciliar" groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration" invisible="is_draft or payment_status in ['paid', 'account']"/>
-                    <button name="show_payment_lines" type="object" string="Ver pagos" invisible="is_draft"/>
-                    <button name="show_reconciliation_lines" type="object" string="Ver reconciliaciones" invisible="is_draft"/>
-                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid,account"/>
+
+                    <button name="show_payment_lines" type="object"
+                    string="Ver Pagos"
+                    icon="fa-eye"
+                    />
+
+                    <button name="show_reconciliation_lines" type="object"
+                    string="Ver Reconciliaciones"
+                    icon="fa-list"
+                    />
+
                 </header>
                 <sheet>
 
-                    <widget name="web_ribbon" title="Borrador"
-                        bg_color="bg-danger" invisible="is_draft == False"/>
-                    <widget name="web_ribbon" title="No reconciliado"
-                        bg_color="bg-danger" invisible="is_draft or payment_status != 'not_paid'"/>
-                    <widget name="web_ribbon" title="Reconciliación parcial"
-                        bg_color="bg-warning" invisible="is_draft or payment_status != 'partially_paid'"/>
+                    <widget name="web_ribbon" title="No Reconciliado"
+                        bg_color="bg-danger" invisible="payment_status != 'not_paid'"
+                    />
+                    <widget name="web_ribbon" title="Rec. Parcial"
+                        bg_color="bg-warning" invisible="payment_status != 'partially_paid'"
+                    />
                     <widget name="web_ribbon" title="Reconciliado"
-                        bg_color="bg-success" invisible="is_draft or payment_status != 'paid'"/>
-                    <widget name="web_ribbon" title="Cuenta corriente"
-                        bg_color="bg-info" invisible="is_draft or payment_status != 'account'"/>
+                        bg_color="bg-success" invisible="payment_status != 'paid'"
+                    />
+                    <widget name="web_ribbon" title="Cuenta-Corriente"
+                        bg_color="bg-info" invisible="payment_status != 'account'"
+                    />
 
                     <h1>
                     FACTURA EMITIDA
@@ -57,14 +64,6 @@
                         </group>
                     </group>
 
-                    <group string="Estado de pago" invisible="is_draft">
-                        <field name="amount_paid_confirmed" readonly="1"/>
-                        <field name="amount_not_paid_confirmed" readonly="1"/>
-                        <field name="amount_paid_unconfirmed" readonly="1"/>
-                        <field name="amount_not_paid_unconfirmed" readonly="1"/>
-                        <field name="is_account_move" readonly="1"/>
-                    </group>
-
                     <notebook>
                         <page string="Observaciones">
                             <field name="observations"/>
@@ -73,9 +72,6 @@
                             <group>
                                 <field name="is_manual_invoice" readonly="true" widget="boolean_toggle"/>
                             </group>
-                        </page>
-                        <page string="Reconciliaciones" invisible="is_draft">
-                            <field name="reconciliation_lines" readonly="1"/>
                         </page>
                     </notebook>
                 </sheet>
