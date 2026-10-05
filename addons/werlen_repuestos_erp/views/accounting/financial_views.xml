@@ -147,20 +147,20 @@
     </record>
 
     <record id="default_check_list_view" model="ir.ui.view">
-        <field name="name">check.list</field>
+        <field name="name">default.check.list</field>
         <field name="model">check</field>
         <field name="arch" type="xml">
-            <list string="Cheques" create="0" delete="0" default_order="collection_date desc">
-                <field name="display_name" string="Identificador"/>
-                <field name="check_number" optional="hide"/>
-                <field name="bank"/>
-                <field name="issuer"/>
-                <field name="owner_of_credit"/>
-                <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="currency_id" column_invisible="1"/>
-                <field name="collection_date"/>
-                <field name="journal_id"/>
-                <field name="payment_status" widget="badge"/>
+            <list string="Cheques" default_order="time_of_creation desc">
+                <field name="bank" string="Banco"/>
+                <field name="check_number" string="Número"/>
+                <field name="issuer" string="Emisor"/>
+                <field name="owner_of_credit" string="Propietario del Crédito"/>
+                <field name="payment_origin_explanation" string="Razón de Pago" optional="hide"/>
+                <field name="collection_date" string="Fecha de cobro"/>
+                <field name="amount"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="time_of_creation" optional="hide"/>
+                <field name="payment_status" string="Estado Reconciliación" widget="badge" width="120px" decoration-danger="payment_status == 'not_paid'" decoration-warning="payment_status == 'partially_paid'" decoration-success="payment_status == 'paid'"/>
             </list>
         </field>
     </record>
@@ -182,48 +182,81 @@
     </record>
 
     <record id="default_check_form_view" model="ir.ui.view">
-        <field name="name">check.form</field>
+        <field name="name">default.check.form</field>
         <field name="model">check</field>
         <field name="arch" type="xml">
-            <form string="Cheque" create="1" delete="0">
+            <form string="Cheque" create="false">
                 <header>
-                    <button name="action_open_change_journal_wizard" type="object" string="Cambiar diario" groups="werlen_repuestos_erp.group_management"/>
-                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid,account"/>
+                    <button name="action_open_change_journal_wizard" type="object" class="btn btn-outline-secondary" string="Cambiar Diario" groups="werlen_repuestos_erp.group_management"/>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid" invisible="payment_status == 'account'"/>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="account" invisible="payment_status != 'account'"/>
                 </header>
                 <sheet>
+                    <widget name="web_ribbon" title="Reconciliado" bg_color="bg-success" invisible="payment_status != 'paid' or not id"/>
+                    <widget name="web_ribbon" title="Rec. Parcial" bg_color="bg-warning" invisible="payment_status != 'partially_paid' or not id"/>
+                    <widget name="web_ribbon" title="No Reconciliado" bg_color="bg-danger" invisible="payment_status != 'not_paid' or not id"/>
+                    <h1>CHEQUE</h1>
                     <group>
-                        <group>
-                            <field name="display_name" readonly="1"/>
-                            <field name="payment_origin_explanation"/>
-                            <field name="amount"/>
-                            <field name="currency_id" invisible="1"/>
-                            <field name="owner_of_credit"/>
-                            <field name="journal_id"/>
-                        </group>
+                        <field name="display_name" readonly="1"/>
+                        <field name="payment_origin_explanation"/>
+                        <field name="amount"/>
+                        <field name="owner_of_credit"/>
+                        <field name="journal_id"/>
+                    </group>
+                    <group string="Información del cheque">
                         <group>
                             <field name="bank"/>
                             <field name="check_number"/>
                             <field name="issuer"/>
+                        </group>
+                        <group>
                             <field name="city"/>
                             <field name="collection_date"/>
                         </group>
                     </group>
-                    <group string="Importes">
-                        <field name="amount_reconciliated" readonly="1"/>
-                        <field name="amount_not_reconciliated" readonly="1"/>
+                    <group string="Importes" invisible="not id">
+                        <group>
+                            <field name="amount" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="amount_reconciliated"/>
+                            <field name="amount_not_reconciliated"/>
+                        </group>
                     </group>
-                    <field name="previous_journal_id" readonly="1"/>
-                    <separator string="Reconciliaciones"/>
-                    <field name="reconciliation_lines" readonly="1">
-                        <list create="0" edit="0" delete="0">
+                    <group string="Auditoría" invisible="not id">
+                        <group>
+                            <field name="time_of_creation"/>
+                        </group>
+                    </group>
+                    <div invisible="not id">
+                        <separator string="Pagos a proveedor asociados"/>
+                        <field name="supplier_payment_ids" readonly="1">
+                            <list create="false" edit="false" delete="false">
+                                <field name="name"/>
+                                <field name="payment_date"/>
+                                <field name="supplier_id" context="{'default_is_supplier': True}"/>
+                            </list>
+                        </field>
+                        <group>
+                            <field name="previous_journal_id" readonly="1"/>
+                        </group>
+                    </div>
+                    <separator string="Reconciliaciones" invisible="not id"/>
+                    <field name="reconciliation_lines" invisible="not id">
+                        <list create="false" edit="false" delete="false">
                             <field name="amount"/>
+                            <field name="currency_id" column_invisible="True"/>
                             <field name="outgoing_move_ref"/>
                             <field name="incomming_move_ref"/>
                             <field name="confirmed"/>
                         </list>
                     </field>
-                    <separator string="Observaciones"/>
-                    <field name="observations"/>
+                    <notebook>
+                        <page string="Observaciones">
+                            <field name="observations"/>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>
