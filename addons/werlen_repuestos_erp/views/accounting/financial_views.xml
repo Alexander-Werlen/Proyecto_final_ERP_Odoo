@@ -3,19 +3,22 @@
         <field name="name">payment.line.list</field>
         <field name="model">payment_line</field>
         <field name="arch" type="xml">
-            <list string="Pagos" create="0" edit="0" delete="0" default_order="time_of_payment_confirmation desc">
-                <field name="payment_origin_explanation" widget="badge"/>
-                <field name="name" string="Referencia"/>
+            <list string="Pagos" create="false" edit="false" delete="false" decoration-danger="confirmed == False" default_order="time_of_payment_confirmation desc">
+                <field name="payment_origin_explanation" widget="badge" decoration-muted="payment_origin_explanation == 'cash_session_closure'" decoration-info="payment_origin_explanation == 'account_in'" decoration-warning="payment_origin_explanation in ['non_operational']"/>
                 <field name="payer" string="Paga"/>
-                <field name="payee" string="Recibe" optional="hide"/>
+                <field name="name" string="Referencia" optional="hide"/>
                 <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="currency_id" column_invisible="1"/>
+                <field name="currency_id" column_invisible="True"/>
                 <field name="payment_method" string="Método"/>
                 <field name="journal" string="Diario" optional="hide"/>
-                <field name="is_outgoing" string="Saliente" widget="boolean_toggle"/>
-                <field name="confirmed" string="Confirmado" widget="boolean_toggle"/>
-                <field name="payment_status" widget="badge"/>
+                <field name="observations" string="Observaciones" optional="show"/>
+                <field name="is_outgoing" string="Es Saliente" widget="boolean_toggle"/>
+                <field name="confirmed" string="Confirmado" widget="boolean_toggle" optional="hide"/>
+                <field name="who_proposed_payment" optional="hide"/>
+                <field name="time_of_payment_proposal" optional="hide"/>
+                <field name="who_confirmed_payment" optional="hide"/>
                 <field name="time_of_payment_confirmation" optional="hide"/>
+                <field name="payment_status" widget="badge" decoration-danger="payment_status == 'not_paid'" decoration-warning="payment_status == 'partially_paid'" decoration-success="payment_status == 'paid'" width="100px" string="Reconciliación"/>
             </list>
         </field>
     </record>
@@ -48,55 +51,59 @@
         <field name="name">payment.line.form</field>
         <field name="model">payment_line</field>
         <field name="arch" type="xml">
-            <form string="Pago" create="0" delete="0">
+            <form string="Pago" create="false" delete="false">
                 <header>
-                    <button name="confirm_payment" type="object" string="Confirmar" class="oe_highlight" groups="werlen_repuestos_erp.group_accountant" invisible="confirmed"/>
-                    <button name="action_open_change_journal_wizard" type="object" string="Cambiar diario" groups="werlen_repuestos_erp.group_management" invisible="confirmed == False"/>
-                    <button name="try_undo_last_step" type="object" string="Deshacer" class="btn-outline-danger" groups="werlen_repuestos_erp.group_accountant"/>
-                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid,account"/>
+                    <button name="confirm_payment" type="object" class="btn btn-primary" string="Confirmar" groups="werlen_repuestos_erp.group_accountant" invisible="confirmed"/>
+                    <button name="action_open_change_journal_wizard" type="object" class="btn btn-outline-secondary" string="Cambiar Diario" groups="werlen_repuestos_erp.group_management"/>
+                    <button name="try_undo_last_step" type="object" class="btn btn-outline-danger" string="Deshacer" groups="werlen_repuestos_erp.group_accountant" confirm="¿Está seguro de que desea deshacer la confirmación o creación del pago?"/>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid" invisible="payment_status == 'account'"/>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="account" invisible="payment_status != 'account'"/>
                 </header>
                 <sheet>
-                    <widget name="web_ribbon" title="No confirmado" bg_color="bg-danger" invisible="confirmed"/>
+                    <widget name="web_ribbon" title="No Confirmado" bg_color="bg-danger" invisible="confirmed == True"/>
                     <widget name="web_ribbon" title="Confirmado" bg_color="bg-success" invisible="confirmed == False"/>
+                    <h1>INFORMACIÓN DEL PAGO</h1>
                     <group>
                         <group>
                             <field name="name" readonly="1"/>
-                            <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
-                            <field name="currency_id" invisible="1"/>
-                            <field name="is_outgoing" readonly="1"/>
-                            <field name="payment_method" readonly="1"/>
-                            <field name="journal" readonly="1"/>
+                            <field name="amount" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="is_outgoing" readonly="1" widget="boolean_toggle"/>
+                            <field name="currency_id" readonly="1" invisible="1"/>
+                            <field name="payment_method" readonly="1" options="{'no_open': True}"/>
+                            <field name="journal" readonly="1" options="{'no_open': True}"/>
                         </group>
                         <group>
                             <field name="payment_origin_explanation" readonly="1"/>
-                            <field name="payer" readonly="1"/>
-                            <field name="payee" readonly="1"/>
-                            <field name="payment_status" readonly="1"/>
+                            <field name="payer" readonly="1" options="{'no_open': True}"/>
+                            <field name="payee" readonly="1" options="{'no_open': True}"/>
                         </group>
-                    </group>
-                    <group string="Importes">
-                        <field name="amount_reconciliated" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
-                        <field name="amount_not_reconciliated" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
                     </group>
                     <separator string="Auditoría"/>
                     <group>
-                        <field name="who_proposed_payment" readonly="1"/>
-                        <field name="time_of_payment_proposal" readonly="1"/>
-                        <field name="who_confirmed_payment" readonly="1"/>
-                        <field name="time_of_payment_confirmation" readonly="1"/>
+                        <group>
+                            <field name="who_proposed_payment" readonly="1" options="{'no_open': True}"/>
+                            <field name="time_of_payment_proposal" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="who_confirmed_payment" readonly="1" options="{'no_open': True}"/>
+                            <field name="time_of_payment_confirmation" readonly="1"/>
+                        </group>
                     </group>
                     <separator string="Reconciliaciones"/>
                     <field name="reconciliation_lines" readonly="1">
-                        <list create="0" edit="0" delete="0">
+                        <list create="false" edit="false" delete="false">
                             <field name="amount" sum="Total"/>
-                            <field name="currency_id" column_invisible="1"/>
+                            <field name="currency_id" column_invisible="True"/>
                             <field name="outgoing_move_ref"/>
                             <field name="incomming_move_ref"/>
                             <field name="auxiliar_is_confirmed"/>
                         </list>
                     </field>
-                    <separator string="Observaciones"/>
-                    <field name="observations"/>
+                    <notebook>
+                        <page string="Observaciones">
+                            <field name="observations"/>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>
