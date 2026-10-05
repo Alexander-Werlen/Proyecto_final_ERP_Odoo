@@ -319,47 +319,55 @@
     </record>
 
     <record id="default_account_payment_form_view" model="ir.ui.view">
-        <field name="name">account.payment.form</field>
+        <field name="name">default.account.payment.form</field>
         <field name="model">account_payment</field>
         <field name="arch" type="xml">
-            <form string="Recibo" create="0" delete="0">
+            <form string="Recibo" create="false" delete="false">
                 <header>
-                    <button name="action_start_verification" type="object" string="Verificar" class="oe_highlight" groups="werlen_repuestos_erp.group_management" invisible="status != 'draft'"/>
-                    <button name="create_new_payment" type="object" string="Registrar ingreso" class="oe_highlight" groups="werlen_repuestos_erp.group_accountant" invisible="payment_status in ['paid', 'account']"/>
-                    <button name="open_manual_reconciliation_line_form" type="object" string="Reconciliar" groups="werlen_repuestos_erp.group_accountant" invisible="payment_status in ['paid', 'account']"/>
-                    <button name="show_payment_lines" type="object" string="Ver pagos"/>
-                    <button name="show_reconciliation_lines" type="object" string="Ver reconciliaciones"/>
-                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid,account"/>
+                    <button name="action_start_verification" type="object" string="Verificar" invisible="status != 'draft'" class="oe_highlight" groups="werlen_repuestos_erp.group_accountant"/>
+                    <button name="action_start_verification" type="object" string="Asociar Pagos" invisible="status == 'draft' or payment_status == 'paid'" class="oe_highlight" groups="werlen_repuestos_erp.group_accountant"/>
+                    <button name="create_new_payment" type="object" string="Crear Ingreso" class="oe_highlight" invisible="payment_status in ['paid', 'account']" icon="fa-usd" groups="werlen_repuestos_erp.group_accountant"/>
+                    <button name="open_manual_reconciliation_line_form" type="object" string="Reconciliar" invisible="payment_status in ['paid', 'account']" class="oe_highlight" icon="fa-random" groups="werlen_repuestos_erp.group_accountant"/>
+                    <button name="show_payment_lines" type="object" string="Ver Pagos" icon="fa-eye"/>
+                    <button name="show_reconciliation_lines" type="object" string="Ver Reconciliaciones" icon="fa-list"/>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Borrador" bg_color="bg-danger" invisible="status != 'draft'"/>
+                    <widget name="web_ribbon" title="No Reconciliado" bg_color="bg-danger" invisible="payment_status != 'not_paid' or status == 'draft'"/>
+                    <widget name="web_ribbon" title="Rec. Parcial" bg_color="bg-warning" invisible="payment_status != 'partially_paid' or status == 'draft'"/>
+                    <widget name="web_ribbon" title="Reconciliado" bg_color="bg-success" invisible="payment_status != 'paid' or status == 'draft'"/>
+                    <h1>RECIBO</h1>
                     <group>
+                        <field name="account_payment_id" readonly="true"/>
+                    </group>
+                    <group string="Información general">
                         <group>
-                            <field name="account_payment_id" readonly="1"/>
-                            <field name="client" readonly="1"/>
-                            <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
-                            <field name="discount_amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
-                            <field name="currency_id" invisible="1"/>
+                            <field name="client" readonly="true"/>
+                            <field name="amount" readonly="true"/>
                         </group>
                         <group>
-                            <field name="date" readonly="1"/>
-                            <field name="who_created" readonly="1"/>
-                            <field name="status" readonly="1"/>
-                            <field name="is_main_point_of_sale_category" readonly="1"/>
+                            <field name="date" readonly="true"/>
+                            <field name="who_created"/>
                         </group>
                     </group>
                     <group string="Importes">
-                        <field name="amount_reconciliated_confirmed" readonly="1"/>
-                        <field name="amount_not_reconciliated_confirmed" readonly="1"/>
-                        <field name="amount_reconciliated_unconfirmed" readonly="1"/>
-                        <field name="amount_not_reconciliated_unconfirmed" readonly="1"/>
+                        <group>
+                            <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="true"/>
+                            <field name="discount_amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="true"/>
+                            <field name="currency_id" invisible="1" readonly="true"/>
+                        </group>
+                        <group>
+                            <field name="amount_reconciliated_confirmed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="amount_not_reconciliated_confirmed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                        </group>
                     </group>
                     <notebook>
-                        <page string="Reconciliaciones">
-                            <field name="reconciliation_lines" readonly="1"/>
-                        </page>
                         <page string="Observaciones">
                             <field name="observations"/>
+                        </page>
+                        <page string="Reconciliaciones">
+                            <field name="reconciliation_lines"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -369,18 +377,23 @@
     </record>
 
     <record id="default_account_payment_list_view" model="ir.ui.view">
-        <field name="name">account.payment.list</field>
+        <field name="name">default.account.payment.list</field>
         <field name="model">account_payment</field>
         <field name="arch" type="xml">
-            <list string="Recibos" create="0" delete="0" default_order="date desc">
+            <list string="Recibos" delete="false" create="false" default_order="date desc">
+                <field name="status" widget="badge" decoration-danger="status == 'draft'" decoration-success="status == 'verified'" width="100px" string="Estado"/>
+
                 <field name="date"/>
-                <field name="account_payment_id"/>
+
+                <field name="account_payment_id" string="Identificador"/>
+
                 <field name="client"/>
+
                 <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="currency_id" column_invisible="1"/>
-                <field name="discount_amount" optional="hide"/>
-                <field name="status" widget="badge"/>
-                <field name="payment_status" widget="badge"/>
+
+                <field name="currency_id" column_invisible="True"/>
+
+                <field name="payment_status" widget="badge" decoration-danger="payment_status == 'not_paid'" decoration-warning="payment_status == 'partially_paid'" decoration-success="payment_status == 'paid'" width="100px" string="Reconciliación"/>
             </list>
         </field>
     </record>
