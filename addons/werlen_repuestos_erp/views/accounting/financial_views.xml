@@ -725,34 +725,68 @@
     </record>
 
     <record id="account_payment_in_aggregate_list_view" model="ir.ui.view">
-        <field name="name">account.payment.in.aggregate.list</field>
+        <field name="name">account_payment_in_aggregate_list</field>
         <field name="model">account_payment_in_aggregate</field>
         <field name="arch" type="xml">
-            <list string="Ingresos a cuenta corriente" create="0" edit="0" delete="0">
-                <field name="date"/>
-                <field name="reference"/>
-                <field name="source_model" optional="hide"/>
-                <field name="partner_id"/>
-                <field name="payment_method"/>
-                <field name="original_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="unreconciled_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="currency_id" column_invisible="1"/>
-                <field name="payment_status" widget="badge"/>
-                <field name="who_created"/>
+            <list string="Pagos y Cheques Pendientes"
+                create="false"
+                edit="false"
+                delete="false"
+                default_order="date desc"
+            >
+                <field name="date" string="Fecha"/>
+                <field name="origin_reason" string="Razón"
+                    widget="badge"
+                    decoration-info="origin_reason == 'account_in'"
+                />
+                <field name="partner_id" string="Cliente" optional="show"/>
+                <button name="action_open_source" type="object" string="Abrir" icon="fa-external-link"/>
+                <field name="reference" string="Referencia" optional="show"/>
+                <field name="payment_method" string="Método"/>
+                <field name="original_amount"
+                    string="Importe Original"
+                    widget="monetary"
+                    options="{'currency_field': 'currency_id'}"
+                />
+                <field name="unreconciled_amount"
+                    string="No Reconciliado"
+                    widget="monetary"
+                    options="{'currency_field': 'currency_id'}"
+                />
+                <field name="currency_id" column_invisible="True"/>
+                <field name="observations" optional="show"/>
+                <field name="payment_status"
+                    widget="badge"
+                    decoration-danger="payment_status == 'not_paid'"
+                    decoration-warning="payment_status == 'partially_paid'"
+                    width="120px"
+                    string="Reconciliación"
+                />
             </list>
         </field>
     </record>
 
     <record id="account_payment_in_aggregate_search_view" model="ir.ui.view">
-        <field name="name">account.payment.in.aggregate.search</field>
+        <field name="name">account_payment_in_aggregate_search</field>
         <field name="model">account_payment_in_aggregate</field>
         <field name="arch" type="xml">
-            <search string="Buscar ingresos a cuenta corriente">
-                <field name="reference"/>
-                <field name="partner_id"/>
-                <field name="payment_method"/>
-                <field name="who_created"/>
-                <filter name="pending" string="Pendientes" domain="[('payment_status', 'in', ['not_paid', 'partially_paid'])]"/>
+            <search string="Buscar créditos pendientes">
+                <field name="reference" string="Referencia"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="payment_method" string="Método"/>
+                <field name="origin_reason" string="Razón"/>
+                <field name="who_created" string="Propuesto por"/>
+                <field name="original_amount" string="Importe Original"/>
+                <separator/>
+                <filter string="Pendientes" name="not_paid" domain="[('payment_status','=','not_paid')]"/>
+                <filter string="Parciales" name="partially_paid" domain="[('payment_status','=','partially_paid')]"/>
+                <separator/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Cliente" name="group_partner" context="{'group_by':'partner_id'}"/>
+                    <filter string="Método de Pago" name="group_method" context="{'group_by':'payment_method'}"/>
+                    <filter string="Razón" name="group_reason" context="{'group_by':'origin_reason'}"/>
+                    <filter string="Estado" name="group_status" context="{'group_by':'payment_status'}"/>
+                </group>
             </search>
         </field>
     </record>
