@@ -447,48 +447,48 @@
     </record>
 
     <record id="default_journal_list_view" model="ir.ui.view">
-        <field name="name">journal.list</field>
+        <field name="name">default.journal.list</field>
         <field name="model">journal</field>
         <field name="arch" type="xml">
-            <list string="Diarios/Cajas" create="0" delete="0">
+            <list string="Diarios Contables">
                 <field name="name"/>
-                <field name="allowed_payment_methods" widget="many2many_tags"/>
-                <field name="allowed_users" widget="many2many_tags"/>
-                <field name="current_cash_session"/>
             </list>
         </field>
     </record>
 
     <record id="default_journal_form_view" model="ir.ui.view">
-        <field name="name">journal.form</field>
+        <field name="name">default.journal.form</field>
         <field name="model">journal</field>
         <field name="arch" type="xml">
-            <form string="Diario/Caja" create="0" delete="0">
+            <form string="Diario" create="false" delete="false">
                 <header>
-                    <button name="action_create_cash_session" type="object" string="Abrir caja" class="oe_highlight" groups="werlen_repuestos_erp.group_accountant"/>
-                    <button name="action_open_cash_session_form" type="object" string="Ver caja abierta" groups="werlen_repuestos_erp.group_management"/>
-                    <button name="action_manual_in_payment" type="object" string="Registrar ingreso" groups="werlen_repuestos_erp.group_accountant"/>
-                    <button name="action_manual_out_payment" type="object" string="Registrar egreso" groups="werlen_repuestos_erp.group_accountant"/>
+                    <button name="action_manual_in_payment" type="object" string="Ingreso Manual" class="oe_highlight" icon="fa-plus-circle" confirm="¿Estás seguro de que deseas realizar un ingreso manual?" groups="werlen_repuestos_erp.group_accountant"/>
+                    <button name="action_manual_out_payment" type="object" string="Egreso Manual" class="oe_highlight" icon="fa-minus-circle" confirm="¿Estás seguro de que deseas realizar un egreso manual?" groups="werlen_repuestos_erp.group_accountant"/>
+                    <button name="action_create_cash_session" type="object" string="Abrir Caja" groups="werlen_repuestos_erp.group_accountant"/>
+                    <button name="action_open_cash_session_form" type="object" string="Ir a Cierre de Caja" icon="fa-bar-chart" groups="werlen_repuestos_erp.group_management"/>
                 </header>
                 <sheet>
-                    <h1><field name="name" readonly="1"/></h1>
-                    <group>
-                        <field name="allowed_payment_methods" widget="many2many_tags"/>
-                        <field name="allowed_users" widget="many2many_tags"/>
-                        <field name="current_cash_session" readonly="1"/>
-                    </group>
-                    <separator string="Sesiones"/>
-                    <field name="cash_sessions" readonly="1">
-                        <list create="0" edit="0" delete="0">
-                            <field name="name"/>
-                            <field name="opened_at"/>
-                            <field name="closed_at"/>
-                            <field name="state"/>
-                            <field name="theoretical_balance"/>
-                            <field name="counted_balance"/>
-                            <field name="difference"/>
-                        </list>
-                    </field>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Nombre del diario"/>
+                        </h1>
+                    </div>
+                    <notebook>
+                        <page string="Configuración">
+                            <group col="2">
+                                <group>
+                                    <field name="allowed_payment_methods" widget="many2many_tags" options="{'no_create': True}"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Seguridad" groups="werlen_repuestos_erp.group_management">
+                            <group col="2">
+                                <group>
+                                    <field name="allowed_users" widget="many2many_tags" options="{'no_create': True}"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
