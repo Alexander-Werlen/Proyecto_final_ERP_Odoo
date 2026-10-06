@@ -282,6 +282,23 @@ class CashSession(models.Model):
         self.journal_id.sudo().write({'current_cash_session': self.id})
         return True
 
+    def action_open_today_payment_lines(self):
+        self.ensure_one()
+        wizard = self.env['wizard_payment_line_day_summary'].create({
+            'date': fields.Date.context_today(self),
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Resumen de Movimientos por día',
+            'res_model': 'wizard_payment_line_day_summary',
+            'view_mode': 'form',
+            'res_id': wizard.id,
+            'target': 'new',
+            'views': [
+                (self.env.ref('werlen_repuestos_erp.wizard_payment_line_day_summary_view').id, 'form'),
+            ],
+        }
+
     def write(self, values):
         if self.env.su:
             return super().write(values)

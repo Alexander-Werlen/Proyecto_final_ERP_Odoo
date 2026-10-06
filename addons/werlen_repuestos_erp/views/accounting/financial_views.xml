@@ -495,80 +495,185 @@
     </record>
 
     <record id="default_cash_session_list_view" model="ir.ui.view">
-        <field name="name">cash.session.list</field>
+        <field name="name">default.cash.session.list</field>
         <field name="model">cash_session</field>
         <field name="arch" type="xml">
-            <list string="Sesiones de caja" create="0" delete="0" default_order="opened_at desc">
-                <field name="name"/>
-                <field name="journal_id"/>
-                <field name="who_is_operating"/>
-                <field name="opened_at"/>
-                <field name="closed_at"/>
-                <field name="state" widget="badge"/>
-                <field name="theoretical_balance"/>
-                <field name="counted_balance"/>
-                <field name="difference"/>
+            <list string="Cierres de Caja"
+                create="false"
+                edit="false"
+                delete="false"
+                decoration-warning="state == 'open'"
+                default_order="opened_at desc"
+            >
+                <field name="opened_at" string="Fecha Apertura"/>
+                <field name="closed_at" string="Fecha Cierre"/>
+                <field name="who_is_operating" string="Responsable"/>
+                <field name="displayed_difference"
+                    string="Diferencia Teorico-Final"
+                    widget="monetary"
+                    options="{'currency_field': 'currency_id'}"
+                />
+                <field name="who_closed" string="Quien validó el cierre"/>
+                <field name="observations" optional="show"/>
+                <field name="state"
+                    string="Estado"
+                    widget="badge"
+                    decoration-success="state == 'closed'"
+                    decoration-warning="state == 'open'"
+                    width="100px"
+                />
+                <field name="currency_id" column_invisible="True"/>
             </list>
         </field>
     </record>
 
     <record id="default_cash_session_form_view" model="ir.ui.view">
-        <field name="name">cash.session.form</field>
+        <field name="name">default.cash.session.form.view</field>
         <field name="model">cash_session</field>
         <field name="arch" type="xml">
-            <form string="Sesión de caja" create="0" delete="0">
+            <form string="Sesión Cierre de Caja/Diario">
                 <header>
-                    <button name="refresh_data" type="object" string="Actualizar" groups="werlen_repuestos_erp.group_accountant" invisible="state != 'open'"/>
-                    <button name="action_open_close_wizard" type="object" string="Cerrar caja" class="oe_highlight" groups="werlen_repuestos_erp.group_management" invisible="state != 'open'"/>
-                    <button name="action_reopen_cash_session" type="object" string="Reabrir" groups="werlen_repuestos_erp.group_management" invisible="state != 'closed'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="open,closed"/>
+                    <button name="action_open_close_wizard" type="object"
+                        string="Cerrar Caja"
+                        class="btn-danger"
+                        invisible="state != 'open'"
+                        groups="werlen_repuestos_erp.group_management"
+                    />
+                    <button name="action_reopen_cash_session" type="object"
+                        string="Reabrir Caja"
+                        class="btn-warning"
+                        invisible="state != 'closed'"
+                        confirm="¿Estás seguro de que deseas reabrir esta caja? Se perderán los saldos confirmados."
+                        groups="werlen_repuestos_erp.group_management"
+                    />
+                    <button name="refresh_data" type="object"
+                        string="Actualizar Datos"
+                        invisible="state != 'open'"
+                    />
+                    <button name="action_open_today_payment_lines" type="object"
+                        string="Movimientos de Hoy"
+                        icon="fa-list"
+                        invisible="state != 'open'"
+                    />
                 </header>
                 <sheet>
-                    <group>
+                    <widget name="web_ribbon" title="Caja Abierta" bg_color="bg-success" invisible="state != 'open'"/>
+                    <widget name="web_ribbon" title="Caja Cerrada" bg_color="bg-secondary" invisible="state != 'closed'"/>
+                    <h1>
+                        <field name="name" readonly="1"/>
+                    </h1>
+                    <group string="Información de la Caja">
                         <group>
-                            <field name="name" readonly="1"/>
                             <field name="journal_id" readonly="1"/>
+                            <field name="previous_session" readonly="1"/>
                             <field name="who_is_operating" readonly="1"/>
-                            <field name="opened_at" readonly="1"/>
+                            <field name="who_closed" readonly="1"/>
                         </group>
                         <group>
+                            <field name="opened_at" readonly="1"/>
                             <field name="closed_at" readonly="1"/>
-                            <field name="who_closed" readonly="1"/>
-                            <field name="last_refresh_at" readonly="1"/>
-                            <field name="currency_id" invisible="1"/>
                         </group>
                     </group>
-                    <group string="Totales">
-                        <field name="opening_balance" readonly="1"/>
-                        <field name="theoretical_balance" readonly="1"/>
-                        <field name="counted_balance" readonly="1"/>
-                        <field name="displayed_difference" readonly="1"/>
-                    </group>
-                    <separator string="Movimientos por categoría"/>
-                    <field name="line_ids" readonly="1">
-                        <list create="0" edit="0" delete="0">
-                            <field name="category_id"/>
+
+                    <separator string="Movimientos Agrupados por Categoría"/>
+                    <field name="line_ids">
+                        <list editable="bottom" create="0" delete="0" readonly="1"
+                            decoration-danger="confirmed_counted_balance == False"
+                        >
+                            <button name="action_open_manual_out_payment_form" type="object"
+                                string="Retirar" class="btn-primary"
+                                invisible="confirmed_counted_balance == True" width="70px"/>
+                            <field name="category_id" width="200px"/>
+                            <field name="payment_count"/>
                             <field name="opening_balance"/>
-                            <field name="movements_amount"/>
+                            <field name="movements_amount" optional="hide"/>
                             <field name="theoretical_balance"/>
                             <field name="counted_balance"/>
                             <field name="difference"/>
-                            <field name="payment_count"/>
-                            <field name="confirmed_counted_balance"/>
+                            <field name="currency_id" column_invisible="True"/>
+                            <field name="confirmed_by" optional="hide"/>
+                            <field name="confirmed_at" optional="hide"/>
                         </list>
                     </field>
-                    <separator string="Retiros excluidos de la rendición"/>
-                    <field name="withdrawal_ids" readonly="1">
-                        <list create="0" edit="0" delete="0">
-                            <field name="name"/>
+
+                    <separator string="Cheques dentro de la Caja" invisible="state != 'open'"/>
+                    <field name="checks" invisible="state != 'open'">
+                        <list create="0" delete="0">
+                            <button name="action_open_change_journal_wizard" type="object"
+                                string="Retirar" class="btn-primary" width="70px"/>
+                            <field name="bank" string="Banco"/>
+                            <field name="check_number" string="Número"/>
+                            <field name="issuer" string="Emisor"/>
+                            <field name="owner_of_credit" string="Propietario del Crédito"/>
+                            <field name="payment_origin_explanation" string="Razón de Pago" optional="hide"/>
                             <field name="amount"/>
-                            <field name="time_of_payment_confirmation"/>
-                            <field name="observations"/>
+                            <field name="currency_id" column_invisible="True"/>
+                            <field name="time_of_creation" optional="hide"/>
                         </list>
                     </field>
-                    <field name="observations"/>
+
+                    <separator string="Retiros de esta sesión" invisible="state != 'open'"/>
+                    <field name="withdrawal_ids" invisible="state != 'open'" readonly="1">
+                        <list create="0" edit="0" delete="0">
+                            <button name="try_undo_last_step" type="object" string="Deshacer"
+                                class="btn-outline-danger" width="70px"/>
+                            <field name="name" string="Referencia"/>
+                            <field name="payment_method" string="Método"/>
+                            <field name="amount"/>
+                            <field name="observations"/>
+                            <field name="time_of_payment_confirmation" string="Fecha"/>
+                            <field name="currency_id" column_invisible="True"/>
+                        </list>
+                    </field>
+
+                    <group string="Balances Totales">
+                        <group>
+                            <field name="opening_balance" widget="monetary" readonly="1"/>
+                            <field name="theoretical_balance" widget="monetary" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="counted_balance" widget="monetary" readonly="1" invisible="state == 'open'"/>
+                            <field name="difference" widget="monetary" readonly="1" invisible="state == 'open'"/>
+                        </group>
+                    </group>
+
+                    <group string="Observaciones">
+                        <field name="observations" nolabel="1"
+                            placeholder="Notas, aclaraciones o comentarios sobre esta sesión de caja..."/>
+                    </group>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <record id="default_cash_session_search_view" model="ir.ui.view">
+        <field name="name">default.cash.session.search</field>
+        <field name="model">cash_session</field>
+        <field name="arch" type="xml">
+            <search string="Buscar cierres de caja">
+                <field name="name"/>
+                <field name="journal_id"/>
+                <field name="who_is_operating"/>
+                <field name="who_closed"/>
+                <filter string="Últimos 30 días + Abiertas"
+                    name="last_30_or_open"
+                    domain="['|', ('opened_at','&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%%Y-%%m-%%d 00:00:00')), ('state','=', 'open') ]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Caja/Diario" name="group_journal" context="{'group_by': 'journal_id'}"/>
+                </group>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Responsable" name="group_who_is_operating" context="{'group_by': 'who_is_operating'}"/>
+                </group>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Quien validó" name="group_who_closed" context="{'group_by': 'who_closed'}"/>
+                </group>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Fecha de Apertura" name="group_opened_at" context="{'group_by': 'opened_at'}"/>
+                </group>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Fecha de Cierre" name="group_closed_at" context="{'group_by': 'closed_at'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
