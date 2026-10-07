@@ -3,28 +3,26 @@
         <field name="name">wizard.manual.payment.in.journal.form</field>
         <field name="model">wizard_manual_payment_in_journal</field>
         <field name="arch" type="xml">
-            <form string="Registrar ingreso">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label for="payer"/>
-                        <field name="payer" class="w-100"/>
-                        <label for="amount"/>
-                        <field name="amount" class="w-100"/>
-                        <label for="payment_method"/>
-                        <field name="payment_method" domain="[('allowed_journals', 'in', journal)]" class="w-100"/>
-                    </div>
-                    <div class="col-md-6">
-                        <field name="currency_id" invisible="1"/>
-                        <label for="journal"/>
-                        <field name="journal" readonly="1" class="w-100"/>
-                        <label for="payment_origin_explanation"/>
-                        <field name="payment_origin_explanation" class="w-100"/>
-                        <label for="observations"/>
-                        <field name="observations" class="w-100"/>
-                    </div>
-                </div>
+            <form string="Pago Manual Entrante a Diario">
+                <sheet>
+                    <field name="currency_id" invisible="1"/>
+                    <group>
+                        <group>
+                            <field name="payer"/>
+                            <field name="amount"/>
+                            <field name="payment_method" domain="[('allowed_journals', 'in', journal), ('active_currently', '=', True)]"
+                                options="{'no_create': True, 'no_create_edit': True}"
+                            />
+                        </group>
+                        <group>
+                            <field name="journal" readonly="1"/>
+                            <field name="payment_origin_explanation"/>
+                            <field name="observations"/>
+                        </group>
+                    </group>
+                </sheet>
                 <footer>
-                    <button name="action_confirm" type="object" string="Registrar" class="oe_highlight"/>
+                    <button string="Confirmar" type="object" name="action_confirm" data-hotkey="enter" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
                 </footer>
             </form>
@@ -35,28 +33,26 @@
         <field name="name">wizard.manual.payment.out.journal.form</field>
         <field name="model">wizard_manual_payment_out_journal</field>
         <field name="arch" type="xml">
-            <form string="Registrar egreso">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label for="payee"/>
-                        <field name="payee" invisible="hide_field_payee" class="w-100"/>
-                        <label for="amount"/>
-                        <field name="amount" class="w-100"/>
-                        <label for="payment_method"/>
-                        <field name="payment_method" domain="[('allowed_journals', 'in', journal)]" class="w-100"/>
-                    </div>
-                    <div class="col-md-6">
-                        <field name="currency_id" invisible="1"/>
-                        <label for="journal"/>
-                        <field name="journal" readonly="1" class="w-100"/>
-                        <label for="payment_origin_explanation"/>
-                        <field name="payment_origin_explanation" class="w-100"/>
-                        <label for="observations"/>
-                        <field name="observations" class="w-100"/>
-                    </div>
-                </div>
+            <form string="Pago Manual Entrante a Diario">
+                <sheet>
+                    <field name="currency_id" invisible="1"/>
+                    <group>
+                        <group>
+                            <field name="payee" invisible="hide_field_payee"/>
+                            <field name="amount"/>
+                            <field name="payment_method" domain="[('allowed_journals', 'in', journal), ('active_currently', '=', True)]"
+                                options="{'no_create': True, 'no_create_edit': True}"
+                            />
+                        </group>
+                        <group>
+                            <field name="journal" readonly="1"/>
+                            <field name="payment_origin_explanation"/>
+                            <field name="observations"/>
+                        </group>
+                    </group>
+                </sheet>
                 <footer>
-                    <button name="action_confirm" type="object" string="Registrar" class="oe_highlight"/>
+                    <button string="Confirmar" type="object" name="action_confirm" data-hotkey="enter" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
                 </footer>
             </form>

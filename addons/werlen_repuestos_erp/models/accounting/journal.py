@@ -52,16 +52,16 @@ class Journal(models.Model):
             ['werlen_repuestos_erp.group_accountant'],
             error_message='Necesitas permisos de Caja para registrar ingresos.',
         )
-        wizard = self.env['wizard_manual_payment_in_journal'].create({
-            'journal': self.id,
-            'payment_method': self.allowed_payment_methods[:1].id,
-        })
         return {
             'type': 'ir.actions.act_window',
+            'name': 'Ingreso Manual a Diario Contable',
             'res_model': 'wizard_manual_payment_in_journal',
-            'res_id': wizard.id,
             'view_mode': 'form',
             'target': 'new',
+            'context': {
+                'default_journal': self.id,
+                'default_payment_method': self.allowed_payment_methods[:1].id,
+            },
         }
 
     def action_manual_out_payment(self):
@@ -71,16 +71,16 @@ class Journal(models.Model):
             ['werlen_repuestos_erp.group_accountant'],
             error_message='Necesitas permisos de Caja para registrar egresos.',
         )
-        wizard = self.env['wizard_manual_payment_out_journal'].create({
-            'journal': self.id,
-            'payment_method': self.allowed_payment_methods[:1].id,
-        })
         return {
             'type': 'ir.actions.act_window',
+            'name': 'Egreso Manual a Diario Contable',
             'res_model': 'wizard_manual_payment_out_journal',
-            'res_id': wizard.id,
             'view_mode': 'form',
             'target': 'new',
+            'context': {
+                'default_journal': self.id,
+                'default_payment_method': self.allowed_payment_methods[:1].id,
+            },
         }
 
     def action_create_cash_session(self):
