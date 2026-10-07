@@ -63,24 +63,19 @@
         <field name="name">wizard.change.payment.line.journal.form</field>
         <field name="model">wizard_change_payment_line_journal</field>
         <field name="arch" type="xml">
-            <form string="Cambiar diario del pago">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label for="payment_line_id"/>
-                        <field name="payment_line_id" class="w-100"/>
-                        <label for="payment_line_amount"/>
-                        <field name="payment_line_amount" class="w-100"/>
-                    </div>
-                    <div class="col-md-6">
-                        <field name="currency_id" invisible="1"/>
-                        <label for="current_journal_id"/>
-                        <field name="current_journal_id" class="w-100"/>
-                        <label for="new_journal_id"/>
-                        <field name="new_journal_id" domain="[('allowed_payment_methods', 'in', payment_line_id.payment_method)]" class="w-100"/>
-                    </div>
-                </div>
+            <form string="Cambiar diario del Pago">
+                <group>
+                    <group>
+                        <field name="payment_line_id" readonly="1"/>
+                        <field name="payment_line_amount" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="current_journal_id" readonly="1"/>
+                        <field name="new_journal_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                    </group>
+                </group>
                 <footer>
-                    <button name="action_confirm" type="object" string="Cambiar" class="oe_highlight"/>
+                    <button name="action_confirm" type="object" string="Confirmar" class="btn-primary"/>
                     <button string="Cancelar" special="cancel"/>
                 </footer>
             </form>
@@ -92,23 +87,18 @@
         <field name="model">wizard_change_check_journal</field>
         <field name="arch" type="xml">
             <form string="Cambiar diario del cheque">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label for="check_id"/>
-                        <field name="check_id" class="w-100"/>
-                        <label for="check_amount"/>
-                        <field name="check_amount" class="w-100"/>
-                    </div>
-                    <div class="col-md-6">
-                        <field name="currency_id" invisible="1"/>
-                        <label for="current_journal_id"/>
-                        <field name="current_journal_id" class="w-100"/>
-                        <label for="new_journal_id"/>
-                        <field name="new_journal_id" class="w-100"/>
-                    </div>
-                </div>
+                <group>
+                    <group>
+                        <field name="check_id" readonly="1"/>
+                        <field name="check_amount" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="current_journal_id" readonly="1"/>
+                        <field name="new_journal_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                    </group>
+                </group>
                 <footer>
-                    <button name="action_confirm" type="object" string="Cambiar" class="oe_highlight"/>
+                    <button name="action_confirm" type="object" string="Confirmar" class="btn-primary"/>
                     <button string="Cancelar" special="cancel"/>
                 </footer>
             </form>
