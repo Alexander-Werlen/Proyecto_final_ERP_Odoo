@@ -106,35 +106,40 @@
     </record>
 
     <record id="wizard_payment_line_out_credit_note_form_view" model="ir.ui.view">
-        <field name="name">wizard.payment.line.out.credit.note.form</field>
+        <field name="name">wizard.out.payment.line.credit.note.form</field>
         <field name="model">wizard_payment_line_out_credit_note</field>
         <field name="arch" type="xml">
-            <form string="Reembolsar nota de crédito">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <field name="currency_id" invisible="1"/>
-                        <label for="amount"/>
-                        <field name="amount" class="w-100"/>
-                        <label for="payee"/>
-                        <field name="payee" readonly="1" class="w-100"/>
-                        <label for="payment_method"/>
-                        <field name="payment_method" class="w-100"/>
-                        <label for="journal"/>
-                        <field name="journal" domain="[('allowed_payment_methods', 'in', payment_method)]" class="w-100"/>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="credit_note_out_amount_not_reconciliated"/>
-                        <field name="credit_note_out_amount_not_reconciliated" readonly="1" class="w-100"/>
-                        <label for="credit_note_out_amount_reconciliated"/>
-                        <field name="credit_note_out_amount_reconciliated" readonly="1" class="w-100"/>
-                        <label for="credit_note_out_total_amount"/>
-                        <field name="credit_note_out_total_amount" readonly="1" class="w-100"/>
-                        <label for="credit_note_out_id"/>
-                        <field name="credit_note_out_id" readonly="1" class="w-100"/>
-                    </div>
-                </div>
+            <form string="Pago Saliente">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="payment_method" domain="[('active_currently', '=', True)]"
+                                options="{'no_create': True, 'no_create_edit': True}"
+                            />
+                            <field name="journal" options="{'no_create': True, 'no_create_edit': True}"/>
+                        </group>
+                        <group>
+                            <div invisible="credit_note_out_id == False">
+                                <div class="o_row" style="font-size: 14px;">
+                                    <span><strong>Importe faltante: </strong></span>
+                                    <field name="credit_note_out_amount_not_reconciliated" readonly="1" nolabel="1" class="ml-1"/>
+                                </div>
+                                <div class="o_row" style="font-size: 14px;">
+                                    <span>Importe de la nota de crédito: </span>
+                                    <field name="credit_note_out_total_amount" readonly="1" nolabel="1" class="ml-1"/>
+                                </div>
+                                <div class="o_row" style="font-size: 14px;">
+                                    <span>Pago para </span>
+                                    <field name="credit_note_out_id" readonly="1" nolabel="1" class="ml-1"/>
+                                </div>
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
                 <footer>
-                    <button name="action_confirm" type="object" string="Reembolsar" class="oe_highlight"/>
+                    <button string="Confirmar" type="object" name="action_confirm" data-hotkey="enter" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
                 </footer>
             </form>
@@ -142,50 +147,35 @@
     </record>
 
     <record id="wizard_verification_credit_note_out_form_view" model="ir.ui.view">
-        <field name="name">wizard.verification.credit.note.out.form</field>
+        <field name="name">wizard.verification.credit.note.out</field>
         <field name="model">wizard_verification_credit_note_out</field>
         <field name="arch" type="xml">
-            <form string="Verificar nota de crédito">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label for="credit_note_id"/>
-                        <field name="credit_note_id" readonly="1" class="w-100"/>
-                        <label for="client"/>
-                        <field name="client" readonly="1" class="w-100"/>
-                        <label for="full_name"/>
-                        <field name="full_name" readonly="1" class="w-100"/>
-                        <label for="total_amount"/>
-                        <field name="total_amount" readonly="1" class="w-100"/>
-                    </div>
-                    <div class="col-md-6">
+            <form>
+                <group>
+                    <group>
+                        <field name="credit_note_id"/>
+                        <field name="full_name"/>
+                        <field name="total_amount"/>
+                    </group>
+                    <group>
                         <field name="currency_id" invisible="1"/>
-                        <label for="seller_of_related_invoice"/>
-                        <field name="seller_of_related_invoice" readonly="1" class="w-100"/>
-                        <label for="date"/>
-                        <field name="date" readonly="1" class="w-100"/>
-                    </div>
-                </div>
-
-                <separator string="Datos a Completar"/>
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label for="who_created"/>
-                        <field name="who_created" class="w-100"/>
-                        <label for="who_approved"/>
-                        <field name="who_approved" class="w-100"/>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="skip_related_invoice"/>
-                        <field name="skip_related_invoice" widget="boolean_toggle" class="w-100"/>
-                        <label for="related_invoice"/>
-                        <field name="related_invoice" invisible="skip_related_invoice" class="w-100"/>
-                    </div>
-                </div>
-
-                <label for="observations"/>
-                <field name="observations" placeholder="Observaciones..." class="w-100"/>
+                        <field name="seller_of_related_invoice"/>
+                        <field name="date"/>
+                    </group>
+                </group>
+                <group string="Datos a Completar">
+                    <group>
+                        <field name="who_created"/>
+                        <field name="who_approved"/>
+                    </group>
+                    <group>
+                        <field name="skip_related_invoice" widget="boolean_toggle"/>
+                        <field name="related_invoice" invisible="skip_related_invoice"/>
+                    </group>
+                </group>
+                <field name="observations" placeholder="Observaciones..."/>
                 <footer>
-                    <button name="action_confirm_verification" type="object" string="Verificar" class="oe_highlight"/>
+                    <button string="Confirmar" type="object" name="action_confirm_verification" data-hotkey="enter" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
                 </footer>
             </form>
