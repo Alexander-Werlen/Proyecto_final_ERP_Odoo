@@ -242,28 +242,32 @@
         <field name="name">wizard.current.account.income.form</field>
         <field name="model">wizard_current_account_income</field>
         <field name="arch" type="xml">
-            <form string="Ingreso a cuenta corriente">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label for="amount"/>
-                        <field name="amount" class="w-100"/>
-                        <label for="payment_method_id"/>
-                        <field name="payment_method_id" class="w-100"/>
-                        <label for="journal_id"/>
-                        <field name="journal_id" domain="[('allowed_payment_methods', 'in', payment_method_id)]" class="w-100"/>
-                    </div>
-                    <div class="col-md-6">
+            <form string="Ingreso a Cuenta Corriente">
+                <sheet>
                         <field name="currency_id" invisible="1"/>
-                        <label for="payer_id"/>
-                        <field name="payer_id" readonly="1" string="Cliente" class="w-100"/>
-                        <label for="payment_origin_explanation"/>
-                        <field name="payment_origin_explanation" invisible="not payment_origin_explanation" class="w-100"/>
-                    </div>
-                </div>
-                <separator string="Observaciones"/>
-                <field name="observations" nolabel="1" class="w-100"/>
+                    <group>
+                        <group>
+                            <field name="amount"/>
+                            <field name="payment_method_id"
+                                options="{'no_create': True, 'no_create_edit': True}"
+                                domain="[('active_currently', '=', True)]"
+                            />
+                            <field name="journal_id"/>
+                        </group>
+                        <group>
+                            <field name="payer_id" string="Cliente"/>
+                            <field name="payment_origin_explanation"/>
+                            <field name="account_payment_for_auto_reconciliation" invisible="not account_payment_for_auto_reconciliation"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Observaciones">
+                            <field name="observations"/>
+                        </page>
+                    </notebook>
+                </sheet>
                 <footer>
-                    <button name="action_create_payment_line" type="object" string="Registrar" class="oe_highlight"/>
+                    <button string="Crear Pago" type="object" name="action_create_payment_line" data-hotkey="enter" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
                 </footer>
             </form>
@@ -274,46 +278,33 @@
         <field name="name">wizard.verification.account.payment.form</field>
         <field name="model">wizard_verification_account_payment</field>
         <field name="arch" type="xml">
-            <form string="Verificar recibo">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label for="account_payment"/>
-                        <field name="account_payment" readonly="1" class="w-100"/>
-                        <label for="date"/>
-                        <field name="date" readonly="1" class="w-100"/>
-                        <label for="client"/>
-                        <field name="client" readonly="1" class="w-100"/>
-                    </div>
-                    <div class="col-md-6">
+            <form>
+                <group>
+                    <group>
+                        <field name="account_payment"/>
+                        <field name="date"/>
+                        <field name="client"/>
+                    </group>
+                    <group>
                         <field name="currency_id" invisible="1"/>
-                        <label for="amount"/>
-                        <field name="amount" readonly="1" class="w-100"/>
-                        <label for="discount_amount"/>
-                        <field name="discount_amount" readonly="1" class="w-100"/>
-                    </div>
-                </div>
-
-                <separator string="Datos a Completar"/>
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label for="related_payments"/>
-                        <field name="related_payments" string="Pagos Relacionados" widget="many2many_tags" class="w-100"/>
-                        <label for="related_checks"/>
-                        <field name="related_checks" string="Cheques Relacionados" widget="many2many_tags" class="w-100"/>
-                        <label for="who_created"/>
-                        <field name="who_created" class="w-100"/>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="amount_reconciliated"/>
-                        <field name="amount_reconciliated" readonly="1" class="w-100"/>
-                        <label for="amount_not_reconciliated"/>
-                        <field name="amount_not_reconciliated" readonly="1" class="w-100"/>
-                    </div>
-                </div>
-                <label for="observations"/>
-                <field name="observations" placeholder="Observaciones..." class="w-100"/>
+                        <field name="amount"/>
+                        <field name="discount_amount"/>
+                    </group>
+                </group>
+                <group string="Datos a Completar">
+                    <group>
+                        <field name="related_payments" string="Pagos Relacionados" widget="many2many_tags"/>
+                        <field name="related_checks" string="Cheques Relacionados" widget="many2many_tags"/>
+                        <field name="who_created"/>
+                    </group>
+                    <group>
+                        <field name="amount_reconciliated"/>
+                        <field name="amount_not_reconciliated"/>
+                    </group>
+                </group>
+                <field name="observations" placeholder="Observaciones..."/>
                 <footer>
-                    <button name="action_confirm_verification" type="object" string="Verificar" class="oe_highlight"/>
+                    <button string="Confirmar" type="object" name="action_confirm_verification" data-hotkey="enter" class="oe_highlight"/>
                     <button string="Cancelar" special="cancel"/>
                 </footer>
             </form>
