@@ -355,34 +355,43 @@
     </record>
 
     <record id="wizard_manual_payment_invoice_out_form_view" model="ir.ui.view">
-        <field name="name">wizard.manual.payment.invoice.out.form</field>
+        <field name="name">wizard.manual.payment.invoice.out.form.view</field>
         <field name="model">wizard_manual_payment_invoice_out</field>
         <field name="arch" type="xml">
-            <form string="Registrar pago de factura">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label for="reconciliation_invoice_id"/>
-                        <field name="reconciliation_invoice_id" readonly="1" class="w-100"/>
-                        <label for="invoice_out_total_amount"/>
-                        <field name="invoice_out_total_amount" readonly="1" class="w-100"/>
-                        <label for="invoice_out_amount_not_reconciliated"/>
-                        <field name="invoice_out_amount_not_reconciliated" readonly="1" class="w-100"/>
-                    </div>
-                    <div class="col-md-6">
+            <form string="Pago Entrante">
+                <sheet>
+                    <group>
+                        <group>
                         <field name="currency_id" invisible="1"/>
-                        <label for="amount"/>
-                        <field name="amount" class="w-100"/>
-                        <label for="payer"/>
-                        <field name="payer" readonly="1" class="w-100"/>
-                        <label for="payment_method"/>
-                        <field name="payment_method" class="w-100"/>
-                        <label for="journal"/>
-                        <field name="journal" domain="[('allowed_payment_methods', 'in', payment_method)]" class="w-100"/>
-                    </div>
-                </div>
+                            <field name="amount"/>
+                            <field name="payment_method" domain="[('active_currently', '=', True)]"
+                                options="{'no_create': True, 'no_create_edit': True}"
+                            />
+                            <field name="journal" domain="[('allowed_payment_methods', 'in', payment_method)]"
+                                options="{'no_create': True, 'no_create_edit': True}"
+                            />
+                        </group>
+                        <group>
+                            <div>
+                                <div class="o_row fw-bold text-dark" style="font-size: 14px;">
+                                    <span><strong>Importe faltante: </strong></span>
+                                    <field name="invoice_out_amount_not_reconciliated" readonly="1" nolabel="1" class="ml-1 fw-bold text-dark"/>
+                                </div>
+                                <div class="o_row" style="font-size: 14px;">
+                                    <span>Importe de la factura: </span>
+                                    <field name="invoice_out_total_amount" readonly="1" nolabel="1" class="ml-1"/>
+                                </div>
+                                <div class="o_row" style="font-size: 14px;">
+                                    <span>Pago para </span>
+                                    <field name="reconciliation_invoice_id" readonly="1" nolabel="1" class="ml-1"/>
+                                </div>
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
                 <footer>
-                    <button name="action_confirm" type="object" string="Registrar" class="oe_highlight"/>
-                    <button string="Cancelar" special="cancel"/>
+                    <button string="Confirmar" type="object" name="action_confirm" data-hotkey="enter" class="oe_highlight"/>
+                    <button string="Cancelar" data-hotkey="c" special="cancel"/>
                 </footer>
             </form>
         </field>
