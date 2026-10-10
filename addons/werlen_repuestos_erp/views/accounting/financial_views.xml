@@ -272,50 +272,66 @@
         <field name="name">credit.note.out.form</field>
         <field name="model">credit_note_out</field>
         <field name="arch" type="xml">
-            <form string="Nota de crédito" create="0" delete="0">
+            <form string="Nota de Crédito" create="false" delete="false">
                 <header>
-                    <button name="action_start_verification" type="object" string="Verificar" class="oe_highlight" groups="werlen_repuestos_erp.group_administration" invisible="state != 'draft'"/>
-                    <button name="create_payment" type="object" string="Reembolsar" class="oe_highlight" groups="werlen_repuestos_erp.group_accountant" invisible="payment_status in ['paid', 'account']"/>
-                    <button name="show_payment_lines" type="object" string="Ver pagos" invisible="payment_status == 'account'"/>
-                    <button name="show_reconciliation_lines" type="object" string="Ver reconciliaciones" invisible="payment_status == 'account'"/>
-                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid,account"/>
+                    <button name="action_start_verification" type="object" string="Verificar" invisible="state != 'draft'" class="oe_highlight" groups="werlen_repuestos_erp.group_administration"/>
+                    <button name="create_payment" type="object" string="Pago Manual" invisible="payment_status in ['paid', 'account']" class="oe_highlight" icon="fa-usd" groups="werlen_repuestos_erp.group_accountant"/>
+                    <button name="show_payment_lines" type="object" string="Ver Pagos" invisible="payment_status == 'account'" icon="fa-eye"/>
+                    <button name="show_reconciliation_lines" type="object" string="Ver Reconciliaciones" invisible="payment_status == 'account'" icon="fa-list"/>
+                    <!-- Rama normal -->
+                    <field name="payment_status" widget="statusbar" statusbar_visible="not_paid,partially_paid,paid" invisible="payment_status == 'account'"/>
+                    <!-- Rama cuenta corriente -->
+                    <field name="payment_status" widget="statusbar" statusbar_visible="account" invisible="payment_status != 'account'"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Borrador" bg_color="bg-danger" invisible="state != 'draft'"/>
+                    <widget name="web_ribbon" title="No Reconciliado" bg_color="bg-danger" invisible="payment_status != 'not_paid' or state == 'draft'"/>
+                    <widget name="web_ribbon" title="Rec. Parcial" bg_color="bg-warning" invisible="payment_status != 'partially_paid' or state == 'draft'"/>
+                    <widget name="web_ribbon" title="Reconciliado" bg_color="bg-success" invisible="payment_status != 'paid' or state == 'draft'"/>
+                    <widget name="web_ribbon" title="Cuenta-Corriente" bg_color="bg-success" invisible="payment_status != 'account' or state == 'draft'"/>
+                    <h1>NOTA DE CRÉDITO</h1>
+                    <!-- Header -->
                     <group>
+                        <field name="credit_note_id" readonly="true"/>
+                    </group>
+                    <group string="Información general">
                         <group>
-                            <field name="credit_note_id" readonly="1"/>
-                            <field name="invoice_type" readonly="1"/>
-                            <field name="client" readonly="1"/>
-                            <field name="full_name" readonly="1"/>
+                            <field name="client" readonly="true"/>
+                            <field name="full_name" readonly="true"/>
                         </group>
                         <group>
-                            <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
-                            <field name="billing_base_amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
-                            <field name="payment_method" readonly="1"/>
-                            <field name="currency_id" invisible="1"/>
+                            <field name="related_invoice"/>
+                            <field name="seller_of_related_invoice" readonly="true"/>
+                        </group>
+                    </group>
+                    <group string="Información Responables">
+                        <group>
+                            <field name="who_created"/>
+                        </group>
+                        <group>
+                            <field name="who_approved"/>
                         </group>
                     </group>
                     <group string="Importes">
-                        <field name="amount_reconciliated_confirmed" readonly="1"/>
-                        <field name="amount_not_reconciliated_confirmed" readonly="1"/>
-                        <field name="amount_reconciliated_unconfirmed" readonly="1"/>
-                        <field name="amount_not_reconciliated_unconfirmed" readonly="1"/>
-                    </group>
-                    <group string="Información">
-                        <field name="related_invoice"/>
-                        <field name="seller_of_related_invoice" readonly="1"/>
-                        <field name="who_created"/>
-                        <field name="who_approved"/>
-                        <field name="date" readonly="1"/>
-                        <field name="is_manual_invoice" readonly="1"/>
+                        <group>
+                            <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="true"/>
+                            <field name="payment_method" readonly="true"/>
+                            <field name="currency_id" invisible="1" readonly="true"/>
+                        </group>
+                        <group>
+                            <field name="amount_reconciliated_confirmed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="amount_not_reconciliated_confirmed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                        </group>
                     </group>
                     <notebook>
-                        <page string="Reconciliaciones">
-                            <field name="reconciliation_lines" readonly="1"/>
-                        </page>
                         <page string="Observaciones">
                             <field name="observations"/>
+                        </page>
+                        <page string="Info creación">
+                            <group>
+                                <field name="date" readonly="true"/>
+                                <field name="is_manual_invoice" readonly="true" widget="boolean_toggle"/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -325,33 +341,52 @@
     </record>
 
     <record id="default_credit_note_out_list_view" model="ir.ui.view">
-        <field name="name">credit.note.out.list</field>
+        <field name="name">default.credit.note.out.list</field>
         <field name="model">credit_note_out</field>
         <field name="arch" type="xml">
-            <list string="Notas de crédito" create="0" delete="0" default_order="date desc">
+            <list string="Cheques" create="false" delete="false" default_order="date desc">
+                <field name="state" widget="badge" decoration-danger="state == 'draft'" decoration-success="state == 'verified'" width="120px" string="Estado"/>
                 <field name="date"/>
-                <field name="credit_note_id"/>
-                <field name="client_identifier"/>
-                <field name="full_name"/>
-                <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="currency_id" column_invisible="1"/>
-                <field name="state" widget="badge"/>
-                <field name="payment_status" widget="badge"/>
+                <field name="credit_note_id" string="Nota de Crédito" class="fw-bold text-dark"/>
+                <field name="client_identifier" string="Num Cliente"/>
+                <field name="full_name" string="Propietario del Crédito"/>
+                <field name="who_created" optional="show"/>
+                <field name="related_invoice"/>
+                <field name="total_amount" widget="monetary" class="fw-bold text-dark" options="{'currency_field': 'currency_id'}"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="observations" string="Observaciones" optional="show"/>
+                <field name="payment_status" widget="badge" decoration-success="payment_status == 'paid'" decoration-warning="payment_status == 'partially_paid'" decoration-danger="payment_status == 'not_paid'" decoration-info="payment_status == 'account'" width="100px" string="Pago"/>
             </list>
         </field>
     </record>
 
     <record id="default_credit_note_out_search_view" model="ir.ui.view">
-        <field name="name">credit.note.out.search</field>
+        <field name="name">default.credit.note.out.search</field>
         <field name="model">credit_note_out</field>
         <field name="arch" type="xml">
-            <search string="Buscar notas de crédito">
-                <field name="credit_note_id"/>
-                <field name="client"/>
-                <field name="full_name"/>
-                <field name="related_invoice"/>
-                <filter name="draft" string="Borrador" domain="[('state', '=', 'draft')]"/>
-                <filter name="pending" string="Pendientes" domain="[('payment_status', 'in', ['not_paid', 'partially_paid'])]"/>
+            <search string="Buscar NC">
+                <!-- Quick text search -->
+                <field name="credit_note_id" string="Número NC"/>
+                <field name="client_identifier" string="Num Cliente"/>
+                <field name="full_name" string="Nombre Propietario"/>
+                <field name="total_amount" string="Importe total"/>
+                <!-- Filters -->
+                <group string="Reconciliación">
+                    <filter string="Reconciliados" name="reconciliated" domain="[('payment_status','=', 'paid')]"/>
+                    <filter string="Rec. Pendiente" name="not_reconciliated" domain="[('payment_status','in', ['not_paid', 'partially_paid'])]"/>
+                    <filter string="Cuenta-Corriente" name="account" domain="[('payment_status','=', 'account')]"/>
+                </group>
+                <group string="Estado">
+                    <filter string="Borrador" name="draft" domain="[('state','=', 'draft')]"/>
+                    <filter string="Verificadas" name="verified" domain="[('state','=', 'verified')]"/>
+                </group>
+                <!-- Groups -->
+                <group expand="0" string="Agrupar por">
+                    <filter string="Estado del Pago" name="group_payment_status" context="{'group_by':'payment_status'}"/>
+                </group>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Estado" name="group_state" context="{'group_by':'state'}"/>
+                </group>
             </search>
         </field>
     </record>
