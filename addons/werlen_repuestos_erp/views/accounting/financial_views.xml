@@ -114,34 +114,39 @@
         <field name="name">reconciliation.line.list</field>
         <field name="model">reconciliation_line</field>
         <field name="arch" type="xml">
-            <list string="Líneas de reconciliación" create="0" edit="0" delete="0">
+            <list string="Líneas de Reconciliación" create="false">
                 <field name="amount" sum="Total"/>
-                <field name="currency_id" column_invisible="1"/>
+                <field name="currency_id" column_invisible="True"/>
                 <field name="outgoing_move_ref"/>
                 <field name="incomming_move_ref"/>
-                <field name="confirmed" widget="boolean_toggle"/>
                 <field name="auxiliar_is_confirmed"/>
             </list>
         </field>
     </record>
 
     <record id="manual_reconciliation_line_form_view" model="ir.ui.view">
-        <field name="name">manual.reconciliation.line.form</field>
+        <field name="name">transient.reconciliation.line.form</field>
         <field name="model">transient_reconciliation_line</field>
         <field name="arch" type="xml">
             <form string="Reconciliación manual">
-                <group>
-                    <field name="outgoing_move_ref"/>
-                    <field name="incomming_move_ref"/>
-                    <field name="currency_id" invisible="1"/>
-                    <field name="outgoing_move_amount_not_reconciliated" readonly="1"/>
-                    <field name="incomming_move_amount_not_reconciliated" readonly="1"/>
-                    <field name="amount"/>
-                </group>
-                <footer>
-                    <button name="create_manual_reconciliation_line" type="object" string="Reconciliar" class="oe_highlight"/>
-                    <button string="Cancelar" special="cancel"/>
-                </footer>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="outgoing_move_ref" options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="outgoing_move_amount_not_reconciliated"/>
+                            <field name="amount" readonly="not outgoing_move_ref or not incomming_move_ref"/>
+                        </group>
+                        <group>
+                            <field name="incomming_move_ref" options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="incomming_move_amount_not_reconciliated"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button string="Crear" type="object" name="create_manual_reconciliation_line" class="btn-primary"/>
+                        <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
             </form>
         </field>
     </record>
