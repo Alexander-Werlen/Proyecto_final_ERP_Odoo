@@ -22,18 +22,18 @@
 
                     <field name="logistical_status"
                     widget="badge"
-                    decoration-danger="logistical_status == 'awaiting_preparation'"
+                    decoration-danger="logistical_status == 'awaiting_preparation'" 
                     decoration-warning="logistical_status == 'in_preparation'"
-                    decoration-success="logistical_status == 'prepared'"
+                    decoration-success="logistical_status == 'prepared'" 
                     width="120px"
                     string="Estado"
                     />
-                    <field name="date"
+                    <field name="date" 
                     string="Fecha"
                     optional="hide"
                     />
                     <field name="invoice_id"/>
-                    <field name="client_identifier"
+                    <field name="client_identifier" 
                     string="Num Cliente"
                     width="50px"
                     />
@@ -46,14 +46,14 @@
                     <field name="seller"
                     optional="hide"
                     />
-                    <field name="allow_repayment"
+                    <field name="allow_repayment" 
                     optional="hide"
-                    string="Contra-reembolso"
+                    string="Contra-Reembolso"
                     width="70px"
                     />
-                    <field name="is_account_move"
-                    widget="boolean_toggle"
-                    string="Cuenta corriente"
+                    <field name="is_account_move" 
+                    widget="boolean_toggle" 
+                    string="Cuenta-Corriente"
                     width="70px"
                     optional="hide"
                     />
@@ -66,10 +66,10 @@
                     />
                     <field name="payment_status"
                     widget="badge"
-                    decoration-success="payment_status == 'paid'"
-                    decoration-warning="payment_status == 'partially_paid'"
-                    decoration-danger="payment_status == 'not_paid'"
-                    decoration-info="payment_status == 'account'"
+                    decoration-success="payment_status == 'paid'" 
+                    decoration-warning="payment_status == 'partially_paid'" 
+                    decoration-danger="payment_status == 'not_paid'" 
+                    decoration-info="payment_status == 'account'" 
                     width="100px"
                     string="Pago"
                     optional="show"
@@ -100,13 +100,13 @@
                             string="Borrador"
                             domain="[('logistical_status','=','draft')]"/>
 
+                    <filter name="awaiting_payment"
+                            string="A Pagar"
+                            domain="[('logistical_status','=','awaiting_payment')]"/>
+                    
                     <filter name="awaiting_preparation"
                             string="A Preparar"
                             domain="[('logistical_status','=','awaiting_preparation')]"/>
-
-                    <filter name="awaiting_payment"
-                            string="A pagar"
-                            domain="[('logistical_status','=','awaiting_payment')]"/>
 
                     <filter name="in_preparation"
                             string="En preparación"
@@ -131,14 +131,14 @@
 
                     <!-- Agrupaciones -->
                     <group expand="0" string="Agrupar por">
-                        <filter string="Estado Logistico"
-                        name="group_logistical_status"
+                        <filter string="Estado Logistico" 
+                        name="group_logistical_status" 
                         context="{'group_by':'logistical_status'}"/>
                     </group>
 
                     <group expand="0" string="Agrupar por">
-                        <filter string="Quien Retira"
-                        name="group_who_withdraws"
+                        <filter string="Quien Retira" 
+                        name="group_who_withdraws" 
                         context="{'group_by':'who_withdraws'}"/>
                     </group>
 

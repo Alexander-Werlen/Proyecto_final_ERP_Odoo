@@ -16,27 +16,27 @@
                     />
                     <field name="date"/>
                     <field name="invoice_id"/>
-                    <field name="client_identifier"
+                    <field name="client_identifier" 
                     string="Num Cliente"
                     width="50px"
                     />
-                    <field name="full_name"
+                    <field name="full_name" 
                     string="Nombre del Cliente"
                     class="fw-bold text-dark"
                     />
                     <field name="seller" optional="show"/>
                     <field name="who_withdraws"/>
-                    <field name="who_prepared"
+                    <field name="who_prepared" 
                     optional="hide"
                     />
-                    <field name="allow_repayment"
-                    widget="boolean_toggle"
-                    string="Contra-reembolso"
+                    <field name="allow_repayment" 
+                    widget="boolean_toggle" 
+                    string="Contra-Reembolso"
                     width="70px"
                     />
-                    <field name="is_account_move"
-                    widget="boolean_toggle"
-                    string="Cuenta corriente"
+                    <field name="is_account_move" 
+                    widget="boolean_toggle" 
+                    string="Cuenta-Corriente"
                     width="70px"
                     optional="hide"
                     />
@@ -46,10 +46,10 @@
                     <field name="currency_id" column_invisible="True"/>
                     <field name="payment_status"
                     widget="badge"
-                    decoration-success="payment_status == 'paid'"
-                    decoration-warning="payment_status == 'partially_paid'"
-                    decoration-danger="payment_status == 'not_paid'"
-                    decoration-info="payment_status == 'account'"
+                    decoration-success="payment_status == 'paid'" 
+                    decoration-warning="payment_status == 'partially_paid'" 
+                    decoration-danger="payment_status == 'not_paid'" 
+                    decoration-info="payment_status == 'account'" 
                     width="100px"
                     string="Pago"
                     />
@@ -77,13 +77,13 @@
                             string="Borrador"
                             domain="[('logistical_status','=','draft')]"/>
 
+                    <filter name="awaiting_payment"
+                            string="A Pagar"
+                            domain="[('logistical_status','=','awaiting_payment')]"/>
+                    
                     <filter name="awaiting_preparation"
                             string="A Preparar"
                             domain="[('logistical_status','=','awaiting_preparation')]"/>
-
-                    <filter name="awaiting_payment"
-                            string="A pagar"
-                            domain="[('logistical_status','=','awaiting_payment')]"/>
 
                     <filter name="in_preparation"
                             string="En preparación"
@@ -112,12 +112,15 @@
 
                     <!-- Agrupaciones -->
                     <group expand="0" string="Agrupar por">
-                        <filter string="Estado Logistico"
-                        name="group_logistical_status"
-                        context="{'group_by':'logistical_status'}"/>
-                        <filter string="Estado del Pago"
-                        name="group_payment_status"
+                        <filter string="Estado del Pago" 
+                        name="group_payment_status" 
                         context="{'group_by':'payment_status'}"/>
+                    </group>
+
+                    <group expand="0" string="Agrupar por">
+                        <filter string="Estado Logistico" 
+                        name="group_logistical_status" 
+                        context="{'group_by':'logistical_status'}"/>
                     </group>
 
                 </search>
