@@ -7,35 +7,25 @@
                 <form string="Reclamo de Cliente" create="false" edit="true" delete="true">
                     <header>
                         <field name="state" widget="statusbar" statusbar_visible="draft,valid,resolved,canceled" readonly="1"/>
-                        <button name="action_validate" type="object" string="Validar" class="oe_highlight"
-                            invisible="state != 'draft'" groups="werlen_repuestos_erp.group_administration"/>
-                        <button name="action_open_resolve_wizard" type="object" string="Resolver" class="oe_highlight"
-                            invisible="state != 'valid'" groups="werlen_repuestos_erp.group_administration"/>
-                        <button name="action_open_cancel_wizard" type="object" string="Rechazar"
-                            class="btn btn-danger" invisible="state != 'valid'"
-                            groups="werlen_repuestos_erp.group_administration"/>
-                        <button name="action_revert_to_draft" type="object" string="Volver a borrador"
-                            class="btn btn-outline-danger" invisible="state != 'valid'"
-                            confirm="¿Está seguro que desea volver el reclamo a 'Borrador'?"
-                            groups="werlen_repuestos_erp.group_administration"/>
+                        <button name="action_validate" type="object" string="Validar" class="oe_highlight" invisible="state != 'draft'" groups="werlen_repuestos_erp.group_administration"/>
+                        <button name="action_open_resolve_wizard" type="object" string="Resolver" class="oe_highlight" invisible="state != 'valid'" groups="werlen_repuestos_erp.group_administration"/>
+                        <button name="action_open_cancel_wizard" type="object" string="Rechazar" class="btn btn-danger" invisible="state != 'valid'" groups="werlen_repuestos_erp.group_administration"/>
+                        <button name="action_revert_to_draft" type="object" string="Volver a Borrador" class="btn btn-outline-danger" invisible="state != 'valid'" confirm="¿Está seguro que desea volver el reclamo a 'Borrador'?" groups="werlen_repuestos_erp.group_administration"/>
                     </header>
                     <sheet>
                         <widget name="web_ribbon" title="Borrador" bg_color="bg-secondary" invisible="state != 'draft'"/>
                         <widget name="web_ribbon" title="Válido" bg_color="bg-warning" invisible="state != 'valid'"/>
                         <widget name="web_ribbon" title="Resuelto" bg_color="bg-success" invisible="state != 'resolved'"/>
                         <widget name="web_ribbon" title="Rechazado" bg_color="bg-danger" invisible="state != 'canceled'"/>
-
                         <h1>
                             RECLAMO DE CLIENTE
                             <field name="name" class="ms-2 text-muted fw-normal" readonly="1" nolabel="1"/>
                         </h1>
-
                         <group>
                             <group>
                                 <separator string="Datos del producto"/>
                                 <field name="product_brand" readonly="state != 'draft'"/>
                                 <field name="product_id" readonly="state != 'draft'" options="{'no_open': True}"/>
-                                <field name="vehicle_description" readonly="state != 'draft'"/>
                                 <field name="sale_fulfillment_order_id" readonly="state != 'draft'" options="{'no_create': True}"/>
                                 <field name="sale_invoice_date" readonly="1"/>
                                 <separator string="Datos del reclamo"/>
@@ -48,56 +38,53 @@
                                 <field name="client_dni" readonly="state != 'draft'"/>
                                 <field name="client_phone" readonly="state != 'draft'"/>
                                 <field name="client_address" readonly="state != 'draft'"/>
-                                <field name="who_created_id" readonly="1"/>
+                                <field name="vehicle_description" readonly="state != 'draft'"/>
+                                <separator string="Datos de Cierre" invisible="state not in ('resolved', 'canceled')"/>
+                                <field name="resolution_date" readonly="1" invisible="state not in ('resolved', 'canceled')"/>
+                                <field name="resolution_observations" readonly="1" invisible="state not in ('resolved', 'canceled')"/>
                             </group>
                         </group>
-
                         <field name="supplier_claim_pending" invisible="1"/>
                         <div invisible="supplier_claim_id">
                             <separator string="Seguimiento con el proveedor"/>
-                            <div class="alert alert-warning d-flex align-items-center py-2 px-3 mb-3"
-                                role="alert" invisible="not supplier_claim_pending">
-                                <i class="fa fa-exclamation-triangle me-2" title="Pendiente de reclamo a proveedor"
-                                    aria-label="Pendiente de reclamo a proveedor"/>
-                                <span><strong>Pendiente de reclamo a proveedor.</strong>
-                                    Todavía no se decidió el reclamo correspondiente para este caso.</span>
+                            <div class="alert alert-warning d-flex align-items-center py-2 px-3 mb-3" role="alert" invisible="not supplier_claim_pending">
+                                <i class="fa fa-exclamation-triangle me-2" title="Pendiente de reclamo a proveedor" aria-label="Pendiente de reclamo a proveedor"/>
+                                <span>
+                                    <strong>Pendiente de reclamo a proveedor.</strong>
+                                    Todavía no se decidió el reclamo correspondiente para este caso.
+                                </span>
                             </div>
-                            <div class="d-flex align-items-center gap-2 mb-2"
-                                groups="werlen_repuestos_erp.group_administration">
-                                <button name="action_open_supplier_claim_decision_wizard" type="object"
-                                    string="Decidir reclamo a proveedor" class="oe_highlight" icon="fa-question-circle"
-                                    invisible="state == 'draft' or not supplier_claim_pending"/>
+                            <div class="d-flex align-items-center gap-2 mb-2" groups="werlen_repuestos_erp.group_administration">
+                                <button name="action_open_supplier_claim_decision_wizard" type="object" string="Decidir reclamo a proveedor" class="oe_highlight" icon="fa-question-circle" invisible="state == 'draft' or not supplier_claim_pending"/>
                             </div>
-                            <div class="d-flex align-items-center gap-2 mt-2 mb-2"
-                                groups="werlen_repuestos_erp.group_administration">
+                            <div class="d-flex align-items-center gap-2 mt-2 mb-2" groups="werlen_repuestos_erp.group_administration">
                                 <label for="supplier_claim_not_required" class="o_form_label mb-0">No reclamar al proveedor</label>
-                                <field name="supplier_claim_not_required" nolabel="1" widget="boolean_toggle"
-                                    readonly="supplier_claim_id or state != 'valid'"/>
+                                <field name="supplier_claim_not_required" nolabel="1" widget="boolean_toggle" readonly="supplier_claim_id or state != 'valid'"/>
                             </div>
                         </div>
-
                         <group string="Reclamo a proveedor" invisible="not supplier_claim_id">
                             <group>
-                                <field name="supplier_claim_id" readonly="1"
-                                    options="{'no_create': True, 'no_create_edit': True}"/>
-                                <field name="supplier_claim_state" string="Estado" widget="badge" readonly="1"
-                                    decoration-success="supplier_claim_state == 'resolved'"
-                                    decoration-danger="supplier_claim_state == 'rejected'"
-                                    decoration-muted="supplier_claim_state not in ('resolved', 'rejected')"/>
+                                <field name="supplier_claim_id" readonly="1" options="{'no_create': True, 'no_create_edit': True}"/>
+                                <field name="supplier_claim_state" string="Estado" widget="badge" readonly="1" decoration-success="supplier_claim_state == 'resolved'" decoration-danger="supplier_claim_state == 'rejected'" decoration-muted="supplier_claim_state not in ('resolved', 'rejected')"/>
                             </group>
                         </group>
-
                         <notebook>
-                            <page string="Cierre" name="audit_closure"
-                                invisible="state not in ('resolved', 'canceled')">
+                            <page string="Observaciones" name="observations">
+                                <field name="resolution_observations" nolabel="1"/>
+                            </page>
+                            <page string="Creación" name="audit_creation">
                                 <group>
                                     <group>
-                                        <field name="resolution_user_id" readonly="1"/>
-                                        <field name="resolution_date" readonly="1"/>
+                                        <field name="who_created_id" readonly="1"/>
+                                        <field name="create_date" readonly="1"/>
                                     </group>
-                                    <group>
-                                        <field name="resolution_observations" readonly="1" nolabel="1"/>
-                                    </group>
+                                    <group/>
+                                </group>
+                            </page>
+                            <page string="Cierre" name="audit_closure">
+                                <group>
+                                    <field name="resolution_user_id" readonly="1"/>
+                                    <field name="resolution_date" readonly="1"/>
                                 </group>
                             </page>
                         </notebook>
