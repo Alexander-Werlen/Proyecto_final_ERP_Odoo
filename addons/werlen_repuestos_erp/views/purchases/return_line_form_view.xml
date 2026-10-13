@@ -15,12 +15,10 @@
                         <group string="Devolución">
                             <group>
                                 <field name="return_note_id" readonly="1"/>
-                                <field name="claim_id" readonly="1"/>
                                 <field name="resolution_date" readonly="1"/>
                             </group>
                             <group>
                                 <field name="quantity" readonly="1"/>
-                                <field name="state" widget="badge" readonly="1"/>
                             </group>
                         </group>
                         <group string="Producto">
@@ -31,6 +29,12 @@
                             <group>
                                 <field name="product_description" readonly="1"/>
                             </group>
+                        </group>
+                        <group string="Reclamos de origen">
+                            <group>
+                                <field name="claim_id" readonly="1"/>
+                            </group>
+                            <group/>
                         </group>
                         <group string="Observaciones">
                             <field name="observations" readonly="1" nolabel="1"/>
