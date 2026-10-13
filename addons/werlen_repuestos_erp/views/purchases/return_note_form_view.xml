@@ -46,10 +46,6 @@
                                     options="{'no_open': True}"/>
                             </group>
                             <group>
-                                <field name="who_created_id" readonly="1"/>
-                                <field name="creation_date" readonly="1"/>
-                                <field name="preparation_datetime" readonly="1"/>
-                                <field name="sent_datetime" readonly="1"/>
                             </group>
                         </group>
 
@@ -74,22 +70,40 @@
                             <page string="Observaciones" name="observations">
                                 <field name="observations" placeholder="Notas adicionales sobre la devolución" nolabel="1"/>
                             </page>
+                            <page string="Creación" name="audit_creation">
+                                <group>
+                                    <group>
+                                        <field name="who_created_id" readonly="1"/>
+                                        <field name="creation_date" readonly="1"/>
+                                    </group>
+                                    <group/>
+                                </group>
+                            </page>
                             <page string="Preparación" name="audit_preparation">
                                 <group>
-                                    <group><field name="who_prepared_id" readonly="1"/></group>
-                                    <group><field name="preparation_datetime" readonly="1"/></group>
+                                    <group>
+                                        <field name="who_prepared_id" readonly="1"/>
+                                        <field name="preparation_datetime" readonly="1"/>
+                                    </group>
+                                    <group/>
                                 </group>
                             </page>
                             <page string="Entrega" name="audit_delivery">
                                 <group>
-                                    <group><field name="who_sent_id" readonly="1"/></group>
-                                    <group><field name="sent_datetime" readonly="1"/></group>
+                                    <group>
+                                        <field name="who_sent_id" readonly="1"/>
+                                        <field name="sent_datetime" readonly="1"/>
+                                    </group>
+                                    <group/>
                                 </group>
                             </page>
                             <page string="Cierre" name="audit_closure">
                                 <group>
-                                    <group><field name="who_closed_id" readonly="1"/></group>
-                                    <group><field name="closing_datetime" readonly="1"/></group>
+                                    <group>
+                                        <field name="who_closed_id" readonly="1"/>
+                                        <field name="closing_datetime" readonly="1"/>
+                                    </group>
+                                    <group/>
                                 </group>
                             </page>
                         </notebook>
