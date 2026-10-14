@@ -7,35 +7,20 @@
                 <form string="Reclamo a Proveedor" create="false" edit="true" delete="false">
                     <header>
                         <field name="state" widget="statusbar" statusbar_visible="open,in_progress,resolved,rejected"/>
-                        <button name="action_start_progress" type="object" string="Iniciar gestión"
-                            class="oe_highlight" invisible="state != 'open'"
-                            groups="werlen_repuestos_erp.group_administration"/>
-                        <button name="action_resolve" type="object" string="Resolver"
-                            class="oe_highlight" invisible="state not in ('open', 'in_progress')"
-                            groups="werlen_repuestos_erp.group_administration"/>
-                        <button name="action_reject" type="object" string="Rechazar"
-                            class="btn btn-outline-danger" invisible="state not in ('open', 'in_progress')"
-                            groups="werlen_repuestos_erp.group_administration"/>
-                        <button name="action_reopen" type="object" string="Reabrir"
-                            class="btn btn-outline-danger" invisible="state not in ('resolved', 'rejected')"
-                            groups="werlen_repuestos_erp.group_administration"/>
                     </header>
                     <sheet>
                         <widget name="web_ribbon" title="Abierto" bg_color="bg-danger" invisible="state != 'open'"/>
-                        <widget name="web_ribbon" title="En gestión" bg_color="bg-warning" invisible="state != 'in_progress'"/>
+                        <widget name="web_ribbon" title="En Gestión" bg_color="bg-warning" invisible="state != 'in_progress'"/>
                         <widget name="web_ribbon" title="Resuelto" bg_color="bg-success" invisible="state != 'resolved'"/>
                         <widget name="web_ribbon" title="Rechazado" bg_color="bg-secondary" invisible="state != 'rejected'"/>
-
                         <h1>
                             RECLAMO A PROVEEDOR
                             <field name="name" class="ms-2 text-muted fw-normal" readonly="1" nolabel="1"/>
                         </h1>
-
                         <group string="Datos del reclamo">
                             <group>
                                 <field name="claim_type" readonly="1"/>
-                                <field name="supplier_id" readonly="1"
-                                    options="{'no_create': True, 'no_create_edit': True, 'no_open': True}"/>
+                                <field name="supplier_id" readonly="1" options="{'no_create': True, 'no_create_edit': True, 'no_open': True}"/>
                                 <field name="product_id" readonly="1"/>
                                 <field name="list_price" readonly="1"/>
                             </group>
@@ -43,31 +28,26 @@
                                 <field name="purchase_invoice_id" readonly="1" options="{'no_create': True}"/>
                                 <field name="reception_id" readonly="1" options="{'no_create': True}"/>
                                 <field name="client_claim_id" readonly="1" options="{'no_create': True}"/>
-                                <field name="creation_date" readonly="1"/>
-                                <field name="who_created_id" readonly="1"/>
+                            </group>
+                            <group colspan="2">
+                                <group/>
+                                <group>
+                                    <field name="observations" placeholder="Notas adicionales sobre el reclamo"/>
+                                </group>
                             </group>
                         </group>
-
-                        <separator string="Observaciones"/>
-                        <field name="observations" nolabel="1" readonly="state != 'open'"
-                            placeholder="Notas adicionales sobre el reclamo"/>
-
-                        <separator string="Resolución" invisible="state not in ('resolved', 'rejected')"/>
-                        <field name="resolution_observations" nolabel="1" readonly="1"
-                            invisible="state not in ('resolved', 'rejected')"/>
-
+                        <group string="Cómo se resolvió o rechazó" invisible="state not in ('resolved', 'rejected')">
+                            <group/>
+                            <field name="resolution_observations" readonly="1" colspan="2" nolabel="1"/>
+                        </group>
                         <separator string="Líneas de devolución" invisible="not return_line_ids"/>
-                        <field name="return_line_ids" readonly="1" nolabel="1" invisible="not return_line_ids">
+                        <field name="return_line_ids" readonly="1" nolabel="1" colspan="2" invisible="not return_line_ids">
                             <list create="false" delete="false" edit="false">
                                 <field name="display_name" string="Identificador"/>
                                 <field name="return_note_id" string="Nota de devolución" optional="show"/>
                                 <field name="product_code" string="Código de producto" optional="show"/>
                                 <field name="product_description" string="Descripción" optional="hide"/>
-                                <field name="state" string="Estado" widget="badge"
-                                    decoration-muted="state == 'draft'"
-                                    decoration-info="state == 'sent'"
-                                    decoration-success="state == 'accepted'"
-                                    decoration-danger="state == 'rejected'"/>
+                                <field name="state" string="Estado" widget="badge" decoration-muted="state == 'draft'" decoration-info="state == 'sent'" decoration-success="state == 'accepted'" decoration-danger="state == 'rejected'"/>
                                 <field name="resolution_date" string="Fecha de resolución" optional="show"/>
                                 <field name="observations" string="Observaciones" optional="show"/>
                             </list>
