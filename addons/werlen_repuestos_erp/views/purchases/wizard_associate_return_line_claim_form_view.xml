@@ -5,20 +5,16 @@
             <field name="model">wizard_associate_return_line_claim</field>
             <field name="arch" type="xml">
                 <form string="Asociar reclamo a devolución" create="false" delete="false">
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label for="return_note_id"/>
-                            <field name="return_note_id" readonly="1" class="w-100"/>
-                            <label for="claim_id"/>
-                            <field name="claim_id" options="{'no_create': True, 'no_open': True}" class="w-100"/>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="product_code"/>
-                            <field name="product_code" readonly="1" class="w-100"/>
-                            <label for="quantity"/>
-                            <field name="quantity" class="w-100"/>
-                        </div>
-                    </div>
+                    <group>
+                        <group>
+                            <field name="return_note_id" readonly="1"/>
+                            <field name="claim_id" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="product_code" readonly="1"/>
+                            <field name="quantity"/>
+                        </group>
+                    </group>
                     <separator string="Datos de la devolución"/>
                     <label for="product_description"/>
                     <field name="product_description" readonly="1" class="w-100"/>

@@ -1,13 +1,28 @@
 <odoo>
-    <record id="wizard_supplier_claim_transition_form_view" model="ir.ui.view">
-        <field name="name">wizard.supplier.claim.transition.form</field>
-        <field name="model">wizard_supplier_claim_transition</field>
-        <field name="arch" type="xml">
-            <form string="Cambiar estado del reclamo">
-                <group><field name="claim_id"/><field name="action"/><field name="observations"/></group>
-                <footer><button name="action_apply" type="object" string="Aplicar" class="oe_highlight"/>
-                    <button string="Cancelar" special="cancel"/></footer>
-            </form>
-        </field>
-    </record>
+    <data>
+        <record id="wizard_supplier_claim_transition_form_view" model="ir.ui.view">
+            <field name="name">wizard.supplier.claim.transition.form</field>
+            <field name="model">wizard_supplier_claim_transition</field>
+            <field name="arch" type="xml">
+                <form string="Marcar Progreso Reclamos" create="false" delete="false">
+                    <div class="alert alert-info" role="alert">
+                        <p class="mb-0">Seleccione el progreso a marcar en los reclamos seleccionados.</p>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="claim_id"/>
+                            <field name="action"/>
+                        </group>
+                        <group>
+                            <field name="observations"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="action_apply" type="object" string="Aplicar" class="btn-primary"/>
+                        <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
 </odoo>

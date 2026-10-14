@@ -6,33 +6,35 @@
             <field name="arch" type="xml">
                 <form string="Crear Reclamo a Proveedor" create="false" delete="false">
                     <field name="client_claim_id" invisible="1"/>
-                    <h4>Datos principales</h4>
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label for="claim_type"/>
-                            <field name="claim_type" readonly="client_claim_id" class="w-100"/>
-                            <label for="supplier_id"/>
-                            <field name="supplier_id" context="{'default_is_supplier': True, 'default_is_company': True, 'default_company_type': 'company'}"
-                                options="{'no_open': True}" class="w-100"/>
-                            <label for="product_id"/>
-                            <field name="product_id" options="{'no_open': True}" class="w-100"/>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="purchase_invoice_id"/>
-                            <field name="purchase_invoice_id" options="{'no_create': True, 'no_open': True}" class="w-100"/>
-                            <label for="reception_id"/>
-                            <field name="reception_id" options="{'no_create': True, 'no_open': True}" class="w-100"/>
-                            <label for="quantity"/>
-                            <field name="quantity" class="w-100"/>
-                            <label for="list_price"/>
-                            <field name="list_price" class="w-100"/>
-                        </div>
-                    </div>
-                    <separator string="Observaciones"/>
-                    <field name="observations" placeholder="Notas adicionales sobre el reclamo" nolabel="1"/>
+                    <group>
+                        <group>
+                            <field name="claim_type" required="True" readonly="client_claim_id" placeholder="Seleccione el tipo"/>
+                        </group>
+                        <group>
+                            <field name="supplier_id" context="{'default_is_supplier': True, 'default_is_company': True, 'default_company_type': 'company'}" options="{'no_open': True}"/>
+                        </group>
+                    </group>
+                    <group string="Datos del reclamo">
+                        <group>
+                            <field name="reception_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="purchase_invoice_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_id" options="{'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="list_price"/>
+                            <field name="quantity"/>
+                        </group>
+                    </group>
+                    <separator string="Datos adicionales del reclamo"/>
+                    <group>
+                        <group/>
+                        <group>
+                            <field name="observations" placeholder="Notas adicionales sobre el reclamo (opcional)"/>
+                        </group>
+                    </group>
                     <footer>
-                        <button name="action_create" type="object" string="Crear reclamo" class="oe_highlight"/>
-                        <button string="Cancelar" special="cancel"/>
+                        <button name="action_create" type="object" string="Crear Reclamo(s)" class="btn-primary" invisible="not claim_type"/>
+                        <button string="Cancelar" special="cancel" class="btn-secondary"/>
                     </footer>
                 </form>
             </field>

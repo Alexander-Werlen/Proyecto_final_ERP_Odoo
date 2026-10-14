@@ -5,20 +5,15 @@
             <field name="model">wizard_create_return_note</field>
             <field name="arch" type="xml">
                 <form string="Crear Nota de Devolución" create="false" delete="false">
-                    <h4>Datos de la devolución</h4>
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label for="supplier_id"/>
-                            <field name="supplier_id" context="{'default_is_supplier': True, 'default_is_company': True, 'default_company_type': 'company'}"
-                                options="{'no_open': True}" class="w-100"/>
-                            <label for="carrier_id"/>
-                            <field name="carrier_id" context="{'default_is_carrier': True, 'default_is_company': True, 'default_company_type': 'company'}" class="w-100"/>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="package_count"/>
-                            <field name="package_count" class="w-100"/>
-                        </div>
-                    </div>
+                    <group>
+                        <group>
+                            <field name="supplier_id" context="{'default_is_supplier': True, 'default_is_company': True, 'default_company_type': 'company'}" options="{'no_open': True}"/>
+                            <field name="carrier_id" context="{'default_is_carrier': True, 'default_is_company': True, 'default_company_type': 'company'}"/>
+                        </group>
+                        <group>
+                            <field name="package_count"/>
+                        </group>
+                    </group>
                     <separator string="Observaciones"/>
                     <field name="observations" placeholder="Notas adicionales sobre la devolución" nolabel="1"/>
                     <footer>

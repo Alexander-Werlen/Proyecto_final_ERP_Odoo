@@ -6,18 +6,15 @@
             <field name="arch" type="xml">
                 <form string="Enviar nota de devolución" create="false" delete="false">
                     <field name="return_note_id" invisible="1"/>
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label for="supplier_id"/>
-                            <field name="supplier_id" readonly="1" class="w-100"/>
-                            <label for="package_count"/>
-                            <field name="package_count" readonly="1" class="w-100"/>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="carrier_id"/>
-                            <field name="carrier_id" readonly="1" class="w-100"/>
-                        </div>
-                    </div>
+                    <group>
+                        <group>
+                            <field name="supplier_id" string="Proveedor" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="package_count" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="carrier_id" readonly="1"/>
+                        </group>
+                    </group>
                     <separator string="Observaciones"/>
                     <field name="observations" placeholder="Notas adicionales para el envío" nolabel="1"/>
                     <footer>
