@@ -1,41 +1,28 @@
 <odoo>
-    <data>
-        <record id="wizard_create_reception_form_view" model="ir.ui.view">
-            <field name="name">wizard.create.reception.form</field>
-            <field name="model">wizard_create_reception</field>
-            <field name="arch" type="xml">
-                <form string="Registrar ingreso de mercadería" create="false" delete="false">
-                    <sheet>
-                        <h2>Datos del ingreso</h2>
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <label for="supplier_id"/>
-                                <field name="supplier_id" context="{'default_is_supplier': True}" class="w-100"/>
-                                <label for="packages_description"/>
-                                <field name="packages_description" placeholder="Ej.: 3 bultos + 1 pallet" class="w-100"/>
-                                <label for="carrier_id"/>
-                                <field name="carrier_id" context="{'default_is_carrier': True}" class="w-100"/>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="remito_number"/>
-                                <field name="remito_number" class="w-100"/>
-                                <label for="who_received_ids"/>
-                                <field name="who_received_ids" widget="many2many_tags"
-                                    options="{'no_create': True}" class="w-100"/>
-                                <label for="reception_datetime"/>
-                                <field name="reception_datetime" class="w-100"/>
-                            </div>
-                        </div>
-                        <separator string="Observaciones"/>
-                        <field name="observations" nolabel="1" placeholder="Notas adicionales sobre el ingreso"/>
-                    </sheet>
-                    <footer>
-                        <button name="action_create_reception" type="object"
-                            string="Crear ingreso" class="oe_highlight" data-hotkey="enter"/>
-                        <button string="Cancelar" special="cancel" data-hotkey="c"/>
-                    </footer>
-                </form>
-            </field>
-        </record>
-    </data>
+    <record id="wizard_create_reception_form_view" model="ir.ui.view">
+        <field name="name">wizard.create.reception.form</field>
+        <field name="model">wizard_create_reception</field>
+        <field name="arch" type="xml">
+            <form string="Registrar Ingreso de Mercadería" create="false" delete="false">
+                <group>
+                    <group>
+                        <field name="supplier_id" context="{'default_is_supplier': True, 'default_is_company': True, 'default_company_type': 'company'}"/>
+                        <field name="packages_description" placeholder="Por Ej: 3 bultos + 1 pallet"/>
+                        <field name="carrier_id" context="{'default_is_carrier': True, 'default_is_company': True, 'default_company_type': 'company'}"/>
+                    </group>
+                    <group>
+                        <field name="remito_number"/>
+                        <field name="who_received_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        <field name="reception_datetime"/>
+                    </group>
+                </group>
+                <separator string="Observaciones"/>
+                <field name="observations" placeholder="Notas adicionales sobre el ingreso (opcional)" nolabel="1"/>
+                <footer>
+                    <button name="action_create_reception" type="object" string="Crear Ingreso" class="btn-primary" confirm="¿Está seguro de que desea registrar este ingreso?"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
 </odoo>
