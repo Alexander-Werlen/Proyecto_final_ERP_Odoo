@@ -76,12 +76,12 @@ export class ReceptionDashboard extends Component {
     };
 
     onOpenAllClick = () => {
-        this.actionService.doAction("werlen_repuestos_erp.action_open_receptions");
+        this.actionService.doAction("werlen_repuestos_erp.action_open_all_receptions");
     };
 
     onPreparedReturnsClick = () => {
         this.actionService.doAction(
-            "werlen_repuestos_erp.action_open_return_notes",
+            "werlen_repuestos_erp.action_open_all_return_notes",
             {
                 additionalContext: {
                     search_default_prepared: 1,
@@ -97,7 +97,7 @@ export class ReceptionDashboard extends Component {
         };
 
         this.actionService.doAction(
-            "werlen_repuestos_erp.action_open_receptions",
+            "werlen_repuestos_erp.action_open_all_receptions",
             {
                 additionalContext: context,
             }

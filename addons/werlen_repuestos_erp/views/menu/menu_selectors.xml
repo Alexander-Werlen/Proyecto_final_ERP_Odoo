@@ -361,6 +361,18 @@
         <field name="domain">[('state', 'in', ['pending_review', 'in_review'])]</field>
     </record>
 
+    <record id="action_open_all_receptions" model="ir.actions.act_window">
+        <field name="name">Todos los ingresos</field>
+        <field name="res_model">reception</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('werlen_repuestos_erp.reception_list_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('werlen_repuestos_erp.reception_form_view')})
+        ]"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.reception_search_view"/>
+    </record>
+
     <record id="action_create_purchase_invoice" model="ir.actions.act_window">
         <field name="name">Crear Nueva Factura de Compra</field>
         <field name="res_model">wizard_create_purchase_invoice</field>
@@ -443,6 +455,18 @@
 
     <record id="action_open_return_notes" model="ir.actions.act_window">
         <field name="name">Notas de devolución</field>
+        <field name="res_model">return_note</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('werlen_repuestos_erp.return_note_list_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('werlen_repuestos_erp.return_note_form_view')})
+        ]"/>
+        <field name="search_view_id" ref="werlen_repuestos_erp.return_note_search_view"/>
+    </record>
+
+    <record id="action_open_all_return_notes" model="ir.actions.act_window">
+        <field name="name">Todas las notas de devolución</field>
         <field name="res_model">return_note</field>
         <field name="view_mode">list,form</field>
         <field name="view_ids" eval="[
