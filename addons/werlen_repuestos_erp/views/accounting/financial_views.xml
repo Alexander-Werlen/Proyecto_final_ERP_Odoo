@@ -24,24 +24,36 @@
     </record>
 
     <record id="default_payment_line_search_view" model="ir.ui.view">
-        <field name="name">payment.line.search</field>
+        <field name="name">default.payment.line.search</field>
         <field name="model">payment_line</field>
         <field name="arch" type="xml">
             <search string="Buscar pagos">
-                <field name="name"/>
-                <field name="payer"/>
-                <field name="payee"/>
-                <field name="payment_method"/>
-                <field name="journal"/>
-                <field name="payment_origin_explanation"/>
-                <filter name="confirmed" string="Confirmados" domain="[('confirmed', '=', True)]"/>
-                <filter name="not_confirmed" string="No confirmados" domain="[('confirmed', '=', False)]"/>
-                <filter name="pending_reconciliation" string="Pendientes" domain="[('payment_status', 'in', ['not_paid', 'partially_paid'])]"/>
-                <filter name="account_in" string="Ingresos a cuenta corriente" domain="[('payment_origin_explanation', '=', 'account_in')]"/>
-                <group string="Agrupar por">
-                    <filter name="group_origin" string="Razón" context="{'group_by': 'payment_origin_explanation'}"/>
-                    <filter name="group_method" string="Método" context="{'group_by': 'payment_method'}"/>
-                    <filter name="group_journal" string="Diario" context="{'group_by': 'journal'}"/>
+                <field name="name" string="Referencia"/>
+                <field name="payer" string="Paga"/>
+                <field name="payment_origin_explanation" string="Razón"/>
+                <field name="payment_method" string="Método"/>
+                <field name="journal" string="Diario"/>
+                <field name="who_proposed_payment" string="Propuesto por"/>
+                <field name="who_confirmed_payment" string="Confirmado por"/>
+                <field name="amount" string="Importe del pago"/>
+                <separator/>
+                <filter string="Confirmados" name="confirmed" domain="[('confirmed', '=', True)]"/>
+                <filter string="No confirmados" name="not_confirmed" domain="[('confirmed', '=', False)]"/>
+                <separator/>
+                <filter string="Pendientes de Reconciliación" name="pending_reconciliation" domain="[('payment_status', 'in', ['not_paid', 'partially_paid'])]"/>
+                <filter string="Ingresos a CC" name="account_payment_in" domain="[('payment_origin_explanation', '=', 'account_in')]"/>
+                <separator/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Razón de pago" name="group_payment_origin_explanation" context="{'group_by': 'payment_origin_explanation'}"/>
+                </group>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Método de pago" name="group_payment_method" context="{'group_by': 'payment_method'}"/>
+                </group>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Diario" name="group_journal" context="{'group_by': 'journal'}"/>
+                </group>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Confirmado por" name="group_who_confirmed" context="{'group_by': 'who_confirmed_payment'}"/>
                 </group>
             </search>
         </field>
@@ -171,17 +183,25 @@
     </record>
 
     <record id="default_check_search_view" model="ir.ui.view">
-        <field name="name">check.search</field>
+        <field name="name">default.check.search</field>
         <field name="model">check</field>
         <field name="arch" type="xml">
             <search string="Buscar cheques">
-                <field name="display_name"/>
-                <field name="check_number"/>
-                <field name="bank"/>
-                <field name="issuer"/>
-                <field name="owner_of_credit"/>
-                <field name="journal_id"/>
-                <filter name="pending" string="Pendientes" domain="[('payment_status', 'in', ['not_paid', 'partially_paid'])]"/>
+                <field name="owner_of_credit" string="Propietario"/>
+                <field name="bank" string="Banco"/>
+                <field name="check_number" string="Número"/>
+                <field name="issuer" string="Emisor"/>
+                <field name="amount" string="Importe"/>
+                <group string="Reconciliación">
+                    <filter string="Reconciliados" name="reconciliated" domain="[('payment_status','=', 'paid')]"/>
+                    <filter string="Rec. Pendiente" name="not_reconciliated" domain="[('payment_status','!=', 'paid')]"/>
+                </group>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Propietario" name="group_owner_of_credit" context="{'group_by': 'owner_of_credit'}"/>
+                </group>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Banco" name="group_bank" context="{'group_by': 'bank'}"/>
+                </group>
             </search>
         </field>
     </record>
@@ -472,16 +492,24 @@
     </record>
 
     <record id="default_account_payment_search_view" model="ir.ui.view">
-        <field name="name">account.payment.search</field>
+        <field name="name">default.account.payment.search</field>
         <field name="model">account_payment</field>
         <field name="arch" type="xml">
             <search string="Buscar recibos">
-                <field name="account_payment_id"/>
-                <field name="client"/>
-                <field name="status"/>
-                <filter name="draft" string="Borradores" domain="[('status', '=', 'draft')]"/>
-                <filter name="pending" string="Pendientes" domain="[('payment_status', 'in', ['not_paid', 'partially_paid'])]"/>
-                <filter name="main_category" string="Punto de venta principal" domain="[('is_main_point_of_sale_category', '=', True)]"/>
+                <field name="account_payment_id" string="Identificador"/>
+                <field name="client" string="Cliente"/>
+                <field name="amount" string="Importe total"/>
+                <group string="Estado">
+                    <filter string="Borrador" name="draft" domain="[('status','=', 'draft')]"/>
+                    <filter string="Verificado" name="verified" domain="[('status','=', 'verified')]"/>
+                </group>
+                <group string="Reconciliación">
+                    <filter string="Reconciliados" name="reconciliated" domain="[('payment_status','=', 'paid')]"/>
+                    <filter string="Rec. Pendiente" name="not_reconciliated" domain="[('payment_status','in', ['not_paid', 'partially_paid'])]"/>
+                </group>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Cliente" name="group_client" context="{'group_by': 'client'}"/>
+                </group>
             </search>
         </field>
     </record>
