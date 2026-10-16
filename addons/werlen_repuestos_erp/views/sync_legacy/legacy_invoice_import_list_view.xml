@@ -1,11 +1,12 @@
 <odoo>
     <data>
         <record id="legacy_invoice_import_list_view" model="ir.ui.view">
-            <field name="name">legacy.invoice.import.list</field>
+            <field name="name"></field>
             <field name="model">legacy_invoice_import</field>
             <field name="arch" type="xml">
                 <list create="0" edit="0" delete="0">
                     <field name="state"
+                           string="Estado"
                            widget="badge"
                            decoration-success="state == 'done'"
                            decoration-warning="state not in ['done', 'failed']"
@@ -15,7 +16,6 @@
                     <field name="last_error"/>
                     <field name="last_attempt_at"/>
                     <field name="correlation_id" optional="hide"/>
-                    <field name="path" optional="hide"/>
                 </list>
             </field>
         </record>
