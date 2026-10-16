@@ -9,13 +9,13 @@
                     <form>
                         <header>
                             <button name="action_open_wizard_current_account_income" type="object"
-                                class="oe_highlight" icon="fa-money" string="Pago a cuenta corriente"
+                                class="oe_highlight" icon="fa-money" string="Pago a CC"
                                 groups="werlen_repuestos_erp.group_manage_account_payments"/>
                             <button name="action_open_new_check_for_current_account" type="object"
-                                class="oe_highlight" icon="fa-list-alt" string="Cheque a cuenta corriente"
+                                class="oe_highlight" icon="fa-list-alt" string="Cheque a CC"
                                 groups="werlen_repuestos_erp.group_manage_account_payments"/>
                             <button name="action_open_pending_account_payments" type="object"
-                                string="Ver recibos pendientes"
+                                string="Ver Recibos Pendientes"
                                 groups="werlen_repuestos_erp.group_accountant,werlen_repuestos_erp.group_administration"/>
                         </header>
                         <sheet>
